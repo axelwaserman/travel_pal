@@ -1,0 +1,18 @@
+name: travel_pal
+version: "1.0.0"
+config-version: 2
+profile: travel_pal
+
+model-paths: ["models"]
+test-paths: ["tests"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  travel_pal:
+    staging:
+      +materialized: view
+    intermediate:
+      +materialized: table
+    marts:
+      +materialized: table

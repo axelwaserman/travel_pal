@@ -1,0 +1,15 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: main
+    tables:
+      - name: raw_flights
+        description: Raw flight records fetched from OpenSky Network
+        columns:
+          - name: icao24
+            tests:
+              - not_null
+          - name: first_seen
+            tests:
+              - not_null
