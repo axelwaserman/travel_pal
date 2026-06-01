@@ -55,9 +55,12 @@ export async function queryFlightLookup(
        ORDER BY on_time_ratio DESC
        LIMIT 20`
     )
-    const result = await stmt.query(term)
-    await stmt.close()
-    return result.toArray().map((r) => r.toJSON() as RouteTimeliness)
+    try {
+      const result = await stmt.query(term)
+      return result.toArray().map((r) => r.toJSON() as RouteTimeliness)
+    } finally {
+      await stmt.close()
+    }
   } finally {
     await conn.close()
   }

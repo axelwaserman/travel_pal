@@ -16,10 +16,12 @@ export default function TimelinessDashboard({ airportIcao }: Props) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    let isMounted = true
     queryDailyTimeliness(airportIcao)
-      .then(setData)
-      .catch(() => setError('Failed to load timeliness data.'))
-      .finally(() => setLoading(false))
+      .then(data => { if (isMounted) setData(data) })
+      .catch(() => { if (isMounted) setError('Failed to load timeliness data.') })
+      .finally(() => { if (isMounted) setLoading(false) })
+    return () => { isMounted = false }
   }, [airportIcao])
 
   if (loading) return <p aria-busy="true">Loading timeliness data…</p>
