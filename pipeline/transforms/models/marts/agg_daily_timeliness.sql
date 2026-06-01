@@ -1,9 +1,9 @@
--- Aggregate: per-day timeliness for the dashboard
 WITH daily AS (
     SELECT
-        CAST(departed_at AS DATE)   AS flight_date,
+        CAST(departed_at AS DATE) AS flight_date,
         origin_icao,
-        block_minutes
+        block_minutes,
+        is_on_time
     FROM {{ ref('fct_flight_performance') }}
 ),
 daily_medians AS (
@@ -21,8 +21,7 @@ SELECT
     ROUND(AVG(d.block_minutes - m.median_block), 1)                AS avg_delay_minutes,
     ROUND(STDDEV(d.block_minutes - m.median_block), 1)             AS delay_volatility,
     ROUND(
-        SUM(CASE WHEN (d.block_minutes - m.median_block) <= 15 THEN 1 ELSE 0 END)
-            * 1.0 / NULLIF(COUNT(*), 0),
+        SUM(CASE WHEN d.is_on_time THEN 1 ELSE 0 END) * 1.0 / NULLIF(COUNT(*), 0),
         3
     )                                                               AS on_time_ratio
 FROM daily d
