@@ -1,14 +1,15 @@
 import subprocess
 import pyarrow as pa
-from dagster import asset
+from dagster import asset, ResourceParam
 from pipeline.config import PipelineConfig
+from pipeline.resources.seaweedfs import SeaweedFSResource
 
 
 @asset
 def transformed_flights(
-    pipeline_config: PipelineConfig,
+    pipeline_config: ResourceParam[PipelineConfig],
     raw_flights: pa.Table,
-    seaweedfs,
+    seaweedfs: ResourceParam[SeaweedFSResource],
 ) -> None:
     result = subprocess.run(
         ["dbt", "run", "--project-dir", "transforms", "--profiles-dir", "transforms"],

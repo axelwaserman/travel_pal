@@ -2,14 +2,15 @@ import os
 import pathlib
 import duckdb
 import pyarrow as pa
-from dagster import asset, AssetIn, Nothing
+from dagster import asset, AssetIn, Nothing, ResourceParam
 from pipeline.config import PipelineConfig
+from pipeline.resources.seaweedfs import SeaweedFSResource
 
 
 @asset(ins={"transformed_flights": AssetIn(dagster_type=Nothing)})
 def frontend_exports(
-    pipeline_config: PipelineConfig,
-    seaweedfs,
+    pipeline_config: ResourceParam[PipelineConfig],
+    seaweedfs: ResourceParam[SeaweedFSResource],
 ) -> None:
     db_path = os.environ.get("DBT_DUCKDB_PATH", "/tmp/travel_pal.duckdb")
     if not pathlib.Path(db_path).exists():

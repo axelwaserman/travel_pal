@@ -79,6 +79,7 @@ services:
     ports:
       - "3000:3000"
     environment:
+      DAGSTER_HOME: /opt/dagster/app
       DAGSTER_POSTGRES_USER: dagster
       DAGSTER_POSTGRES_PASSWORD: dagster
       DAGSTER_POSTGRES_DB: dagster
@@ -106,6 +107,7 @@ services:
       dockerfile: Dockerfile
     command: dagster-daemon run
     environment:
+      DAGSTER_HOME: /opt/dagster/app
       DAGSTER_POSTGRES_USER: dagster
       DAGSTER_POSTGRES_PASSWORD: dagster
       DAGSTER_POSTGRES_DB: dagster

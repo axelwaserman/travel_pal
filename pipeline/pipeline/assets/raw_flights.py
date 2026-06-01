@@ -1,8 +1,11 @@
 import pyarrow as pa
 import pyiceberg.schema as sch
 from datetime import date, timedelta
-from dagster import asset
+from dagster import asset, ResourceParam
 from pipeline.config import PipelineConfig
+from pipeline.resources.opensky import OpenSkyAdapter
+from pipeline.resources.seaweedfs import SeaweedFSResource
+from pipeline.resources.nessie import NessieResource
 from pyiceberg.types import NestedField, StringType, LongType
 
 
@@ -17,10 +20,10 @@ def _date_chunks(start: str, end: str, days: int = 7):
 
 @asset
 def raw_flights(
-    pipeline_config: PipelineConfig,
-    opensky,
-    seaweedfs,
-    nessie,
+    pipeline_config: ResourceParam[PipelineConfig],
+    opensky: ResourceParam[OpenSkyAdapter],
+    seaweedfs: ResourceParam[SeaweedFSResource],
+    nessie: ResourceParam[NessieResource],
 ) -> pa.Table:
     tables: list[pa.Table] = []
 
