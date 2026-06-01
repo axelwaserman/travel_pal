@@ -6,7 +6,6 @@ WITH route_medians AS (
         destination_icao,
         PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY block_minutes) AS median_block_minutes
     FROM {{ ref('fct_flight_performance') }}
-    WHERE is_cancelled = FALSE
     GROUP BY origin_icao, destination_icao
 ),
 with_delay AS (
@@ -17,7 +16,6 @@ with_delay AS (
     JOIN route_medians m
         ON f.origin_icao = m.origin_icao
        AND f.destination_icao = m.destination_icao
-    WHERE f.is_cancelled = FALSE
 )
 SELECT
     origin_icao,
@@ -28,14 +26,6 @@ SELECT
     ROUND(
         SUM(CASE WHEN delay_minutes <= 15 THEN 1 ELSE 0 END) * 1.0 / COUNT(*),
         3
-    )                                                           AS on_time_ratio,
-    ROUND(
-        SUM(CASE WHEN f2.is_cancelled THEN 1 ELSE 0 END) * 1.0
-            / (COUNT(*) + SUM(CASE WHEN f2.is_cancelled THEN 1 ELSE 0 END)),
-        3
-    )                                                           AS cancellation_rate
-FROM with_delay wd
-JOIN {{ ref('fct_flight_performance') }} f2
-    ON wd.origin_icao = f2.origin_icao
-   AND wd.destination_icao = f2.destination_icao
+    )                                                           AS on_time_ratio
+FROM with_delay
 GROUP BY origin_icao, destination_icao

@@ -11,9 +11,5 @@ SELECT
     CAST(
         (EXTRACT(EPOCH FROM arrived_at) - EXTRACT(EPOCH FROM departed_at)) / 60
         AS INTEGER
-    )                                               AS block_minutes,
-    CASE
-        WHEN arrived_at IS NULL THEN TRUE
-        ELSE FALSE
-    END                                             AS is_cancelled
+    ) AS block_minutes
 FROM {{ ref('stg_flights') }}
