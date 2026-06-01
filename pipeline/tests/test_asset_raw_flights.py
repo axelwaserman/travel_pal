@@ -34,7 +34,7 @@ def test_raw_flights_asset_uploads_and_registers(monkeypatch):
     mock_seaweedfs = MagicMock()
     mock_nessie = MagicMock()
     mock_catalog = MagicMock()
-    mock_nessie.catalog.return_value = mock_catalog
+    mock_nessie.catalog = mock_catalog
 
     result = raw_flights(
         pipeline_config=config,
@@ -44,4 +44,7 @@ def test_raw_flights_asset_uploads_and_registers(monkeypatch):
     )
 
     assert mock_seaweedfs.upload_parquet.called
-    assert result is not None
+    upload_key = mock_seaweedfs.upload_parquet.call_args.kwargs["key"]
+    assert upload_key == "KJFK/raw_flights.parquet"
+    assert mock_catalog.table_exists.called
+    assert result.num_rows == 2  # 2 rows: one from departures + one from arrivals

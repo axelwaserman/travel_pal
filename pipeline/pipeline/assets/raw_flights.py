@@ -1,7 +1,9 @@
 import pyarrow as pa
+import pyiceberg.schema as sch
 from datetime import date, timedelta
 from dagster import asset
 from pipeline.config import PipelineConfig
+from pyiceberg.types import NestedField, StringType, LongType
 
 
 def _date_chunks(start: str, end: str, days: int = 7):
@@ -33,15 +35,22 @@ def raw_flights(
         )
         tables.extend([departures, arrivals])
 
+    if not tables:
+        return pa.table({
+            "icao24": pa.array([], type=pa.string()),
+            "callsign": pa.array([], type=pa.string()),
+            "first_seen": pa.array([], type=pa.int64()),
+            "last_seen": pa.array([], type=pa.int64()),
+            "est_departure_airport": pa.array([], type=pa.string()),
+            "est_arrival_airport": pa.array([], type=pa.string()),
+        })
+
     combined = pa.concat_tables(tables)
     key = f"{pipeline_config.airport_icao}/raw_flights.parquet"
     seaweedfs.upload_parquet(combined, bucket=pipeline_config.raw_bucket, key=key)
 
     catalog = nessie.catalog
     if not catalog.table_exists("flights.raw_flights"):
-        import pyiceberg.schema as sch
-        from pyiceberg.types import NestedField, StringType, LongType
-
         schema = sch.Schema(
             NestedField(1, "icao24", StringType(), required=False),
             NestedField(2, "callsign", StringType(), required=False),
