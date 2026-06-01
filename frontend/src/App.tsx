@@ -1,4 +1,6 @@
 import { Component, ReactNode } from 'react'
+import FlightLookup from './components/FlightLookup/FlightLookup'
+import TimelinessDashboard from './components/TimelinessDashboard/TimelinessDashboard'
 
 interface ErrorBoundaryState {
   error: Error | null
@@ -26,12 +28,18 @@ class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryStat
   }
 }
 
+const AIRPORT_ICAO = import.meta.env.VITE_AIRPORT_ICAO ?? 'KJFK'
+
 export default function App() {
   return (
     <ErrorBoundary>
       <main>
-        <h1>TravelPal</h1>
-        <p>Loading...</p>
+        <header>
+          <h1>TravelPal</h1>
+          <p>Flight performance analytics for {AIRPORT_ICAO}</p>
+        </header>
+        <TimelinessDashboard airportIcao={AIRPORT_ICAO} />
+        <FlightLookup airportIcao={AIRPORT_ICAO} />
       </main>
     </ErrorBoundary>
   )

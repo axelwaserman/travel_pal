@@ -1,0 +1,67 @@
+.flight-lookup {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: var(--space-section, 2rem);
+}
+
+.lookup-input-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-block: 1rem;
+}
+
+.lookup-input-row input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  border: 1px solid currentColor;
+}
+
+.lookup-input-row button {
+  padding: 0.5rem 1.25rem;
+  cursor: pointer;
+}
+
+.lookup-input-row button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.lookup-error {
+  color: red;
+  margin-block: 0.5rem;
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.result-card {
+  border: 1px solid currentColor;
+  padding: 1rem;
+}
+
+.result-card h3 {
+  margin-block-end: 0.75rem;
+  font-size: 1rem;
+}
+
+.result-card dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 1rem;
+  margin: 0;
+}
+
+.result-card dt {
+  opacity: 0.7;
+  font-size: 0.85rem;
+}
+
+.result-card dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}

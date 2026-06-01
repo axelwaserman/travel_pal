@@ -1,0 +1,60 @@
+.timeliness-dashboard {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: var(--space-section, 2rem);
+}
+
+.metric-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-block: 1.5rem;
+}
+
+.metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem;
+  border: 1px solid currentColor;
+}
+
+.metric-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.metric-sub {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.daily-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.daily-table th,
+.daily-table td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid currentColor;
+}
+
+.daily-table th {
+  opacity: 0.7;
+  font-weight: 600;
+}
+
+.daily-table tr:hover td {
+  opacity: 0.8;
+}
