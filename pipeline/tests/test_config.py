@@ -1,4 +1,3 @@
-import os
 import pytest
 from pipeline.config import PipelineConfig
 
