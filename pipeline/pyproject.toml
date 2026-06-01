@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "travel_pal_pipeline"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "dagster>=1.9",
+    "dagster-postgres",
+    "dagster-dbt",
+    "dbt-duckdb>=1.9",
+    "duckdb>=1.4.0",
+    "pyiceberg[s3fs,nessie]>=0.8",
+    "boto3",
+    "httpx",
+    "pyarrow>=15",
+    "sqlglot>=25",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "moto[s3]",
+]
+
+[tool.dagster]
+module_name = "pipeline"
