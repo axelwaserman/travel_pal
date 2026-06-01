@@ -6,3 +6,10 @@ __pycache__/
 node_modules/
 dist/
 pipeline/transforms/target/
+pipeline/storage/
+pipeline/logs/
+pipeline/.telemetry/
+pipeline/transforms/logs/
+pipeline/transforms/.user.yml
+*.egg-info/
+uv.lock
