@@ -1,12 +1,12 @@
 from dataclasses import dataclass
-from pyiceberg.catalog import load_catalog
+from pyiceberg.catalog import Catalog, load_catalog
 
 
 @dataclass
 class NessieResource:
     endpoint: str
 
-    def catalog(self):
+    def catalog(self) -> Catalog:
         return load_catalog(
             "nessie",
             **{
