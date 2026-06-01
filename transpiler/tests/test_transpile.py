@@ -34,3 +34,17 @@ def test_transpile_directory(tmp_path):
     assert result_file.exists()
     content = result_file.read_text()
     assert "SELECT" in content
+
+
+def test_transpile_directory_skips_jinja(tmp_path):
+    sql_dir = tmp_path / "models"
+    sql_dir.mkdir()
+    out_dir = tmp_path / "out"
+    out_dir.mkdir()
+    (sql_dir / "plain.sql").write_text("SELECT id FROM t")
+    (sql_dir / "dbt_model.sql").write_text("SELECT id FROM {{ ref('t') }}")
+
+    transpile_directory(sql_dir, out_dir)
+
+    assert (out_dir / "plain.sql").exists()
+    assert not (out_dir / "dbt_model.sql").exists()
