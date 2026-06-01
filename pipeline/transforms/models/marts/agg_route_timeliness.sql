@@ -1,20 +1,3 @@
-WITH route_medians AS (
-    SELECT
-        origin_icao,
-        destination_icao,
-        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY block_minutes) AS median_block_minutes
-    FROM {{ ref('fct_flight_performance') }}
-    GROUP BY origin_icao, destination_icao
-),
-with_delay AS (
-    SELECT
-        f.*,
-        f.block_minutes - m.median_block_minutes AS delay_minutes
-    FROM {{ ref('fct_flight_performance') }} f
-    JOIN route_medians m
-        ON f.origin_icao = m.origin_icao
-       AND f.destination_icao = m.destination_icao
-)
 SELECT
     origin_icao,
     destination_icao,
@@ -25,5 +8,5 @@ SELECT
         SUM(CASE WHEN is_on_time THEN 1 ELSE 0 END) * 1.0 / NULLIF(COUNT(*), 0),
         3
     )                                                           AS on_time_ratio
-FROM with_delay
+FROM {{ ref('fct_flight_performance') }}
 GROUP BY origin_icao, destination_icao

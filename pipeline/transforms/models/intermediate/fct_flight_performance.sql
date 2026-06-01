@@ -11,6 +11,7 @@ WITH all_flights AS (
             AS INTEGER
         ) AS block_minutes
     FROM {{ ref('stg_flights') }}
+    WHERE departed_at IS NOT NULL AND arrived_at IS NOT NULL
 ),
 route_medians AS (
     SELECT
@@ -28,10 +29,12 @@ SELECT
     f.departed_at,
     f.arrived_at,
     f.block_minutes,
+    ROUND(f.block_minutes - m.median_block_minutes, 1)              AS delay_minutes,
     CASE
+        WHEN f.block_minutes IS NULL OR m.median_block_minutes IS NULL THEN NULL
         WHEN f.block_minutes - m.median_block_minutes <= 15 THEN TRUE
         ELSE FALSE
-    END AS is_on_time
+    END                                                              AS is_on_time
 FROM all_flights f
 LEFT JOIN route_medians m
     ON f.origin_icao = m.origin_icao
