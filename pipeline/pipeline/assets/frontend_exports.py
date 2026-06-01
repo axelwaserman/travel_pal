@@ -1,4 +1,5 @@
 import os
+import pathlib
 import duckdb
 import pyarrow as pa
 from dagster import asset, AssetIn, Nothing
@@ -11,18 +12,23 @@ def frontend_exports(
     seaweedfs,
 ) -> None:
     db_path = os.environ.get("DBT_DUCKDB_PATH", "/tmp/travel_pal.duckdb")
-    con = duckdb.connect(db_path, read_only=True)
+    if not pathlib.Path(db_path).exists():
+        raise FileNotFoundError(
+            f"DuckDB file not found at {db_path!r}. "
+            "Ensure transformed_flights completed successfully."
+        )
 
-    agg_route = con.execute("SELECT * FROM agg_route_timeliness").arrow()
-    seaweedfs.upload_parquet(
-        agg_route,
-        bucket=pipeline_config.export_bucket,
-        key=f"{pipeline_config.airport_icao}/route_timeliness.parquet",
-    )
+    with duckdb.connect(db_path, read_only=True) as con:
+        agg_route = con.execute("SELECT * FROM agg_route_timeliness").arrow()
+        seaweedfs.upload_parquet(
+            agg_route,
+            bucket=pipeline_config.export_bucket,
+            key=f"{pipeline_config.airport_icao}/route_timeliness.parquet",
+        )
 
-    agg_daily = con.execute("SELECT * FROM agg_daily_timeliness").arrow()
-    seaweedfs.upload_parquet(
-        agg_daily,
-        bucket=pipeline_config.export_bucket,
-        key=f"{pipeline_config.airport_icao}/daily_timeliness.parquet",
-    )
+        agg_daily = con.execute("SELECT * FROM agg_daily_timeliness").arrow()
+        seaweedfs.upload_parquet(
+            agg_daily,
+            bucket=pipeline_config.export_bucket,
+            key=f"{pipeline_config.airport_icao}/daily_timeliness.parquet",
+        )

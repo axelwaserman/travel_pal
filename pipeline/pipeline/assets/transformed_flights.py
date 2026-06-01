@@ -14,6 +14,7 @@ def transformed_flights(
         ["dbt", "run", "--project-dir", "transforms", "--profiles-dir", "transforms"],
         capture_output=True,
         text=True,
+        cwd="/opt/dagster/app",
     )
     if result.returncode != 0:
         raise RuntimeError(f"dbt run failed:\n{result.stdout}\n{result.stderr}")

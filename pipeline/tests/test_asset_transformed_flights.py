@@ -69,12 +69,15 @@ def test_transformed_flights_raises_on_dbt_failure():
 def test_frontend_exports_uploads_both_parquet_files():
     mock_seaweedfs = MagicMock()
     mock_con = MagicMock()
+    mock_con.__enter__ = lambda s: mock_con
+    mock_con.__exit__ = MagicMock(return_value=False)
     mock_con.execute.side_effect = [
         MagicMock(arrow=lambda: AGG_ROUTE_TABLE),
         MagicMock(arrow=lambda: AGG_DAILY_TABLE),
     ]
 
-    with patch("pipeline.assets.frontend_exports.duckdb.connect", return_value=mock_con):
+    with patch("pipeline.assets.frontend_exports.pathlib.Path.exists", return_value=True), \
+         patch("pipeline.assets.frontend_exports.duckdb.connect", return_value=mock_con):
         frontend_exports(
             pipeline_config=CONFIG,
             seaweedfs=mock_seaweedfs,
@@ -86,4 +89,17 @@ def test_frontend_exports_uploads_both_parquet_files():
     assert any("route_timeliness" in k for k in keys)
     assert any("daily_timeliness" in k for k in keys)
     buckets = [c.kwargs["bucket"] for c in upload_calls]
-    assert all(b == "frontend-exports" for b in buckets)
+    assert all(b == CONFIG.export_bucket for b in buckets)
+
+
+def test_frontend_exports_raises_on_missing_db():
+    mock_seaweedfs = MagicMock()
+    import pipeline.assets.frontend_exports as fe_mod
+
+    original_fn = fe_mod.frontend_exports.op.compute_fn.decorated_fn
+    with patch("pipeline.assets.frontend_exports.pathlib.Path.exists", return_value=False):
+        with pytest.raises(FileNotFoundError, match="DuckDB file not found"):
+            original_fn(
+                pipeline_config=CONFIG,
+                seaweedfs=mock_seaweedfs,
+            )
