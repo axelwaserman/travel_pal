@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from functools import cached_property
 from pyiceberg.catalog import Catalog, load_catalog
 
 
@@ -6,6 +7,7 @@ from pyiceberg.catalog import Catalog, load_catalog
 class NessieResource:
     endpoint: str
 
+    @cached_property
     def catalog(self) -> Catalog:
         return load_catalog(
             "nessie",

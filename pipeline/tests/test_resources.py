@@ -1,6 +1,4 @@
-import pytest
 import pyarrow as pa
-import pyarrow.parquet as pq
 from unittest.mock import patch, MagicMock
 from pipeline.resources.seaweedfs import SeaweedFSResource
 from pipeline.resources.nessie import NessieResource

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime, date
+from datetime import datetime, timezone
 import httpx
 import pyarrow as pa
 
@@ -23,30 +23,35 @@ class OpenSkyAdapter:
     def fetch_departures(
         self, airport_icao: str, start_date: str, end_date: str
     ) -> pa.Table:
-        begin = int(datetime.fromisoformat(start_date).timestamp())
-        end = int(datetime.fromisoformat(end_date).timestamp())
+        begin = int(datetime.fromisoformat(start_date).replace(tzinfo=timezone.utc).timestamp())
+        end = int(datetime.fromisoformat(end_date).replace(tzinfo=timezone.utc).timestamp())
         response = httpx.get(
             f"{BASE_URL}/departure",
             params={"airport": airport_icao, "begin": begin, "end": end},
             timeout=30,
         )
+        if response.status_code == 404:
+            return self._to_arrow([])
         response.raise_for_status()
-        return self._to_arrow(response.json())
+        return self._to_arrow(response.json() or [])
 
     def fetch_arrivals(
         self, airport_icao: str, start_date: str, end_date: str
     ) -> pa.Table:
-        begin = int(datetime.fromisoformat(start_date).timestamp())
-        end = int(datetime.fromisoformat(end_date).timestamp())
+        begin = int(datetime.fromisoformat(start_date).replace(tzinfo=timezone.utc).timestamp())
+        end = int(datetime.fromisoformat(end_date).replace(tzinfo=timezone.utc).timestamp())
         response = httpx.get(
             f"{BASE_URL}/arrival",
             params={"airport": airport_icao, "begin": begin, "end": end},
             timeout=30,
         )
+        if response.status_code == 404:
+            return self._to_arrow([])
         response.raise_for_status()
-        return self._to_arrow(response.json())
+        return self._to_arrow(response.json() or [])
 
     def _to_arrow(self, records: list[dict]) -> pa.Table:
+        records = records or []
         return pa.table(
             {
                 "icao24": [r["icao24"] for r in records],
