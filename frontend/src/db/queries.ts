@@ -24,6 +24,7 @@ export async function queryRouteTimeliness(
   const db = await getDb()
   const conn = await db.connect()
   try {
+    // airportIcao comes from internal config (ICAO format: A-Z0-9), not user input — string interpolation is safe
     const url = `${SEAWEEDFS_PUBLIC_BASE}/${airportIcao}/route_timeliness.parquet`
     const result = await conn.query(
       `SELECT * FROM read_parquet('${url}') ORDER BY total_flights DESC`
@@ -68,6 +69,7 @@ export async function queryDailyTimeliness(
   const db = await getDb()
   const conn = await db.connect()
   try {
+    // airportIcao comes from internal config (ICAO format: A-Z0-9), not user input — string interpolation is safe
     const url = `${SEAWEEDFS_PUBLIC_BASE}/${airportIcao}/daily_timeliness.parquet`
     const result = await conn.query(
       `SELECT * FROM read_parquet('${url}') ORDER BY flight_date`
