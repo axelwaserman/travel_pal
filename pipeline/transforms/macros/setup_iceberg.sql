@@ -27,12 +27,6 @@
     INSTALL httpfs;
     LOAD httpfs;
 
-    -- Allow iceberg_scan() to glob S3 for the latest snapshot version when
-    -- no version-hint file is present (Nessie-managed tables don't write
-    -- version-hint.text by default).  Explicitly passing version='?' in the
-    -- scan still requires this setting to enable the glob path.
-    SET unsafe_enable_version_guessing = true;
-
     CREATE OR REPLACE SECRET travel_pal_s3 (
         TYPE s3,
         PROVIDER config,

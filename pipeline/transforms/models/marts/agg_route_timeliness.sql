@@ -1,6 +1,3 @@
-{{ config(
-    location="s3://" ~ env_var('RAW_BUCKET', 'raw-flights') ~ "/warehouse/marts/" ~ this.name ~ ".parquet"
-) }}
 SELECT
     origin_icao,
     destination_icao,

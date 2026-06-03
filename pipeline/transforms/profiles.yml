@@ -15,6 +15,3 @@ travel_pal:
         s3_secret_access_key: "{{ env_var('SEAWEEDFS_SECRET_KEY', 'admin') }}"
         s3_use_ssl: false
         s3_url_style: path
-        # Allow iceberg_scan() to glob S3 for the latest snapshot when no
-        # version-hint.text is present (Nessie-managed tables don't write one).
-        unsafe_enable_version_guessing: true
