@@ -1,5 +1,5 @@
-from pydantic import ConfigDict, Field
-from pydantic_settings import BaseSettings
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class PipelineConfig(BaseSettings):
@@ -15,7 +15,7 @@ class PipelineConfig(BaseSettings):
     opensky_username: str = ""
     opensky_password: str = ""
 
-    model_config = ConfigDict(frozen=True)
+    model_config = SettingsConfigDict(frozen=True, case_sensitive=False)
 
     @classmethod
     def from_env(cls) -> "PipelineConfig":
