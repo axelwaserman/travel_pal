@@ -27,7 +27,6 @@ dev = [
     "pytest-asyncio",
     "pytest-cov",
     "moto[s3]",
-    "pytest-docker",
 ]
 
 [tool.setuptools.packages.find]

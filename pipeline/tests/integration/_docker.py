@@ -1,6 +1,9 @@
 """Docker availability detection shared between conftest and test modules."""
 import subprocess
 
+#: Wall-clock budget for the ``docker info`` probe used to detect a daemon.
+_DOCKER_PROBE_TIMEOUT_S: float = 5.0
+
 
 def docker_is_available() -> bool:
     """Return True when a Docker daemon is reachable."""
@@ -8,7 +11,7 @@ def docker_is_available() -> bool:
         result = subprocess.run(
             ["docker", "info"],
             capture_output=True,
-            timeout=5,
+            timeout=_DOCKER_PROBE_TIMEOUT_S,
         )
         return result.returncode == 0
     except (FileNotFoundError, subprocess.TimeoutExpired):
