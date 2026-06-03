@@ -15,4 +15,6 @@ models:
     intermediate:
       +materialized: table
     marts:
-      +materialized: table
+      +materialized: external
+      +format: parquet
+      +location: "s3://{{ env_var('RAW_BUCKET', 'raw-flights') }}/warehouse/marts/{{ this.name }}.parquet"

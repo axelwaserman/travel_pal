@@ -76,3 +76,31 @@ def test_sources_yml_deleted() -> None:
     assert not sources_path.exists(), (
         "sources.yml must be deleted; stg_flights now reads parquet directly from S3"
     )
+
+
+@pytest.mark.unit
+def test_marts_use_external_parquet_materialization() -> None:
+    """dbt_project.yml must configure marts as external parquet written to S3.
+
+    This prevents regression to the old local-table materialization that
+    coupled frontend_exports to a local DuckDB file.
+    """
+    dbt_project = yaml.safe_load(
+        (TRANSFORMS_DIR / "dbt_project.yml").read_text()
+    )
+
+    marts_config = dbt_project["models"]["travel_pal"]["marts"]
+
+    assert marts_config.get("+materialized") == "external", (
+        "marts must use '+materialized: external' so dbt-duckdb writes parquet to S3"
+    )
+    assert marts_config.get("+format") == "parquet", (
+        "marts must set '+format: parquet'"
+    )
+    location = marts_config.get("+location", "")
+    assert "s3://" in location, (
+        "marts '+location' must point to an s3:// URI"
+    )
+    assert "warehouse/marts/" in location, (
+        "marts '+location' must write under warehouse/marts/"
+    )

@@ -2,7 +2,7 @@ import pytest
 import pyarrow as pa
 from datetime import date
 from pathlib import Path
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 from pipeline.assets.transformed_flights import transformed_flights
 from pipeline.assets.frontend_exports import frontend_exports
 from pipeline.config import PipelineConfig
@@ -77,40 +77,69 @@ def test_transformed_flights_raises_on_dbt_failure():
             )
 
 
-def test_frontend_exports_uploads_both_parquet_files():
+def test_frontend_exports_reads_marts_from_s3():
+    config = _make_config()
+    mock_seaweedfs = MagicMock()
+    mock_con = MagicMock()
+    mock_con.__enter__ = lambda s: mock_con
+    mock_con.__exit__ = MagicMock(return_value=False)
+    # Two read_parquet calls, one per mart
+    mock_con.execute.side_effect = [
+        MagicMock(),  # INSTALL httpfs
+        MagicMock(),  # LOAD httpfs
+        MagicMock(),  # SET s3_endpoint
+        MagicMock(),  # SET s3_access_key_id
+        MagicMock(),  # SET s3_secret_access_key
+        MagicMock(),  # SET s3_use_ssl
+        MagicMock(),  # SET s3_url_style
+        MagicMock(arrow=lambda: AGG_ROUTE_TABLE),
+        MagicMock(arrow=lambda: AGG_DAILY_TABLE),
+    ]
+
+    with patch("pipeline.assets.frontend_exports.duckdb.connect", return_value=mock_con):
+        frontend_exports(
+            pipeline_config=config,
+            seaweedfs=mock_seaweedfs,
+        )
+
+    # Validate both reads pointed at S3
+    executed_sql = [c.args[0] for c in mock_con.execute.call_args_list]
+    assert any(
+        "read_parquet('s3://raw-flights/warehouse/marts/agg_route_timeliness.parquet')" in s
+        for s in executed_sql
+    )
+    assert any(
+        "read_parquet('s3://raw-flights/warehouse/marts/agg_daily_timeliness.parquet')" in s
+        for s in executed_sql
+    )
+
+    # Validate uploads
+    assert mock_seaweedfs.upload_parquet.call_count == 2
+    keys = [c.kwargs["key"] for c in mock_seaweedfs.upload_parquet.call_args_list]
+    assert "KJFK/route_timeliness.parquet" in keys
+    assert "KJFK/daily_timeliness.parquet" in keys
+    buckets = {c.kwargs["bucket"] for c in mock_seaweedfs.upload_parquet.call_args_list}
+    assert buckets == {"frontend-exports"}
+
+
+def test_frontend_exports_strips_scheme_from_endpoint():
+    """seaweedfs_endpoint comes in as 'http://...'; SET s3_endpoint must be bare host:port."""
+    config = _make_config()  # endpoint='http://localhost:8333'
     mock_seaweedfs = MagicMock()
     mock_con = MagicMock()
     mock_con.__enter__ = lambda s: mock_con
     mock_con.__exit__ = MagicMock(return_value=False)
     mock_con.execute.side_effect = [
+        MagicMock() for _ in range(7)
+    ] + [
         MagicMock(arrow=lambda: AGG_ROUTE_TABLE),
         MagicMock(arrow=lambda: AGG_DAILY_TABLE),
     ]
 
-    with patch("pipeline.assets.frontend_exports.pathlib.Path.exists", return_value=True), \
-         patch("pipeline.assets.frontend_exports.duckdb.connect", return_value=mock_con):
-        frontend_exports(
-            pipeline_config=CONFIG,
-            seaweedfs=mock_seaweedfs,
-        )
+    with patch("pipeline.assets.frontend_exports.duckdb.connect", return_value=mock_con):
+        frontend_exports(pipeline_config=config, seaweedfs=mock_seaweedfs)
 
-    assert mock_seaweedfs.upload_parquet.call_count == 2
-    upload_calls = mock_seaweedfs.upload_parquet.call_args_list
-    keys = [c.kwargs["key"] for c in upload_calls]
-    assert any("route_timeliness" in k for k in keys)
-    assert any("daily_timeliness" in k for k in keys)
-    buckets = [c.kwargs["bucket"] for c in upload_calls]
-    assert all(b == CONFIG.export_bucket for b in buckets)
-
-
-def test_frontend_exports_raises_on_missing_db():
-    mock_seaweedfs = MagicMock()
-    import pipeline.assets.frontend_exports as fe_mod
-
-    original_fn = fe_mod.frontend_exports.op.compute_fn.decorated_fn
-    with patch("pipeline.assets.frontend_exports.pathlib.Path.exists", return_value=False):
-        with pytest.raises(FileNotFoundError, match="DuckDB file not found"):
-            original_fn(
-                pipeline_config=CONFIG,
-                seaweedfs=mock_seaweedfs,
-            )
+    set_calls = [c.args[0] for c in mock_con.execute.call_args_list if c.args[0].startswith("SET s3_endpoint")]
+    assert len(set_calls) == 1
+    assert "http://" not in set_calls[0]
+    assert "localhost:8333" in set_calls[0]
