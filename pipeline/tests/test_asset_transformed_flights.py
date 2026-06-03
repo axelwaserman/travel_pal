@@ -1,21 +1,26 @@
 import pytest
 import pyarrow as pa
 from datetime import date
+from pathlib import Path
 from unittest.mock import MagicMock, patch, call
 from pipeline.assets.transformed_flights import transformed_flights
 from pipeline.assets.frontend_exports import frontend_exports
 from pipeline.config import PipelineConfig
 
 
-CONFIG = PipelineConfig(
-    airport_icao="KJFK",
-    ingest_start_date="2024-01-01",
-    ingest_end_date="2024-01-08",
-    seaweedfs_endpoint="http://localhost:8333",
-    seaweedfs_access_key="admin",
-    seaweedfs_secret_key="admin",
-    nessie_endpoint="http://localhost:19120/api/v1",
-)
+def _make_config() -> PipelineConfig:
+    return PipelineConfig.model_validate({
+        "airport_icao": "KJFK",
+        "ingest_start_date": "2024-01-01",
+        "ingest_end_date": "2024-01-08",
+        "SEAWEEDFS_ENDPOINT": "http://localhost:8333",
+        "seaweedfs_access_key": "admin",
+        "seaweedfs_secret_key": "admin",
+        "nessie_endpoint": "http://localhost:19120/api/v1",
+    })
+
+
+CONFIG = _make_config()
 
 AGG_ROUTE_TABLE = pa.table(
     {
@@ -44,7 +49,7 @@ def test_transformed_flights_runs_dbt():
     mock_seaweedfs = MagicMock()
     with patch("pipeline.assets.transformed_flights.subprocess.run") as mock_run:
         mock_run.return_value = MagicMock(returncode=0)
-        result = transformed_flights(
+        transformed_flights(
             pipeline_config=CONFIG,
             raw_flights=pa.table({"icao24": ["x"]}),
             seaweedfs=mock_seaweedfs,
@@ -52,6 +57,12 @@ def test_transformed_flights_runs_dbt():
     mock_run.assert_called_once()
     cmd = mock_run.call_args.args[0]
     assert "dbt" in cmd
+    assert "--project-dir" in cmd
+    project_dir_idx = cmd.index("--project-dir") + 1
+    assert cmd[project_dir_idx].endswith("/transforms")
+    assert Path(cmd[project_dir_idx]).is_absolute()
+    # no cwd kwarg — path is absolute so cwd is not needed
+    assert "cwd" not in (mock_run.call_args.kwargs or {})
 
 
 def test_transformed_flights_raises_on_dbt_failure():
