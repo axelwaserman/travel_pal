@@ -64,12 +64,7 @@ jobs:
 
       - name: configure seaweedfs buckets
         run: |
-          docker compose exec -T seaweedfs-master sh -c '
-            echo "s3.bucket.create -name raw-flights" | weed shell -master=localhost:9333
-            echo "s3.bucket.create -name frontend-exports" | weed shell -master=localhost:9333
-            echo "s3.configure -user=admin -access_key=admin -secret_key=admin -actions=Read,Write,List,Tagging,Admin -apply" | weed shell -master=localhost:9333
-            echo "s3.configure -user=anonymous -buckets=frontend-exports -actions=Read,List -apply" | weed shell -master=localhost:9333
-          '
+          docker compose exec -T seaweedfs-master sh -c "$(cat scripts/seaweedfs/init.sh)"
 
       - name: materialize dagster assets (smoke)
         env:

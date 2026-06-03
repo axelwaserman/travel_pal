@@ -27,6 +27,7 @@ dev = [
     "pytest-asyncio",
     "pytest-cov",
     "moto[s3]",
+    "pytest-docker",
 ]
 
 [tool.setuptools.packages.find]
@@ -49,7 +50,7 @@ ignore = ["E501"]
 asyncio_mode = "auto"
 markers = [
     "unit: fast, dependency-free unit tests",
-    "integration: tests that exercise round-trips through real moto-backed S3 + Iceberg SQL catalog (no docker required)",
+    "integration: tests that exercise round-trips through real Nessie REST catalog + SeaweedFS S3 (requires Docker)",
 ]
 testpaths = ["tests"]
 

@@ -72,6 +72,7 @@ services:
       - seaweedfs-filer
 
   dagster-webserver:
+    profiles: ["app"]
     build:
       context: ./pipeline
       dockerfile: Dockerfile
@@ -102,6 +103,7 @@ services:
       - ./pipeline:/opt/dagster/app
 
   dagster-daemon:
+    profiles: ["app"]
     build:
       context: ./pipeline
       dockerfile: Dockerfile
