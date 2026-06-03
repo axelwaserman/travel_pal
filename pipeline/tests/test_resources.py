@@ -43,8 +43,15 @@ def test_seaweedfs_get_public_url():
 
 
 def test_nessie_resource_is_pydantic_model():
-    resource = NessieResource(endpoint="http://localhost:19120/api/v1")
-    assert resource.endpoint == "http://localhost:19120/api/v1"
+    resource = NessieResource(
+        endpoint="http://localhost:19120/iceberg/",
+        s3_endpoint="http://localhost:8333",
+        s3_access_key="admin",
+        s3_secret_key="admin",
+    )
+    assert resource.endpoint == "http://localhost:19120/iceberg/"
+    assert resource.warehouse == "warehouse"
+    assert resource.s3_region == "us-east-1"
     assert resource.model_config.get("frozen") is True
 
 

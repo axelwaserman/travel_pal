@@ -26,7 +26,12 @@ def _make_resources() -> dict[str, ResourceDefinition]:
             )
         ),
         "nessie": ResourceDefinition.hardcoded_resource(
-            NessieResource(endpoint=cfg.nessie_endpoint)
+            NessieResource(
+                endpoint=cfg.nessie_endpoint,
+                s3_endpoint=cfg.seaweedfs_endpoint,
+                s3_access_key=cfg.seaweedfs_access_key,
+                s3_secret_key=cfg.seaweedfs_secret_key,
+            )
         ),
     }
 

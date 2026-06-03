@@ -2,11 +2,16 @@
 
 Service start strategy
 ----------------------
-If Nessie (``http://localhost:19120/api/v1/config``) and SeaweedFS S3
+If Nessie (``http://localhost:19120/iceberg/v1/config``) and SeaweedFS S3
 (``localhost:8333``) are already responsive when the test session begins —
 because the developer has the project stack running — the fixtures skip
 ``docker compose up`` and use the already-running services.  This avoids
 port conflicts when the dev stack and the test suite run simultaneously.
+
+The fixture injects ``NESSIE_S3_EXTERNAL_ENDPOINT=http://localhost:8333``
+so Nessie vends a host-routable S3 endpoint to PyIceberg clients running
+on the host (default vended endpoint targets the in-network hostname
+``seaweedfs-s3``, which the host cannot resolve).
 
 When the ports are *not* already in use, this module starts the infra
 services itself via ``docker compose up`` (postgres, nessie, seaweedfs-*) and
@@ -19,6 +24,7 @@ they point at the correct compose file and project.
 The dagster-webserver and dagster-daemon services carry ``profiles: ["app"]``
 in docker-compose.yml and are therefore NOT started in either path.
 """
+import os
 import subprocess
 import time
 import urllib.request
@@ -43,7 +49,9 @@ NESSIE_PORT: int = 19120
 S3_HOST: str = "localhost"
 S3_PORT: int = 8333
 
-_NESSIE_HEALTH_URL: str = f"http://{NESSIE_HOST}:{NESSIE_PORT}/api/v1/config"
+_NESSIE_HEALTH_URL: str = (
+    f"http://{NESSIE_HOST}:{NESSIE_PORT}/iceberg/v1/config?warehouse=warehouse"
+)
 
 # ---------------------------------------------------------------------------
 # pytest-docker fixture overrides (used if a test requests docker_services)
@@ -80,7 +88,7 @@ def docker_cleanup() -> list[str]:
 
 
 def _nessie_ready() -> bool:
-    """Return True when Nessie's /api/v1/config responds 200."""
+    """Return True when Nessie's Iceberg REST /v1/config responds 200."""
     try:
         with urllib.request.urlopen(_NESSIE_HEALTH_URL, timeout=2) as resp:
             return resp.status == 200
@@ -112,7 +120,15 @@ def _wait_for(check: object, timeout: float, pause: float) -> bool:
 
 
 def _compose_up(project: str) -> None:
-    """Run ``docker compose up -d --wait`` for infra services."""
+    """Run ``docker compose up -d --wait`` for infra services.
+
+    Sets ``NESSIE_S3_EXTERNAL_ENDPOINT`` so Nessie vends a host-routable
+    S3 endpoint to PyIceberg clients running outside the Docker network.
+    """
+    env = {
+        **os.environ,
+        "NESSIE_S3_EXTERNAL_ENDPOINT": f"http://{S3_HOST}:{S3_PORT}",
+    }
     subprocess.run(
         [
             "docker",
@@ -132,6 +148,7 @@ def _compose_up(project: str) -> None:
             "seaweedfs-s3",
         ],
         check=True,
+        env=env,
     )
 
 
@@ -179,16 +196,17 @@ def infra_endpoints(request: pytest.FixtureRequest) -> Generator[dict[str, str],
         request.addfinalizer(lambda: _compose_down(_TEST_PROJECT))
 
     # Wait for application-level readiness regardless of who started the services.
-    if not _wait_for(_nessie_ready, timeout=120.0, pause=3.0):
-        pytest.fail("Nessie did not become responsive within 120 s.")
+    if not _wait_for(_nessie_ready, timeout=180.0, pause=3.0):
+        pytest.fail("Nessie did not become responsive within 180 s.")
 
     if not _wait_for(lambda: _tcp_open(S3_HOST, S3_PORT), timeout=60.0, pause=2.0):
         pytest.fail("SeaweedFS S3 did not become responsive on :8333 within 60 s.")
 
-    # PyIceberg RestCatalog.url() appends "/v1/" to the uri.  Use "/api/" as
-    # the base so the constructed path is "/api/v1/config" not "/api/v1/v1/config".
+    # PyIceberg RestCatalog.url() appends "/v1/" to the uri, so "/iceberg/"
+    # produces "/iceberg/v1/..." which is the Nessie Iceberg REST Catalog root.
     yield {
-        "nessie_uri": f"http://{NESSIE_HOST}:{NESSIE_PORT}/api/",
+        "nessie_uri": f"http://{NESSIE_HOST}:{NESSIE_PORT}/iceberg/",
+        "warehouse": "warehouse",
         "s3_endpoint": f"http://{S3_HOST}:{S3_PORT}",
         "s3_access_key": "admin",
         "s3_secret_key": "admin",

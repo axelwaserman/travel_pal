@@ -44,6 +44,11 @@ jobs:
         run: cp .env.example .env
 
       - name: docker compose up infra
+        env:
+          # Nessie vends this S3 endpoint to clients (PyIceberg in subsequent
+          # steps).  Use localhost:8333 because dagster + pyiceberg run on the
+          # GitHub runner host, not inside the Docker network.
+          NESSIE_S3_EXTERNAL_ENDPOINT: http://localhost:8333
         run: |
           docker compose up -d postgres nessie seaweedfs-master seaweedfs-volume seaweedfs-filer seaweedfs-s3
 
@@ -71,7 +76,7 @@ jobs:
           SEAWEEDFS_S3_ENDPOINT: http://localhost:8333
           SEAWEEDFS_ACCESS_KEY: admin
           SEAWEEDFS_SECRET_KEY: admin
-          NESSIE_ENDPOINT: http://localhost:19120/api/v1
+          NESSIE_ENDPOINT: http://localhost:19120/iceberg/
           AIRPORT_ICAO: KJFK
           # Dates match the firstSeen timestamps in the fixture files so the
           # stub adapter returns real records without hitting the OpenSky API.
@@ -84,7 +89,7 @@ jobs:
 
       - name: assert non-zero rows in raw_flights iceberg table
         env:
-          NESSIE_ENDPOINT: http://localhost:19120/api/v1
+          NESSIE_ENDPOINT: http://localhost:19120/iceberg/
           SEAWEEDFS_S3_ENDPOINT: http://localhost:8333
           SEAWEEDFS_ACCESS_KEY: admin
           SEAWEEDFS_SECRET_KEY: admin
@@ -97,10 +102,12 @@ jobs:
               name='nessie',
               **{
                   'uri': os.environ['NESSIE_ENDPOINT'],
+                  'warehouse': 'warehouse',
                   's3.endpoint': os.environ['SEAWEEDFS_S3_ENDPOINT'],
                   's3.access-key-id': os.environ['SEAWEEDFS_ACCESS_KEY'],
                   's3.secret-access-key': os.environ['SEAWEEDFS_SECRET_KEY'],
-                  'prefix': 'main',
+                  's3.path-style-access': 'true',
+                  's3.region': 'us-east-1',
               }
           )
           table = catalog.load_table('flights.raw_flights')

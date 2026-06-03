@@ -17,14 +17,25 @@ services:
     restart: unless-stopped
 
   nessie:
-    image: projectnessie/nessie:0.76.6
+    image: ghcr.io/projectnessie/nessie:0.104.4
     ports:
       - "19120:19120"
     environment:
+      NESSIE_VERSION_STORE_TYPE: JDBC
       QUARKUS_DATASOURCE_JDBC_URL: "jdbc:postgresql://postgres:5432/dagster"
       QUARKUS_DATASOURCE_USERNAME: dagster
       QUARKUS_DATASOURCE_PASSWORD: dagster
-      NESSIE_VERSION_STORE_TYPE: JDBC
+      # Iceberg REST Catalog wiring (Nessie >= 0.91)
+      NESSIE_CATALOG_DEFAULT_WAREHOUSE: warehouse
+      NESSIE_CATALOG_WAREHOUSES_WAREHOUSE_LOCATION: "s3://raw-flights/warehouse"
+      NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_REGION: us-east-1
+      NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_ENDPOINT: "http://seaweedfs-s3:8333"
+      NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_EXTERNAL_ENDPOINT: ${NESSIE_S3_EXTERNAL_ENDPOINT:-http://seaweedfs-s3:8333}
+      NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_PATH_STYLE_ACCESS: "true"
+      NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_AUTH_TYPE: STATIC
+      NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_ACCESS_KEY: "urn:nessie-secret:quarkus:nessie.catalog.secrets.s3"
+      NESSIE_CATALOG_SECRETS_S3_NAME: ${SEAWEEDFS_ACCESS_KEY:-admin}
+      NESSIE_CATALOG_SECRETS_S3_SECRET: ${SEAWEEDFS_SECRET_KEY:-admin}
     depends_on:
       postgres:
         condition: service_healthy
@@ -33,7 +44,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 6
-      start_period: 20s
+      start_period: 30s
     restart: unless-stopped
 
   seaweedfs-master:
@@ -88,7 +99,7 @@ services:
       SEAWEEDFS_S3_ENDPOINT: http://seaweedfs-s3:8333
       SEAWEEDFS_ACCESS_KEY: ${SEAWEEDFS_ACCESS_KEY}
       SEAWEEDFS_SECRET_KEY: ${SEAWEEDFS_SECRET_KEY}
-      NESSIE_ENDPOINT: http://nessie:19120/api/v1
+      NESSIE_ENDPOINT: http://nessie:19120/iceberg/
       AIRPORT_ICAO: KJFK
       INGEST_START_DATE: "2024-01-01"
       INGEST_END_DATE: "2024-12-31"
@@ -117,7 +128,7 @@ services:
       SEAWEEDFS_S3_ENDPOINT: http://seaweedfs-s3:8333
       SEAWEEDFS_ACCESS_KEY: ${SEAWEEDFS_ACCESS_KEY}
       SEAWEEDFS_SECRET_KEY: ${SEAWEEDFS_SECRET_KEY}
-      NESSIE_ENDPOINT: http://nessie:19120/api/v1
+      NESSIE_ENDPOINT: http://nessie:19120/iceberg/
       AIRPORT_ICAO: KJFK
       INGEST_START_DATE: "2024-01-01"
       INGEST_END_DATE: "2024-12-31"

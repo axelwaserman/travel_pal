@@ -3,24 +3,12 @@
 Marked @pytest.mark.integration.
 
 These tests exercise the *real* catalog and storage stack:
-  - PyIceberg RestCatalog → Nessie REST API (http://localhost:19120/api/v1)
+  - PyIceberg RestCatalog → Nessie Iceberg REST Catalog (http://localhost:19120/iceberg/)
   - Apache Iceberg data files written to SeaweedFS S3 (http://localhost:8333)
 
 Tests are skipped automatically when the Docker daemon is not reachable.
 Infrastructure is started (and torn down) by fixtures in
 ``pipeline/tests/integration/conftest.py``.
-
-COMPATIBILITY NOTE
-------------------
-PyIceberg's ``RestCatalog`` speaks the Apache Iceberg REST Catalog protocol.
-``projectnessie/nessie`` images only added Iceberg REST Catalog support in
-Nessie ≥ 0.91 (the ``iceberg-catalog`` module).  The docker-compose stack
-currently pins Nessie 0.76.6, which only exposes the Nessie versioning API
-(``/api/v1``) — NOT the Iceberg REST Catalog namespace/table endpoints.
-
-Consequence: ``catalog.create_namespace()`` will fail with ``RESTError 404``
-against Nessie 0.76.6.  These tests are written to pass once the image is
-upgraded; they express the correct contract for the target state of the stack.
 
 Iceberg schema mirrors the production ``raw_flights`` table schema used in
 ``pipeline/assets/raw_flights.py``.
@@ -74,17 +62,20 @@ skip_if_no_docker = pytest.mark.skipif(not DOCKER_AVAILABLE, reason=_SKIP_REASON
 def _make_catalog(endpoints: dict[str, str]) -> RestCatalog:
     """Build a RestCatalog pointing at the live Nessie + SeaweedFS stack.
 
-    The uri must be the base without "/v1" because PyIceberg RestCatalog.url()
-    appends "/v1/" automatically (e.g. "http://host:19120/api/").
+    PyIceberg's ``RestCatalog.url()`` appends ``/v1/`` to the supplied uri,
+    so ``http://host:19120/iceberg/`` becomes ``http://host:19120/iceberg/v1/...``,
+    which matches Nessie's Iceberg REST Catalog namespace.
     """
     return RestCatalog(
         name="nessie",
         **{
             "uri": endpoints["nessie_uri"],
+            "warehouse": endpoints["warehouse"],
             "s3.endpoint": endpoints["s3_endpoint"],
             "s3.access-key-id": endpoints["s3_access_key"],
             "s3.secret-access-key": endpoints["s3_secret_key"],
-            "prefix": "main",
+            "s3.path-style-access": "true",
+            "s3.region": "us-east-1",
         },
     )
 
