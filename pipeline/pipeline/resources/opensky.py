@@ -1,5 +1,8 @@
+import json
+import os
 from datetime import datetime, timedelta, timezone
 from functools import cached_property
+from pathlib import Path
 
 import pyarrow as pa
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -72,7 +75,40 @@ async def _do_fetch_chunk(
     return [OpenSkyFlight.model_validate(r) for r in raw]
 
 
+def _load_fixture(fixture_dir: str, endpoint: str, airport_icao: str) -> list[dict]:
+    """Load a JSON fixture file for the given endpoint and airport.
+
+    File naming convention: ``{endpoint}s_{airport_icao_lower}.json``
+    e.g. ``departures_kjfk.json`` or ``arrivals_kjfk.json``.
+
+    Returns an empty list when the file does not exist so callers treat a
+    missing fixture as zero results rather than raising.
+
+    .. note::
+        This helper is intended **only** for fixture-based testing.  It is
+        never called when ``OPENSKY_FIXTURE_DIR`` is unset.
+    """
+    filename = f"{endpoint}s_{airport_icao.lower()}.json"
+    path = Path(fixture_dir) / filename
+    if not path.exists():
+        return []
+    with path.open("r", encoding="utf-8") as fh:
+        data: list[dict] = json.load(fh)
+    return data
+
+
 class OpenSkyAdapter(BaseModel):
+    """Async adapter for the OpenSky historical flights API.
+
+    **Fixture mode** (testing only): when the environment variable
+    ``OPENSKY_FIXTURE_DIR`` is set, the adapter reads JSON files from that
+    directory instead of making HTTP requests.  Files must follow the naming
+    convention ``{endpoint}s_{airport_icao_lower}.json`` (e.g.
+    ``departures_kjfk.json``).  Records are filtered to those whose
+    ``firstSeen`` timestamp falls within the requested date window.
+    Do **not** set ``OPENSKY_FIXTURE_DIR`` in production.
+    """
+
     username: str = ""
     password: str = ""
 
@@ -103,11 +139,49 @@ class OpenSkyAdapter(BaseModel):
     async def _fetch(
         self, endpoint: str, airport_icao: str, start_date: str, end_date: str
     ) -> pa.Table:
+        fixture_dir = os.environ.get("OPENSKY_FIXTURE_DIR")
+        if fixture_dir:
+            return self._fetch_from_fixture(fixture_dir, endpoint, airport_icao, start_date, end_date)
+
         all_records: list[OpenSkyFlight] = []
         for begin, end in _date_chunks(start_date, end_date):
             chunk = await self._fetch_chunk(endpoint, airport_icao, begin, end)
             all_records.extend(chunk)
         return _to_arrow(all_records)
+
+    def _fetch_from_fixture(
+        self,
+        fixture_dir: str,
+        endpoint: str,
+        airport_icao: str,
+        start_date: str,
+        end_date: str,
+    ) -> pa.Table:
+        """Return records from a fixture file, filtered to the requested window.
+
+        Records whose ``firstSeen`` timestamp falls within [begin, end) for
+        any chunk of the requested date range are included.  For typical
+        single-day fixture windows this is equivalent to returning all records
+        that overlap the date range.
+        """
+        raw_records = _load_fixture(fixture_dir, endpoint, airport_icao)
+        if not raw_records:
+            return _to_arrow([])
+
+        chunks = _date_chunks(start_date, end_date)
+        if not chunks:
+            return _to_arrow([])
+
+        window_begin = chunks[0][0]
+        window_end = chunks[-1][1]
+
+        matched: list[OpenSkyFlight] = []
+        for raw in raw_records:
+            first_seen = raw.get("firstSeen")
+            if first_seen is not None and window_begin <= first_seen < window_end:
+                matched.append(OpenSkyFlight.model_validate(raw))
+
+        return _to_arrow(matched)
 
     async def _fetch_chunk(
         self, endpoint: str, airport_icao: str, begin: int, end: int

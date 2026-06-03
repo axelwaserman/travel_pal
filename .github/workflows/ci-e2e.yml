@@ -78,12 +78,43 @@ jobs:
           SEAWEEDFS_SECRET_KEY: admin
           NESSIE_ENDPOINT: http://localhost:19120/api/v1
           AIRPORT_ICAO: KJFK
-          # Future dates guarantee zero rows from the OpenSky historical endpoint,
-          # exercising the empty-row guards added in Task 8 without requiring live creds.
-          INGEST_START_DATE: "2030-01-01"
-          INGEST_END_DATE: "2030-01-02"
+          # Dates match the firstSeen timestamps in the fixture files so the
+          # stub adapter returns real records without hitting the OpenSky API.
+          INGEST_START_DATE: "2024-01-01"
+          INGEST_END_DATE: "2024-01-02"
+          # Fixture mode: adapter reads JSON files instead of making HTTP requests.
+          OPENSKY_FIXTURE_DIR: tests/fixtures
         working-directory: pipeline
         run: dagster asset materialize --select '*' -m pipeline
+
+      - name: assert non-zero rows in raw_flights iceberg table
+        env:
+          NESSIE_ENDPOINT: http://localhost:19120/api/v1
+          SEAWEEDFS_S3_ENDPOINT: http://localhost:8333
+          SEAWEEDFS_ACCESS_KEY: admin
+          SEAWEEDFS_SECRET_KEY: admin
+        run: |
+          python -c "
+          import os
+          from pyiceberg.catalog.rest import RestCatalog
+
+          catalog = RestCatalog(
+              name='nessie',
+              **{
+                  'uri': os.environ['NESSIE_ENDPOINT'],
+                  's3.endpoint': os.environ['SEAWEEDFS_S3_ENDPOINT'],
+                  's3.access-key-id': os.environ['SEAWEEDFS_ACCESS_KEY'],
+                  's3.secret-access-key': os.environ['SEAWEEDFS_SECRET_KEY'],
+                  'prefix': 'main',
+              }
+          )
+          table = catalog.load_table('flights.raw_flights')
+          arrow_table = table.scan().to_arrow()
+          rows = arrow_table.num_rows
+          print(f'raw_flights row count: {rows}')
+          assert rows > 0, f'Expected >0 rows in raw_flights, got {rows}'
+          print('Assertion passed: raw_flights has non-zero rows.')
+          "
 
       - name: install frontend deps
         working-directory: frontend

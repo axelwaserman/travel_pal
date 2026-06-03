@@ -12,11 +12,12 @@ from pipeline.resources.nessie import NessieResource
 
 def _make_resources() -> dict[str, ResourceDefinition]:
     cfg = PipelineConfig.from_env()
+    # When OPENSKY_FIXTURE_DIR is set the adapter reads JSON fixtures instead
+    # of making live HTTP requests.  This is the mechanism used by CI E2E jobs.
+    opensky = OpenSkyAdapter(username=cfg.opensky_username, password=cfg.opensky_password)
     return {
         "pipeline_config": ResourceDefinition.hardcoded_resource(cfg),
-        "opensky": ResourceDefinition.hardcoded_resource(
-            OpenSkyAdapter(username=cfg.opensky_username, password=cfg.opensky_password)
-        ),
+        "opensky": ResourceDefinition.hardcoded_resource(opensky),
         "seaweedfs": ResourceDefinition.hardcoded_resource(
             SeaweedFSResource(
                 endpoint=cfg.seaweedfs_endpoint,
