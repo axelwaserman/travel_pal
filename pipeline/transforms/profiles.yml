@@ -7,6 +7,8 @@ travel_pal:
       extensions:
         - httpfs
         - iceberg
+      # S3 credentials are also configured via macros/setup_iceberg.sql
+      # (CREATE SECRET) for iceberg_scan() resolution. Keep both in sync.
       settings:
         s3_endpoint: "{{ env_var('SEAWEEDFS_S3_ENDPOINT', 'localhost:8333') | replace('http://', '') | replace('https://', '') }}"
         s3_access_key_id: "{{ env_var('SEAWEEDFS_ACCESS_KEY', 'admin') }}"

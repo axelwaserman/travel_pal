@@ -91,7 +91,7 @@ def test_sources_yml_deleted() -> None:
     """sources.yml must not exist — it referenced an unpopulated DuckDB table."""
     sources_path = STAGING_DIR / "sources.yml"
     assert not sources_path.exists(), (
-        "sources.yml must be deleted; stg_flights now reads parquet directly from S3"
+        "sources.yml must be deleted; stg_flights now reads via iceberg_scan, not a dbt source ref"
     )
 
 
@@ -171,4 +171,8 @@ def test_setup_iceberg_macro_installs_extensions_and_creates_secret() -> None:
     )
     assert "SEAWEEDFS_S3_ENDPOINT" in text, (
         "macro must read S3 endpoint from SEAWEEDFS_S3_ENDPOINT env var"
+    )
+    assert 'replace("http://", "")' in text, (
+        "macro ENDPOINT must strip http:// scheme via Jinja replace — "
+        "DuckDB CREATE SECRET rejects scheme prefixes"
     )
