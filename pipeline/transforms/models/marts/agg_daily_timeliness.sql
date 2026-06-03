@@ -1,3 +1,6 @@
+{{ config(
+    location="s3://" ~ env_var('RAW_BUCKET', 'raw-flights') ~ "/warehouse/marts/" ~ this.name ~ ".parquet"
+) }}
 SELECT
     CAST(departed_at AS DATE)                                       AS flight_date,
     origin_icao,

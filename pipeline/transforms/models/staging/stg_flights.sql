@@ -7,8 +7,8 @@
 SELECT
     icao24,
     TRIM(callsign)                                  AS callsign,
-    CAST(first_seen AS TIMESTAMP)                   AS departed_at,
-    CAST(last_seen  AS TIMESTAMP)                   AS arrived_at,
+    to_timestamp(first_seen)                        AS departed_at,
+    to_timestamp(last_seen)                         AS arrived_at,
     est_departure_airport                           AS origin_icao,
     est_arrival_airport                             AS destination_icao
 FROM iceberg_scan(

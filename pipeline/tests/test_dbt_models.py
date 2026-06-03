@@ -101,6 +101,13 @@ def test_marts_use_external_parquet_materialization() -> None:
 
     This prevents regression to the old local-table materialization that
     coupled frontend_exports to a local DuckDB file.
+
+    Note: ``+location`` is intentionally absent from dbt_project.yml because
+    the ``{{ this.name }}`` Jinja variable is only available inside model SQL
+    files, not at project-config evaluation time.  Each mart model defines its
+    own ``{{ config(location=...) }}`` block with a per-model S3 path.  This
+    test checks the mart SQL files directly to confirm the location config is
+    present and correct.
     """
     dbt_project = yaml.safe_load(
         (TRANSFORMS_DIR / "dbt_project.yml").read_text()
@@ -114,13 +121,21 @@ def test_marts_use_external_parquet_materialization() -> None:
     assert marts_config.get("+format") == "parquet", (
         "marts must set '+format: parquet'"
     )
-    location = marts_config.get("+location", "")
-    assert "s3://" in location, (
-        "marts '+location' must point to an s3:// URI"
-    )
-    assert "warehouse/marts/" in location, (
-        "marts '+location' must write under warehouse/marts/"
-    )
+
+    # Each mart model must declare a per-model S3 location in its config block.
+    marts_dir = TRANSFORMS_DIR / "models" / "marts"
+    for sql_file in sorted(marts_dir.glob("*.sql")):
+        sql = sql_file.read_text()
+        assert "config(" in sql, (
+            f"{sql_file.name}: mart model must have a {{ config(...) }} block "
+            "to declare its S3 location"
+        )
+        assert "s3://" in sql, (
+            f"{sql_file.name}: mart model config must contain an s3:// location URI"
+        )
+        assert "warehouse/marts/" in sql, (
+            f"{sql_file.name}: mart model location must write under warehouse/marts/"
+        )
 
 
 @pytest.mark.unit
