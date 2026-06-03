@@ -49,6 +49,7 @@ ignore = ["E501"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 markers = [
+    "unit: fast, dependency-free unit tests",
     "integration: tests that require docker compose stack (postgres, nessie, seaweedfs)",
 ]
 testpaths = ["tests"]

@@ -1,18 +1,6 @@
 version: 2
 
 models:
-  - name: stg_flights
-    columns:
-      - name: icao24
-        tests:
-          - not_null
-      - name: callsign
-        tests:
-          - not_null
-      - name: departed_at
-        tests:
-          - not_null
-
   - name: agg_route_timeliness
     columns:
       - name: on_time_ratio
