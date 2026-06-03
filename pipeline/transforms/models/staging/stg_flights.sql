@@ -1,6 +1,9 @@
 -- Staging: cast and clean raw OpenSky fields.
--- Reads parquet data files written by the raw_flights Iceberg asset directly
--- from S3 so that dbt is not dependent on an unpopulated DuckDB table.
+-- Reads via DuckDB iceberg_scan() so that Iceberg metadata (snapshots,
+-- manifests, partition specs) is honoured rather than bypassed.
+-- The table root is the Iceberg warehouse path managed by pyiceberg + Nessie;
+-- allow_moved_paths = true handles any relocation of data files between
+-- Iceberg snapshot writes.
 SELECT
     icao24,
     TRIM(callsign)                                  AS callsign,
@@ -8,7 +11,10 @@ SELECT
     CAST(last_seen  AS TIMESTAMP)                   AS arrived_at,
     est_departure_airport                           AS origin_icao,
     est_arrival_airport                             AS destination_icao
-FROM read_parquet('s3://{{ env_var("RAW_BUCKET", "raw-flights") }}/warehouse/flights/raw_flights/data/*.parquet')
+FROM iceberg_scan(
+    's3://{{ env_var("RAW_BUCKET", "raw-flights") }}/warehouse/flights/raw_flights',
+    allow_moved_paths = true
+)
 WHERE icao24 IS NOT NULL
   AND NULLIF(TRIM(callsign), '') IS NOT NULL
   AND first_seen IS NOT NULL

@@ -4,9 +4,13 @@ config-version: 2
 profile: travel_pal
 
 model-paths: ["models"]
+macro-paths: ["macros"]
 test-paths: ["tests"]
 target-path: "target"
 clean-targets: ["target", "dbt_packages"]
+
+on-run-start:
+  - "{{ setup_iceberg() }}"
 
 models:
   travel_pal:
