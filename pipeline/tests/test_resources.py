@@ -73,7 +73,7 @@ def test_resources_or_empty_returns_empty_dict_when_env_vars_missing(monkeypatch
     # Ensure none of the required config env vars are set
     for var in (
         "OPENSKY_USERNAME", "OPENSKY_PASSWORD",
-        "SEAWEEDFS_ENDPOINT", "SEAWEEDFS_ACCESS_KEY", "SEAWEEDFS_SECRET_KEY",
+        "SEAWEEDFS_S3_ENDPOINT", "SEAWEEDFS_ACCESS_KEY", "SEAWEEDFS_SECRET_KEY",
         "NESSIE_ENDPOINT", "AIRPORT_ICAO", "INGEST_START_DATE", "INGEST_END_DATE",
     ):
         monkeypatch.delenv(var, raising=False)
@@ -88,7 +88,7 @@ def test_resources_or_empty_raises_in_prod_when_env_vars_missing(monkeypatch):
     monkeypatch.setenv("DAGSTER_ENV", "prod")
     for var in (
         "OPENSKY_USERNAME", "OPENSKY_PASSWORD",
-        "SEAWEEDFS_ENDPOINT", "SEAWEEDFS_ACCESS_KEY", "SEAWEEDFS_SECRET_KEY",
+        "SEAWEEDFS_S3_ENDPOINT", "SEAWEEDFS_ACCESS_KEY", "SEAWEEDFS_SECRET_KEY",
         "NESSIE_ENDPOINT", "AIRPORT_ICAO", "INGEST_START_DATE", "INGEST_END_DATE",
     ):
         monkeypatch.delenv(var, raising=False)

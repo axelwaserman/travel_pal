@@ -19,7 +19,7 @@ def _make_config() -> PipelineConfig:
         "airport_icao": "KJFK",
         "ingest_start_date": "2024-01-01",
         "ingest_end_date": "2024-01-08",
-        "SEAWEEDFS_ENDPOINT": "http://localhost:8333",
+        "SEAWEEDFS_S3_ENDPOINT": "http://localhost:8333",
         "seaweedfs_access_key": "admin",
         "seaweedfs_secret_key": "admin",
         "nessie_endpoint": "http://localhost:19120/api/v1",
