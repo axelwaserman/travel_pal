@@ -24,8 +24,8 @@ defaults:
     shell: bash
 
 env:
-  PYTHON_VERSION: "3.13t"
-  UV_PYTHON: "3.13t"
+  PYTHON_VERSION: "3.13"
+  UV_PYTHON: "3.13"
   UV_SYSTEM_PYTHON: "1"
 
 jobs:

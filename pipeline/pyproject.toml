@@ -32,8 +32,6 @@ dev = [
 [tool.setuptools.packages.find]
 include = ["pipeline*"]
 
-[tool.uv]
-python = "python3.13t"
 
 [tool.dagster]
 module_name = "pipeline"
