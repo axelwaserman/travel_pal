@@ -64,8 +64,8 @@ jobs:
       - name: ty check pipeline
         run: uvx ty check pipeline
 
-  test-unit:
-    name: pytest unit (mocked)
+  test:
+    name: pytest unit + integration with coverage
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -77,66 +77,6 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: install pipeline (with dev extras)
         run: uv pip install --system -e ./pipeline[dev]
-      - name: pytest pipeline
+      - name: pytest unit + integration with coverage
         working-directory: pipeline
-        run: pytest tests -v --tb=short
-
-  test-integration:
-    name: integration (docker compose stack)
-    runs-on: ubuntu-latest
-    needs: [test-unit]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v3
-        with:
-          enable-cache: true
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-      - name: install pipeline
-        run: uv pip install --system -e ./pipeline[dev]
-      - name: write .env
-        run: cp .env.example .env
-      - name: bring up infra services
-        run: |
-          docker compose up -d postgres nessie seaweedfs-master seaweedfs-volume seaweedfs-filer seaweedfs-s3
-      - name: wait for services
-        run: |
-          for i in {1..30}; do
-            if docker compose ps --format json postgres | grep -q '"Health":"healthy"' \
-              && docker compose ps --format json nessie | grep -q '"Health":"healthy"'; then
-              echo "infra healthy"
-              exit 0
-            fi
-            echo "waiting for services... ($i)"
-            sleep 5
-          done
-          echo "services failed to become healthy"
-          docker compose ps
-          docker compose logs --tail=50
-          exit 1
-      - name: create seaweedfs buckets
-        run: |
-          docker compose exec -T seaweedfs-master sh -c '
-            echo "s3.bucket.create -name raw-flights" | weed shell -master=localhost:9333
-            echo "s3.bucket.create -name frontend-exports" | weed shell -master=localhost:9333
-            echo "s3.configure -user=admin -access_key=admin -secret_key=admin -actions=Read,Write,List,Tagging,Admin -apply" | weed shell -master=localhost:9333
-            echo "s3.configure -user=anonymous -buckets=frontend-exports -actions=Read,List -apply" | weed shell -master=localhost:9333
-          '
-      - name: run pytest with integration marker
-        working-directory: pipeline
-        env:
-          SEAWEEDFS_S3_ENDPOINT: http://localhost:8333
-          SEAWEEDFS_ACCESS_KEY: admin
-          SEAWEEDFS_SECRET_KEY: admin
-          NESSIE_ENDPOINT: http://localhost:19120/api/v1
-          AIRPORT_ICAO: KJFK
-          INGEST_START_DATE: "2024-01-01"
-          INGEST_END_DATE: "2024-01-02"
-        run: pytest tests -v --tb=short -m integration || pytest tests -v --tb=short
-      - name: dump compose logs on failure
-        if: failure()
-        run: docker compose logs --tail=200
-      - name: tear down
-        if: always()
-        run: docker compose down -v
+        run: pytest tests -v --tb=short --cov=pipeline --cov-report=term-missing --cov-fail-under=80

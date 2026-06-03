@@ -25,6 +25,7 @@ dependencies = [
 dev = [
     "pytest",
     "pytest-asyncio",
+    "pytest-cov",
     "moto[s3]",
 ]
 

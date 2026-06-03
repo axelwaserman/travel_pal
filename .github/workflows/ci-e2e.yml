@@ -78,13 +78,12 @@ jobs:
           SEAWEEDFS_SECRET_KEY: admin
           NESSIE_ENDPOINT: http://localhost:19120/api/v1
           AIRPORT_ICAO: KJFK
-          INGEST_START_DATE: "2024-01-01"
-          INGEST_END_DATE: "2024-01-02"
+          # Future dates guarantee zero rows from the OpenSky historical endpoint,
+          # exercising the empty-row guards added in Task 8 without requiring live creds.
+          INGEST_START_DATE: "2030-01-01"
+          INGEST_END_DATE: "2030-01-02"
         working-directory: pipeline
-        run: |
-          dagster asset materialize --select '*' -m pipeline || {
-            echo "asset materialization failed (acceptable for smoke if assets need real opensky); continuing"
-          }
+        run: dagster asset materialize --select '*' -m pipeline
 
       - name: install frontend deps
         working-directory: frontend
