@@ -4,7 +4,6 @@ on:
   pull_request:
     paths:
       - "pipeline/**"
-      - "transpiler/**"
       - "docker-compose.yml"
       - ".env.example"
       - ".github/workflows/ci-pipeline.yml"
@@ -12,7 +11,6 @@ on:
     branches: [master]
     paths:
       - "pipeline/**"
-      - "transpiler/**"
       - "docker-compose.yml"
       - ".env.example"
       - ".github/workflows/ci-pipeline.yml"
@@ -45,9 +43,9 @@ jobs:
       - name: install ruff
         run: uv tool install ruff
       - name: ruff check
-        run: ruff check pipeline transpiler
+        run: ruff check pipeline
       - name: ruff format check
-        run: ruff format --check pipeline transpiler
+        run: ruff format --check pipeline
 
   typecheck:
     name: ty type check
@@ -60,14 +58,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      - name: install pipeline + transpiler
+      - name: install pipeline
         run: |
           uv pip install --system -e ./pipeline[dev]
-          uv pip install --system sqlglot
       - name: ty check pipeline
         run: uvx ty check pipeline
-      - name: ty check transpiler
-        run: uvx ty check transpiler
 
   test-unit:
     name: pytest unit (mocked)
@@ -85,8 +80,6 @@ jobs:
       - name: pytest pipeline
         working-directory: pipeline
         run: pytest tests -v --tb=short
-      - name: pytest transpiler
-        run: pytest transpiler/tests -v --tb=short
 
   test-integration:
     name: integration (docker compose stack)

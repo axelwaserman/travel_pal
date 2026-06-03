@@ -30,7 +30,7 @@ Always invoke these skills for relevant tasks:
 - `travelpal-dagster-resources` — ResourceParam, hardcoded_resource, Definitions wiring
 - `travelpal-testing-layers` — test layer placement (unit / integration / E2E)
 - `travelpal-opensky-adapter` — OpenSky endpoints, auth, chunking, limitations
-- `travelpal-dbt-duckdb` — dbt models, NULL guards, sqlglot transpiler
+- `travelpal-dbt-duckdb` — dbt models, NULL guards, DuckDB dialect
 - `travelpal-seaweedfs` — S3/boto3 config, Parquet upload, moto mocking
 - `travelpal-iceberg-nessie` — catalog init, schema definition, branch management
 - `superpowers:writing-plans` — before implementing features
@@ -41,5 +41,5 @@ Always invoke these skills for relevant tasks:
 - All Dagster resources use `ResourceParam[X]` type hints
 - Pydantic models for all config and external API response shapes
 - `_resources_or_empty()` pattern for unit-test-compatible `Definitions`
-- dbt models: ANSI SQL base, sqlglot transpilation to DuckDB dialect
+- dbt models: written directly in DuckDB dialect (single engine, Phase 0)
 - No `cancellation_rate` — OpenSky only records completed flights (deferred to Phase 1)

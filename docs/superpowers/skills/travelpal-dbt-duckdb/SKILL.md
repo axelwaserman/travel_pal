@@ -1,6 +1,6 @@
 ---
 name: travelpal-dbt-duckdb
-description: Use when writing, editing, or reviewing dbt models in the TravelPal transform layer (`pipeline/transforms/`), including staging, intermediate, or mart SQL files. Use when debugging NULL propagation in `is_on_time` or `on_time_ratio`. Use when adding new aggregation models or metrics to the route/daily timeliness marts. Use when modifying the sqlglot transpiler or verifying DuckDB dialect compatibility. Use when running or interpreting `dbt test` results for the transforms layer.
+description: Use when writing, editing, or reviewing dbt models in the TravelPal transform layer (`pipeline/transforms/`), including staging, intermediate, or mart SQL files. Use when debugging NULL propagation in `is_on_time` or `on_time_ratio`. Use when adding new aggregation models or metrics to the route/daily timeliness marts. Use when verifying DuckDB dialect compatibility. Use when running or interpreting `dbt test` results for the transforms layer.
 ---
 
 # TravelPal dbt + DuckDB Conventions
@@ -99,15 +99,13 @@ When all flights in a group have `is_on_time IS NULL`, `on_time_ratio` must be `
 
 **No cancellation rate.** OpenSky only records completed flights. `is_cancelled` is always FALSE for this data source. Do not add `cancellation_rate` or any cancelled-flight logic. This is deferred to Phase 1 with a different source.
 
-## sqlglot Transpiler
+## SQL Dialect
 
-Models are written in ANSI SQL, extended with the DuckDB-specific functions listed below.
+Models are written directly in DuckDB dialect (Phase 0 ships a single engine). The sqlglot transpiler has been removed. If a second SQL engine (ClickHouse, Trino) is added in a future phase, the transpiler pattern can be reintroduced then.
 
-The `transpiler/` directory converts SQL to DuckDB dialect. **The transpiler operates on dbt's compiled output** in `target/compiled/` — not on raw source model files. Source model files contain Jinja templating (`{{ ref(...) }}`, `{% if ... %}`) that must be resolved by `dbt compile` first. The transpiler receives plain SQL.
+- Do not introduce Trino-only or Spark-only syntax.
 
-- Do not introduce Trino-only or Spark-only syntax. Keep models ANSI-compatible except where the DuckDB allow-list applies.
-
-**DuckDB extensions allowed in models:**
+**DuckDB extensions used in models:**
 
 | Function / syntax | Purpose |
 |---|---|
