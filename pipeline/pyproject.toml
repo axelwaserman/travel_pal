@@ -28,6 +28,9 @@ dev = [
     "moto[s3]",
 ]
 
+[tool.setuptools.packages.find]
+include = ["pipeline*"]
+
 [tool.uv]
 python = "python3.13t"
 

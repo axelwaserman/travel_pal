@@ -33,17 +33,11 @@ def raw_flights(
 
     tables = asyncio.run(_fetch_all())
 
-    if not tables:
-        return pa.table({
-            "icao24": pa.array([], type=pa.string()),
-            "callsign": pa.array([], type=pa.string()),
-            "first_seen": pa.array([], type=pa.int64()),
-            "last_seen": pa.array([], type=pa.int64()),
-            "est_departure_airport": pa.array([], type=pa.string()),
-            "est_arrival_airport": pa.array([], type=pa.string()),
-        })
-
     combined = pa.concat_tables(tables)
+
+    if combined.num_rows == 0:
+        return combined
+
     key = f"{pipeline_config.airport_icao}/raw_flights.parquet"
     seaweedfs.upload_parquet(combined, bucket=pipeline_config.raw_bucket, key=key)
 
@@ -59,5 +53,8 @@ def raw_flights(
         )
         catalog.create_namespace_if_not_exists("flights")
         catalog.create_table("flights.raw_flights", schema=schema)
+
+    table = catalog.load_table("flights.raw_flights")
+    table.append(combined)
 
     return combined

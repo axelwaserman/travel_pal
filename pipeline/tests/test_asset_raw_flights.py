@@ -16,15 +16,15 @@ SAMPLE_TABLE = pa.table({
 
 
 def _make_config() -> PipelineConfig:
-    return PipelineConfig(
-        airport_icao="KJFK",
-        ingest_start_date="2024-01-01",
-        ingest_end_date="2024-01-08",
-        seaweedfs_endpoint="http://localhost:8333",
-        seaweedfs_access_key="admin",
-        seaweedfs_secret_key="admin",
-        nessie_endpoint="http://localhost:19120/api/v1",
-    )
+    return PipelineConfig.model_validate({
+        "airport_icao": "KJFK",
+        "ingest_start_date": "2024-01-01",
+        "ingest_end_date": "2024-01-08",
+        "SEAWEEDFS_ENDPOINT": "http://localhost:8333",
+        "seaweedfs_access_key": "admin",
+        "seaweedfs_secret_key": "admin",
+        "nessie_endpoint": "http://localhost:19120/api/v1",
+    })
 
 
 def test_raw_flights_asset_uploads_and_registers():
@@ -36,7 +36,10 @@ def test_raw_flights_asset_uploads_and_registers():
     mock_seaweedfs = MagicMock()
     mock_nessie = MagicMock()
     mock_catalog = MagicMock()
+    mock_catalog.table_exists.return_value = False
     mock_nessie.catalog = mock_catalog
+
+    combined_expected = pa.concat_tables([SAMPLE_TABLE, SAMPLE_TABLE])
 
     result = raw_flights(
         pipeline_config=config,
@@ -50,6 +53,11 @@ def test_raw_flights_asset_uploads_and_registers():
     assert upload_key == "KJFK/raw_flights.parquet"
     assert mock_catalog.table_exists.called
     assert result.num_rows == 2  # departures row + arrivals row
+
+    mock_catalog.load_table.assert_called_once_with("flights.raw_flights")
+    mock_catalog.load_table.return_value.append.assert_called_once()
+    appended_table = mock_catalog.load_table.return_value.append.call_args.args[0]
+    assert appended_table.num_rows == combined_expected.num_rows
 
 
 def test_raw_flights_returns_empty_table_when_no_data():
@@ -67,7 +75,8 @@ def test_raw_flights_returns_empty_table_when_no_data():
     mock_opensky.fetch_arrivals = AsyncMock(return_value=empty)
     mock_seaweedfs = MagicMock()
     mock_nessie = MagicMock()
-    mock_nessie.catalog = MagicMock()
+    mock_catalog = MagicMock()
+    mock_nessie.catalog = mock_catalog
 
     result = raw_flights(
         pipeline_config=config,
@@ -78,3 +87,35 @@ def test_raw_flights_returns_empty_table_when_no_data():
 
     assert isinstance(result, pa.Table)
     assert result.num_rows == 0
+    mock_seaweedfs.upload_parquet.assert_not_called()
+    mock_catalog.table_exists.assert_not_called()
+    mock_catalog.create_table.assert_not_called()
+    mock_catalog.load_table.assert_not_called()
+
+
+def test_raw_flights_appends_to_existing_table_without_create():
+    config = _make_config()
+    mock_opensky = MagicMock()
+    mock_opensky.fetch_departures = AsyncMock(return_value=SAMPLE_TABLE)
+    mock_opensky.fetch_arrivals = AsyncMock(return_value=SAMPLE_TABLE)
+
+    mock_seaweedfs = MagicMock()
+    mock_nessie = MagicMock()
+    mock_catalog = MagicMock()
+    mock_catalog.table_exists.return_value = True
+    mock_nessie.catalog = mock_catalog
+
+    result = raw_flights(
+        pipeline_config=config,
+        opensky=mock_opensky,
+        seaweedfs=mock_seaweedfs,
+        nessie=mock_nessie,
+    )
+
+    assert result.num_rows == 2
+
+    mock_catalog.create_namespace_if_not_exists.assert_not_called()
+    mock_catalog.create_table.assert_not_called()
+
+    mock_catalog.load_table.assert_called_once_with("flights.raw_flights")
+    mock_catalog.load_table.return_value.append.assert_called_once()
