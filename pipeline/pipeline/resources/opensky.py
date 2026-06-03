@@ -3,10 +3,16 @@ import os
 from datetime import datetime, timedelta, timezone
 from functools import cached_property
 from pathlib import Path
+from typing import Any
 
 import pyarrow as pa
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from pyreqwest.client import Client, ClientBuilder
+
+# Fixture JSON files contain arrays of OpenSky flight records (loose dicts
+# before pydantic validation). `Any` is justified — fields vary by endpoint
+# and we re-validate via OpenSkyFlight.model_validate downstream.
+_JsonObject = dict[str, Any]
 
 
 BASE_URL = "https://opensky-network.org/api/flights"
@@ -75,14 +81,16 @@ async def _do_fetch_chunk(
     return [OpenSkyFlight.model_validate(r) for r in raw]
 
 
-def _load_fixture(fixture_dir: str, endpoint: str, airport_icao: str) -> list[dict]:
+def _load_fixture(fixture_dir: str, endpoint: str, airport_icao: str) -> list[_JsonObject]:
     """Load a JSON fixture file for the given endpoint and airport.
 
     File naming convention: ``{endpoint}s_{airport_icao_lower}.json``
     e.g. ``departures_kjfk.json`` or ``arrivals_kjfk.json``.
 
     Returns an empty list when the file does not exist so callers treat a
-    missing fixture as zero results rather than raising.
+    missing fixture as zero results rather than raising. A corrupt file
+    raises ``ValueError`` — silent decode failures would mask broken
+    fixtures and produce confusing zero-row test runs.
 
     .. note::
         This helper is intended **only** for fixture-based testing.  It is
@@ -93,7 +101,10 @@ def _load_fixture(fixture_dir: str, endpoint: str, airport_icao: str) -> list[di
     if not path.exists():
         return []
     with path.open("r", encoding="utf-8") as fh:
-        data: list[dict] = json.load(fh)
+        try:
+            data: list[_JsonObject] = json.load(fh)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"Malformed fixture: {path}") from exc
     return data
 
 
@@ -141,6 +152,8 @@ class OpenSkyAdapter(BaseModel):
     ) -> pa.Table:
         fixture_dir = os.environ.get("OPENSKY_FIXTURE_DIR")
         if fixture_dir:
+            # Sync return inside async fn — fixture mode reads from disk, no
+            # awaitable work. Caller awaits the coroutine the same way.
             return self._fetch_from_fixture(fixture_dir, endpoint, airport_icao, start_date, end_date)
 
         all_records: list[OpenSkyFlight] = []
