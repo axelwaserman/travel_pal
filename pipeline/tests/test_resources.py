@@ -1,7 +1,9 @@
+import pytest
 import pyarrow as pa
 from unittest.mock import patch, MagicMock
 from pipeline.resources.seaweedfs import SeaweedFSResource
 from pipeline.resources.nessie import NessieResource
+from pydantic import ValidationError
 
 
 def _make_seaweedfs() -> SeaweedFSResource:
@@ -44,3 +46,53 @@ def test_nessie_resource_is_pydantic_model():
     resource = NessieResource(endpoint="http://localhost:19120/api/v1")
     assert resource.endpoint == "http://localhost:19120/api/v1"
     assert resource.model_config.get("frozen") is True
+
+
+def test_opensky_adapter_is_pydantic_model():
+    from pipeline.resources.opensky import OpenSkyAdapter
+    adapter = OpenSkyAdapter(username="user", password="pass")
+    assert adapter.username == "user"
+    assert adapter.password == "pass"
+    assert adapter.model_config.get("frozen") is True
+
+
+def test_opensky_adapter_defaults_to_empty_credentials():
+    from pipeline.resources.opensky import OpenSkyAdapter
+    adapter = OpenSkyAdapter()
+    assert adapter.username == ""
+    assert adapter.password == ""
+
+
+# ---------------------------------------------------------------------------
+# _resources_or_empty prod-guard tests
+# ---------------------------------------------------------------------------
+
+def test_resources_or_empty_returns_empty_dict_when_env_vars_missing(monkeypatch):
+    """Without env vars present (and no DAGSTER_ENV=prod), should return {}."""
+    monkeypatch.delenv("DAGSTER_ENV", raising=False)
+    # Ensure none of the required config env vars are set
+    for var in (
+        "OPENSKY_USERNAME", "OPENSKY_PASSWORD",
+        "SEAWEEDFS_ENDPOINT", "SEAWEEDFS_ACCESS_KEY", "SEAWEEDFS_SECRET_KEY",
+        "NESSIE_ENDPOINT", "AIRPORT_ICAO", "INGEST_START_DATE", "INGEST_END_DATE",
+    ):
+        monkeypatch.delenv(var, raising=False)
+
+    from pipeline import _resources_or_empty
+    result = _resources_or_empty()
+    assert result == {}
+
+
+def test_resources_or_empty_raises_in_prod_when_env_vars_missing(monkeypatch):
+    """With DAGSTER_ENV=prod set, missing config must raise instead of silently returning {}."""
+    monkeypatch.setenv("DAGSTER_ENV", "prod")
+    for var in (
+        "OPENSKY_USERNAME", "OPENSKY_PASSWORD",
+        "SEAWEEDFS_ENDPOINT", "SEAWEEDFS_ACCESS_KEY", "SEAWEEDFS_SECRET_KEY",
+        "NESSIE_ENDPOINT", "AIRPORT_ICAO", "INGEST_START_DATE", "INGEST_END_DATE",
+    ):
+        monkeypatch.delenv(var, raising=False)
+
+    from pipeline import _resources_or_empty
+    with pytest.raises((KeyError, ValidationError)):
+        _resources_or_empty()

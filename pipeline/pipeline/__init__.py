@@ -10,7 +10,7 @@ from pipeline.resources.seaweedfs import SeaweedFSResource
 from pipeline.resources.nessie import NessieResource
 
 
-def _make_resources():
+def _make_resources() -> dict[str, ResourceDefinition]:
     cfg = PipelineConfig.from_env()
     return {
         "pipeline_config": ResourceDefinition.hardcoded_resource(cfg),
@@ -30,10 +30,12 @@ def _make_resources():
     }
 
 
-def _resources_or_empty():
+def _resources_or_empty() -> dict[str, ResourceDefinition]:
     try:
         return _make_resources()
     except (KeyError, ValidationError):
+        if os.environ.get("DAGSTER_ENV") == "prod":
+            raise
         return {}
 
 

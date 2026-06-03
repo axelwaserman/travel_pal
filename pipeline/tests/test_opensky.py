@@ -5,6 +5,7 @@ from pipeline.resources.opensky import (
     OpenSkyAdapter,
     OpenSkyFlight,
     _date_chunks,
+    _do_fetch_chunk,
     _to_arrow,
 )
 
@@ -58,8 +59,9 @@ def test_to_arrow_empty():
 
 
 def test_date_chunks_splits_by_7_days():
+    # 2024-01-01 → 2024-01-22 = 21 days = exactly 3 × 7-day chunks
     chunks = _date_chunks("2024-01-01", "2024-01-22")
-    assert len(chunks) == 4
+    assert len(chunks) == 3
     for begin, end in chunks:
         assert end - begin <= 7 * 86400
 
@@ -71,14 +73,17 @@ def test_date_chunks_single_window():
 
 @pytest.mark.asyncio
 async def test_fetch_departures_returns_arrow_table():
-    adapter = OpenSkyAdapter()
-    mock_response = MagicMock()
-    mock_response.status = 200
-    mock_response.json = AsyncMock(return_value=SAMPLE_RESPONSE)
+    expected_flight = OpenSkyFlight.model_validate(SAMPLE_RESPONSE[0])
 
-    with patch.object(adapter, "_fetch_chunk", new=AsyncMock(
-        return_value=[OpenSkyFlight.model_validate(SAMPLE_RESPONSE[0])]
-    )):
+    # Patch at the class level (not instance) to avoid touching the frozen instance.
+    # OpenSkyAdapter._fetch_chunk is an unbound method on the class, so patch.object
+    # on the *class* replaces the descriptor without mutating any instance.
+    with patch.object(
+        OpenSkyAdapter,
+        "_fetch_chunk",
+        new=AsyncMock(return_value=[expected_flight]),
+    ):
+        adapter = OpenSkyAdapter()
         table = await adapter.fetch_departures("KJFK", "2024-01-01", "2024-01-07")
 
     assert isinstance(table, pa.Table)
@@ -88,30 +93,28 @@ async def test_fetch_departures_returns_arrow_table():
 
 @pytest.mark.asyncio
 async def test_fetch_chunk_handles_404():
-    adapter = OpenSkyAdapter()
+    mock_client = MagicMock()
     mock_response = MagicMock()
     mock_response.status = 404
+    mock_req = MagicMock()
+    mock_req.build.return_value.send = AsyncMock(return_value=mock_response)
+    mock_client.get.return_value.query.return_value = mock_req
 
-    with patch.object(adapter, "_client") as mock_client:
-        mock_req = MagicMock()
-        mock_req.build.return_value.send = AsyncMock(return_value=mock_response)
-        mock_client.get.return_value.query.return_value = mock_req
-        result = await adapter._fetch_chunk("departure", "KJFK", 0, 86400)
+    result = await _do_fetch_chunk(mock_client, "departure", "KJFK", 0, 86400)
 
     assert result == []
 
 
 @pytest.mark.asyncio
 async def test_fetch_chunk_handles_empty_response():
-    adapter = OpenSkyAdapter()
+    mock_client = MagicMock()
     mock_response = MagicMock()
     mock_response.status = 200
     mock_response.json = AsyncMock(return_value=None)
+    mock_req = MagicMock()
+    mock_req.build.return_value.send = AsyncMock(return_value=mock_response)
+    mock_client.get.return_value.query.return_value = mock_req
 
-    with patch.object(adapter, "_client") as mock_client:
-        mock_req = MagicMock()
-        mock_req.build.return_value.send = AsyncMock(return_value=mock_response)
-        mock_client.get.return_value.query.return_value = mock_req
-        result = await adapter._fetch_chunk("departure", "KJFK", 0, 86400)
+    result = await _do_fetch_chunk(mock_client, "departure", "KJFK", 0, 86400)
 
     assert result == []

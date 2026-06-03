@@ -3,7 +3,7 @@ from functools import cached_property
 
 import pyarrow as pa
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from pyreqwest.client import ClientBuilder
+from pyreqwest.client import Client, ClientBuilder
 
 
 BASE_URL = "https://opensky-network.org/api/flights"
@@ -48,21 +48,43 @@ def _to_arrow(records: list[OpenSkyFlight]) -> pa.Table:
     })
 
 
-class OpenSkyAdapter:
-    def __init__(self, username: str = "", password: str = "") -> None:
-        self._username = username
-        self._password = password
+async def _do_fetch_chunk(
+    client: Client,
+    endpoint: str,
+    airport_icao: str,
+    begin: int,
+    end: int,
+) -> list[OpenSkyFlight]:
+    """Fetch one time-window chunk from OpenSky. Accepts the client explicitly
+    so it can be unit-tested without touching cached_property descriptors."""
+    response = await (
+        client.get(endpoint)
+        .query({"airport": airport_icao, "begin": begin, "end": end})
+        .build()
+        .send()
+    )
+    if response.status == 404:
+        return []
+    raw: list[dict] = await response.json() or []
+    return [OpenSkyFlight.model_validate(r) for r in raw]
+
+
+class OpenSkyAdapter(BaseModel):
+    username: str = ""
+    password: str = ""
+
+    model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True)
 
     @cached_property
-    def _client(self):
+    def _client(self) -> Client:
         builder = (
             ClientBuilder()
             .base_url(BASE_URL + "/")
             .connect_timeout(timedelta(seconds=5))
             .timeout(timedelta(seconds=30))
         )
-        if self._username:
-            builder = builder.basic_auth(self._username, self._password)
+        if self.username:
+            builder = builder.basic_auth(self.username, self.password)
         return builder.build()
 
     async def fetch_departures(
@@ -87,13 +109,4 @@ class OpenSkyAdapter:
     async def _fetch_chunk(
         self, endpoint: str, airport_icao: str, begin: int, end: int
     ) -> list[OpenSkyFlight]:
-        response = await (
-            self._client.get(endpoint)
-            .query({"airport": airport_icao, "begin": begin, "end": end})
-            .build()
-            .send()
-        )
-        if response.status == 404:
-            return []
-        raw: list[dict] = await response.json() or []
-        return [OpenSkyFlight.model_validate(r) for r in raw]
+        return await _do_fetch_chunk(self._client, endpoint, airport_icao, begin, end)
