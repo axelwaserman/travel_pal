@@ -50,7 +50,7 @@ ignore = ["E501"]
 asyncio_mode = "auto"
 markers = [
     "unit: fast, dependency-free unit tests",
-    "integration: tests that require docker compose stack (postgres, nessie, seaweedfs)",
+    "integration: tests that exercise round-trips through real moto-backed S3 + Iceberg SQL catalog (no docker required)",
 ]
 testpaths = ["tests"]
 
