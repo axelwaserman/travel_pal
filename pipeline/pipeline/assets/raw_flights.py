@@ -1,21 +1,12 @@
+import asyncio
 import pyarrow as pa
 import pyiceberg.schema as sch
-from datetime import date, timedelta
 from dagster import asset, ResourceParam
 from pipeline.config import PipelineConfig
 from pipeline.resources.opensky import OpenSkyAdapter
 from pipeline.resources.seaweedfs import SeaweedFSResource
 from pipeline.resources.nessie import NessieResource
 from pyiceberg.types import NestedField, StringType, LongType
-
-
-def _date_chunks(start: str, end: str, days: int = 7):
-    current = date.fromisoformat(start)
-    end_date = date.fromisoformat(end)
-    while current < end_date:
-        chunk_end = min(current + timedelta(days=days), end_date)
-        yield current.isoformat(), chunk_end.isoformat()
-        current = chunk_end
 
 
 @asset
@@ -27,16 +18,20 @@ def raw_flights(
 ) -> pa.Table:
     tables: list[pa.Table] = []
 
-    for chunk_start, chunk_end in _date_chunks(
-        pipeline_config.ingest_start_date, pipeline_config.ingest_end_date
-    ):
-        departures = opensky.fetch_departures(
-            pipeline_config.airport_icao, chunk_start, chunk_end
+    async def _fetch_all() -> list[pa.Table]:
+        departures = await opensky.fetch_departures(
+            pipeline_config.airport_icao,
+            pipeline_config.ingest_start_date,
+            pipeline_config.ingest_end_date,
         )
-        arrivals = opensky.fetch_arrivals(
-            pipeline_config.airport_icao, chunk_start, chunk_end
+        arrivals = await opensky.fetch_arrivals(
+            pipeline_config.airport_icao,
+            pipeline_config.ingest_start_date,
+            pipeline_config.ingest_end_date,
         )
-        tables.extend([departures, arrivals])
+        return [departures, arrivals]
+
+    tables = asyncio.run(_fetch_all())
 
     if not tables:
         return pa.table({

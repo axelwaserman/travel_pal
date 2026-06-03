@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "travel_pal_pipeline"
 version = "0.1.0"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 dependencies = [
     "dagster>=1.9",
     "dagster-webserver>=1.9",
@@ -15,7 +15,9 @@ dependencies = [
     "duckdb>=1.4.0",
     "pyiceberg[s3fs,nessie]>=0.8",
     "boto3",
-    "httpx",
+    "pyreqwest>=0.12",
+    "pydantic>=2.0",
+    "pydantic-settings>=2.0",
     "pyarrow>=15",
     "sqlglot>=25",
 ]
@@ -27,5 +29,25 @@ dev = [
     "moto[s3]",
 ]
 
+[tool.uv]
+python = "python3.13t"
+
 [tool.dagster]
 module_name = "pipeline"
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+extend-exclude = ["transforms/target", "storage", "logs", ".telemetry"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "W"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+markers = [
+    "integration: tests that require docker compose stack (postgres, nessie, seaweedfs)",
+]
+testpaths = ["tests"]
+

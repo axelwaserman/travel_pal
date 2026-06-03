@@ -1,66 +1,99 @@
-from dataclasses import dataclass
-from datetime import datetime, timezone
-import httpx
+from datetime import datetime, timedelta, timezone
+from functools import cached_property
+
 import pyarrow as pa
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pyreqwest.client import ClientBuilder
 
 
 BASE_URL = "https://opensky-network.org/api/flights"
+_MAX_CHUNK_DAYS = 7
 
 
-@dataclass
-class FlightRecord:
-    icao24: str
-    callsign: str
-    first_seen: int
-    last_seen: int
-    est_departure_airport: str | None
-    est_arrival_airport: str | None
+class OpenSkyFlight(BaseModel):
+    icao24: str | None = None
+    callsign: str | None = None
+    first_seen: int | None = Field(None, alias="firstSeen")
+    last_seen: int | None = Field(None, alias="lastSeen")
+    est_departure_airport: str | None = Field(None, alias="estDepartureAirport")
+    est_arrival_airport: str | None = Field(None, alias="estArrivalAirport")
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    @field_validator("callsign", mode="before")
+    @classmethod
+    def strip_callsign(cls, v: str | None) -> str | None:
+        return v.strip() if v else None
+
+
+def _date_chunks(start: str, end: str) -> list[tuple[int, int]]:
+    current = datetime.fromisoformat(start).replace(tzinfo=timezone.utc)
+    end_dt = datetime.fromisoformat(end).replace(tzinfo=timezone.utc)
+    chunks: list[tuple[int, int]] = []
+    while current < end_dt:
+        chunk_end = min(current + timedelta(days=_MAX_CHUNK_DAYS), end_dt)
+        chunks.append((int(current.timestamp()), int(chunk_end.timestamp())))
+        current = chunk_end
+    return chunks
+
+
+def _to_arrow(records: list[OpenSkyFlight]) -> pa.Table:
+    return pa.table({
+        "icao24": [r.icao24 for r in records],
+        "callsign": [r.callsign for r in records],
+        "first_seen": [r.first_seen for r in records],
+        "last_seen": [r.last_seen for r in records],
+        "est_departure_airport": [r.est_departure_airport for r in records],
+        "est_arrival_airport": [r.est_arrival_airport for r in records],
+    })
 
 
 class OpenSkyAdapter:
-    """Thin adapter over the OpenSky REST API. Swap this file to change data source."""
+    def __init__(self, username: str = "", password: str = "") -> None:
+        self._username = username
+        self._password = password
 
-    def fetch_departures(
+    @cached_property
+    def _client(self):
+        builder = (
+            ClientBuilder()
+            .base_url(BASE_URL + "/")
+            .connect_timeout(timedelta(seconds=5))
+            .timeout(timedelta(seconds=30))
+        )
+        if self._username:
+            builder = builder.basic_auth(self._username, self._password)
+        return builder.build()
+
+    async def fetch_departures(
         self, airport_icao: str, start_date: str, end_date: str
     ) -> pa.Table:
-        begin = int(datetime.fromisoformat(start_date).replace(tzinfo=timezone.utc).timestamp())
-        end = int(datetime.fromisoformat(end_date).replace(tzinfo=timezone.utc).timestamp())
-        response = httpx.get(
-            f"{BASE_URL}/departure",
-            params={"airport": airport_icao, "begin": begin, "end": end},
-            timeout=30,
-        )
-        if response.status_code == 404:
-            return self._to_arrow([])
-        response.raise_for_status()
-        return self._to_arrow(response.json() or [])
+        return await self._fetch("departure", airport_icao, start_date, end_date)
 
-    def fetch_arrivals(
+    async def fetch_arrivals(
         self, airport_icao: str, start_date: str, end_date: str
     ) -> pa.Table:
-        begin = int(datetime.fromisoformat(start_date).replace(tzinfo=timezone.utc).timestamp())
-        end = int(datetime.fromisoformat(end_date).replace(tzinfo=timezone.utc).timestamp())
-        response = httpx.get(
-            f"{BASE_URL}/arrival",
-            params={"airport": airport_icao, "begin": begin, "end": end},
-            timeout=30,
-        )
-        if response.status_code == 404:
-            return self._to_arrow([])
-        response.raise_for_status()
-        return self._to_arrow(response.json() or [])
+        return await self._fetch("arrival", airport_icao, start_date, end_date)
 
-    def _to_arrow(self, records: list[dict]) -> pa.Table:
-        records = records or []
-        return pa.table(
-            {
-                "icao24": [r["icao24"] for r in records],
-                "callsign": [r.get("callsign", "").strip() for r in records],
-                "first_seen": [r["firstSeen"] for r in records],
-                "last_seen": [r["lastSeen"] for r in records],
-                "est_departure_airport": [
-                    r.get("estDepartureAirport") for r in records
-                ],
-                "est_arrival_airport": [r.get("estArrivalAirport") for r in records],
-            }
+    async def _fetch(
+        self, endpoint: str, airport_icao: str, start_date: str, end_date: str
+    ) -> pa.Table:
+        all_records: list[OpenSkyFlight] = []
+        for begin, end in _date_chunks(start_date, end_date):
+            chunk = await self._fetch_chunk(endpoint, airport_icao, begin, end)
+            all_records.extend(chunk)
+        return _to_arrow(all_records)
+
+    async def _fetch_chunk(
+        self, endpoint: str, airport_icao: str, begin: int, end: int
+    ) -> list[OpenSkyFlight]:
+        response = await (
+            self._client.get(endpoint)
+            .query({"airport": airport_icao, "begin": begin, "end": end})
+            .build()
+            .send()
         )
+        if response.status == 404:
+            return []
+        raw: list[dict] = await response.json() or []
+        return [OpenSkyFlight.model_validate(r) for r in raw]

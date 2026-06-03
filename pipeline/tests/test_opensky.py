@@ -1,6 +1,12 @@
+import pytest
 import pyarrow as pa
-from unittest.mock import patch, MagicMock
-from pipeline.resources.opensky import OpenSkyAdapter, FlightRecord
+from unittest.mock import AsyncMock, MagicMock, patch
+from pipeline.resources.opensky import (
+    OpenSkyAdapter,
+    OpenSkyFlight,
+    _date_chunks,
+    _to_arrow,
+)
 
 
 SAMPLE_RESPONSE = [
@@ -12,66 +18,100 @@ SAMPLE_RESPONSE = [
         "estArrivalAirport": "KLAX",
         "callsign": "AA100   ",
         "estDepartureAirportHorizDistance": 500,
-        "estDepartureAirportVertDistance": 50,
-        "estArrivalAirportHorizDistance": 600,
-        "estArrivalAirportVertDistance": 60,
         "departureAirportCandidatesCount": 1,
-        "arrivalAirportCandidatesCount": 1,
     }
 ]
 
 
-def test_fetch_departures_returns_arrow_table():
+def test_opensky_flight_strips_callsign():
+    flight = OpenSkyFlight.model_validate(SAMPLE_RESPONSE[0])
+    assert flight.callsign == "AA100"
+
+
+def test_opensky_flight_maps_aliases():
+    flight = OpenSkyFlight.model_validate(SAMPLE_RESPONSE[0])
+    assert flight.first_seen == 1704067200
+    assert flight.last_seen == 1704074400
+    assert flight.est_departure_airport == "KJFK"
+    assert flight.est_arrival_airport == "KLAX"
+
+
+def test_opensky_flight_ignores_extra_fields():
+    flight = OpenSkyFlight.model_validate(SAMPLE_RESPONSE[0])
+    assert not hasattr(flight, "estDepartureAirportHorizDistance")
+
+
+def test_to_arrow_produces_correct_schema():
+    flight = OpenSkyFlight.model_validate(SAMPLE_RESPONSE[0])
+    table = _to_arrow([flight])
+    assert isinstance(table, pa.Table)
+    assert table.num_rows == 1
+    assert set(table.column_names) == {
+        "icao24", "callsign", "first_seen", "last_seen",
+        "est_departure_airport", "est_arrival_airport",
+    }
+
+
+def test_to_arrow_empty():
+    table = _to_arrow([])
+    assert table.num_rows == 0
+
+
+def test_date_chunks_splits_by_7_days():
+    chunks = _date_chunks("2024-01-01", "2024-01-22")
+    assert len(chunks) == 4
+    for begin, end in chunks:
+        assert end - begin <= 7 * 86400
+
+
+def test_date_chunks_single_window():
+    chunks = _date_chunks("2024-01-01", "2024-01-05")
+    assert len(chunks) == 1
+
+
+@pytest.mark.asyncio
+async def test_fetch_departures_returns_arrow_table():
     adapter = OpenSkyAdapter()
-    with patch("pipeline.resources.opensky.httpx.get") as mock_get:
-        mock_get.return_value = MagicMock(
-            status_code=200,
-            json=lambda: SAMPLE_RESPONSE,
-            raise_for_status=lambda: None,
-        )
-        table = adapter.fetch_departures("KJFK", "2024-01-01", "2024-01-07")
+    mock_response = MagicMock()
+    mock_response.status = 200
+    mock_response.json = AsyncMock(return_value=SAMPLE_RESPONSE)
+
+    with patch.object(adapter, "_fetch_chunk", new=AsyncMock(
+        return_value=[OpenSkyFlight.model_validate(SAMPLE_RESPONSE[0])]
+    )):
+        table = await adapter.fetch_departures("KJFK", "2024-01-01", "2024-01-07")
 
     assert isinstance(table, pa.Table)
-    assert "icao24" in table.column_names
-    assert "callsign" in table.column_names
-    assert "first_seen" in table.column_names
     assert table.num_rows == 1
-
-
-def test_callsign_is_stripped():
-    adapter = OpenSkyAdapter()
-    with patch("pipeline.resources.opensky.httpx.get") as mock_get:
-        mock_get.return_value = MagicMock(
-            status_code=200,
-            json=lambda: SAMPLE_RESPONSE,
-            raise_for_status=lambda: None,
-        )
-        table = adapter.fetch_departures("KJFK", "2024-01-01", "2024-01-07")
-
     assert table.column("callsign")[0].as_py() == "AA100"
 
 
-def test_fetch_departures_handles_404():
+@pytest.mark.asyncio
+async def test_fetch_chunk_handles_404():
     adapter = OpenSkyAdapter()
-    with patch("pipeline.resources.opensky.httpx.get") as mock_get:
-        mock_response = MagicMock()
-        mock_response.status_code = 404
-        mock_get.return_value = mock_response
-        table = adapter.fetch_departures("KJFK", "2024-01-01", "2024-01-07")
+    mock_response = MagicMock()
+    mock_response.status = 404
 
-    assert isinstance(table, pa.Table)
-    assert table.num_rows == 0
+    with patch.object(adapter, "_client") as mock_client:
+        mock_req = MagicMock()
+        mock_req.build.return_value.send = AsyncMock(return_value=mock_response)
+        mock_client.get.return_value.query.return_value = mock_req
+        result = await adapter._fetch_chunk("departure", "KJFK", 0, 86400)
+
+    assert result == []
 
 
-def test_fetch_departures_handles_null_response():
+@pytest.mark.asyncio
+async def test_fetch_chunk_handles_empty_response():
     adapter = OpenSkyAdapter()
-    with patch("pipeline.resources.opensky.httpx.get") as mock_get:
-        mock_get.return_value = MagicMock(
-            status_code=200,
-            json=lambda: None,
-            raise_for_status=lambda: None,
-        )
-        table = adapter.fetch_departures("KJFK", "2024-01-01", "2024-01-07")
+    mock_response = MagicMock()
+    mock_response.status = 200
+    mock_response.json = AsyncMock(return_value=None)
 
-    assert isinstance(table, pa.Table)
-    assert table.num_rows == 0
+    with patch.object(adapter, "_client") as mock_client:
+        mock_req = MagicMock()
+        mock_req.build.return_value.send = AsyncMock(return_value=mock_response)
+        mock_client.get.return_value.query.return_value = mock_req
+        result = await adapter._fetch_chunk("departure", "KJFK", 0, 86400)
+
+    assert result == []

@@ -1,16 +1,18 @@
 import io
+from functools import cached_property
+
 import boto3
 import pyarrow as pa
 import pyarrow.parquet as pq
-from dataclasses import dataclass
-from functools import cached_property
+from pydantic import BaseModel, ConfigDict
 
 
-@dataclass
-class SeaweedFSResource:
+class SeaweedFSResource(BaseModel):
     endpoint: str
     access_key: str
     secret_key: str
+
+    model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True)
 
     @cached_property
     def _client(self):
@@ -19,6 +21,7 @@ class SeaweedFSResource:
             endpoint_url=self.endpoint,
             aws_access_key_id=self.access_key,
             aws_secret_access_key=self.secret_key,
+            region_name="us-east-1",
         )
 
     def upload_parquet(self, table: pa.Table, bucket: str, key: str) -> None:

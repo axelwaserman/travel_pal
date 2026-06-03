@@ -1,11 +1,13 @@
-from dataclasses import dataclass
 from functools import cached_property
+
+from pydantic import BaseModel, ConfigDict
 from pyiceberg.catalog import Catalog, load_catalog
 
 
-@dataclass
-class NessieResource:
+class NessieResource(BaseModel):
     endpoint: str
+
+    model_config = ConfigDict(frozen=True)
 
     @cached_property
     def catalog(self) -> Catalog:
