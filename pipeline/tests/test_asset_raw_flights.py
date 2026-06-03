@@ -1,4 +1,3 @@
-import pytest
 import pyarrow as pa
 from unittest.mock import AsyncMock, MagicMock
 from pipeline.assets.raw_flights import raw_flights
@@ -27,13 +26,12 @@ def _make_config() -> PipelineConfig:
     })
 
 
-def test_raw_flights_asset_uploads_and_registers():
+def test_raw_flights_asset_creates_table_and_appends():
     config = _make_config()
     mock_opensky = MagicMock()
     mock_opensky.fetch_departures = AsyncMock(return_value=SAMPLE_TABLE)
     mock_opensky.fetch_arrivals = AsyncMock(return_value=SAMPLE_TABLE)
 
-    mock_seaweedfs = MagicMock()
     mock_nessie = MagicMock()
     mock_catalog = MagicMock()
     mock_catalog.table_exists.return_value = False
@@ -44,14 +42,12 @@ def test_raw_flights_asset_uploads_and_registers():
     result = raw_flights(
         pipeline_config=config,
         opensky=mock_opensky,
-        seaweedfs=mock_seaweedfs,
         nessie=mock_nessie,
     )
 
-    mock_seaweedfs.upload_parquet.assert_called_once()
-    upload_key = mock_seaweedfs.upload_parquet.call_args.kwargs["key"]
-    assert upload_key == "KJFK/raw_flights.parquet"
     assert mock_catalog.table_exists.called
+    mock_catalog.create_namespace_if_not_exists.assert_called_once_with("flights")
+    mock_catalog.create_table.assert_called_once()
     assert result.num_rows == 2  # departures row + arrivals row
 
     mock_catalog.load_table.assert_called_once_with("flights.raw_flights")
@@ -73,7 +69,6 @@ def test_raw_flights_returns_empty_table_when_no_data():
     mock_opensky = MagicMock()
     mock_opensky.fetch_departures = AsyncMock(return_value=empty)
     mock_opensky.fetch_arrivals = AsyncMock(return_value=empty)
-    mock_seaweedfs = MagicMock()
     mock_nessie = MagicMock()
     mock_catalog = MagicMock()
     mock_nessie.catalog = mock_catalog
@@ -81,13 +76,11 @@ def test_raw_flights_returns_empty_table_when_no_data():
     result = raw_flights(
         pipeline_config=config,
         opensky=mock_opensky,
-        seaweedfs=mock_seaweedfs,
         nessie=mock_nessie,
     )
 
     assert isinstance(result, pa.Table)
     assert result.num_rows == 0
-    mock_seaweedfs.upload_parquet.assert_not_called()
     mock_catalog.table_exists.assert_not_called()
     mock_catalog.create_table.assert_not_called()
     mock_catalog.load_table.assert_not_called()
@@ -99,7 +92,6 @@ def test_raw_flights_appends_to_existing_table_without_create():
     mock_opensky.fetch_departures = AsyncMock(return_value=SAMPLE_TABLE)
     mock_opensky.fetch_arrivals = AsyncMock(return_value=SAMPLE_TABLE)
 
-    mock_seaweedfs = MagicMock()
     mock_nessie = MagicMock()
     mock_catalog = MagicMock()
     mock_catalog.table_exists.return_value = True
@@ -108,7 +100,6 @@ def test_raw_flights_appends_to_existing_table_without_create():
     result = raw_flights(
         pipeline_config=config,
         opensky=mock_opensky,
-        seaweedfs=mock_seaweedfs,
         nessie=mock_nessie,
     )
 

@@ -4,7 +4,6 @@ import pyiceberg.schema as sch
 from dagster import asset, ResourceParam
 from pipeline.config import PipelineConfig
 from pipeline.resources.opensky import OpenSkyAdapter
-from pipeline.resources.seaweedfs import SeaweedFSResource
 from pipeline.resources.nessie import NessieResource
 from pyiceberg.types import NestedField, StringType, LongType
 
@@ -13,7 +12,6 @@ from pyiceberg.types import NestedField, StringType, LongType
 def raw_flights(
     pipeline_config: ResourceParam[PipelineConfig],
     opensky: ResourceParam[OpenSkyAdapter],
-    seaweedfs: ResourceParam[SeaweedFSResource],
     nessie: ResourceParam[NessieResource],
 ) -> pa.Table:
     tables: list[pa.Table] = []
@@ -37,9 +35,6 @@ def raw_flights(
 
     if combined.num_rows == 0:
         return combined
-
-    key = f"{pipeline_config.airport_icao}/raw_flights.parquet"
-    seaweedfs.upload_parquet(combined, bucket=pipeline_config.raw_bucket, key=key)
 
     catalog = nessie.catalog
     if not catalog.table_exists("flights.raw_flights"):
