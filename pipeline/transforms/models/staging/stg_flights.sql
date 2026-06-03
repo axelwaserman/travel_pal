@@ -10,6 +10,6 @@ SELECT
     est_arrival_airport                             AS destination_icao
 FROM read_parquet('s3://{{ env_var("RAW_BUCKET", "raw-flights") }}/warehouse/flights/raw_flights/data/*.parquet')
 WHERE icao24 IS NOT NULL
-  AND callsign IS NOT NULL
+  AND NULLIF(TRIM(callsign), '') IS NOT NULL
   AND first_seen IS NOT NULL
   AND last_seen  IS NOT NULL

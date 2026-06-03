@@ -23,7 +23,10 @@ class OpenSkyFlight(BaseModel):
     @field_validator("callsign", mode="before")
     @classmethod
     def strip_callsign(cls, v: str | None) -> str | None:
-        return v.strip() if v else None
+        if not v:
+            return None
+        stripped = v.strip()
+        return stripped or None
 
 
 def _date_chunks(start: str, end: str) -> list[tuple[int, int]]:

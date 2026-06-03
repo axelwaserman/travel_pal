@@ -29,6 +29,16 @@ def test_opensky_flight_strips_callsign():
     assert flight.callsign == "AA100"
 
 
+def test_opensky_flight_whitespace_callsign_returns_none():
+    flight = OpenSkyFlight.model_validate({**SAMPLE_RESPONSE[0], "callsign": "   "})
+    assert flight.callsign is None
+
+
+def test_opensky_flight_empty_callsign_returns_none():
+    flight = OpenSkyFlight.model_validate({**SAMPLE_RESPONSE[0], "callsign": ""})
+    assert flight.callsign is None
+
+
 def test_opensky_flight_maps_aliases():
     flight = OpenSkyFlight.model_validate(SAMPLE_RESPONSE[0])
     assert flight.first_seen == 1704067200

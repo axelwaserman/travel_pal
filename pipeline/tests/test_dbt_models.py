@@ -25,6 +25,15 @@ def test_stg_flights_uses_read_parquet_with_s3_uri() -> None:
 
 
 @pytest.mark.unit
+def test_stg_flights_filters_empty_callsign() -> None:
+    """callsign filter must use NULLIF(TRIM(...), '') so whitespace-only and empty are dropped."""
+    sql = (STAGING_DIR / "stg_flights.sql").read_text()
+    assert "NULLIF(TRIM(callsign), '')" in sql, (
+        "stg_flights.sql must guard against empty/whitespace callsigns via NULLIF(TRIM(...), '')"
+    )
+
+
+@pytest.mark.unit
 def test_profiles_s3_endpoint_default_has_no_scheme() -> None:
     """profiles.yml s3_endpoint default value must be bare host:port (no scheme).
 
