@@ -96,35 +96,6 @@ def test_date_chunks_single_window():
 
 
 @pytest.mark.asyncio
-async def test_fetch_departures_returns_arrow_table(monkeypatch, tmp_path):
-    """Fixture mode bypasses HTTP entirely, so no token or chunk fetch is needed.
-
-    We patch _fetch_chunk at the class level to ensure no network hit, but in
-    practice fixture mode short-circuits before _fetch_chunk is called. This
-    covers the "decorator skips token check when OPENSKY_FIXTURE_DIR set"
-    contract from a different angle: we set fixture mode but still patch
-    _fetch_chunk to be safe.
-    """
-    expected_flight = OpenSkyFlight.model_validate(SAMPLE_RESPONSE[0])
-
-    # Patch at the class level (not instance) to avoid touching frozen attrs.
-    with patch.object(
-        OpenSkyResource,
-        "_fetch_chunk",
-        new=AsyncMock(return_value=[expected_flight]),
-    ):
-        # Fixture mode bypasses HTTP token fetch — no creds required.
-        monkeypatch.setenv("OPENSKY_FIXTURE_DIR", str(tmp_path))
-        # No fixture file exists for KJFK in tmp_path → returns empty table.
-        resource = OpenSkyResource()
-        table = await resource.fetch_departures("KJFK", "2024-01-01", "2024-01-07")
-
-    # In fixture mode with no fixture file present, table is empty.
-    assert isinstance(table, pa.Table)
-    assert table.num_rows == 0
-
-
-@pytest.mark.asyncio
 async def test_fetch_departures_calls_fetch_chunk_when_no_fixture(monkeypatch):
     """When OPENSKY_FIXTURE_DIR is unset, the public path uses _fetch_chunk.
 
@@ -280,13 +251,38 @@ async def test_token_refresh_on_expiry(monkeypatch):
 async def test_token_refresh_concurrent_calls_share_one_fetch():
     """10 concurrent _ensure_token_valid() coroutines must serialise via the
     asyncio.Lock and only trigger one underlying POST (double-checked
-    locking)."""
+    locking).
+
+    The mocked ``send`` awaits ``asyncio.sleep`` to force genuine suspension
+    inside the lock's critical section. Without this, every coroutine
+    finishes on the same event-loop tick and a no-lock implementation would
+    silently pass.
+    """
     resource = OpenSkyResource(client_id="id", client_secret="secret")
-    post_mock = _patch_post(resource, _make_token_response(expires_in=1800))
+
+    # Build a fake client whose send() actually suspends, so the lock is
+    # forced to serialise refreshes (otherwise all 10 coroutines race past
+    # the fast-path check before the first one finishes writing _token).
+    response = _make_token_response(expires_in=1800)
+    send_call_count = 0
+
+    async def _slow_send():
+        nonlocal send_call_count
+        send_call_count += 1
+        await asyncio.sleep(0.01)
+        return response
+
+    fake_builder = MagicMock()
+    fake_builder.form.return_value.build.return_value.send = _slow_send
+    post_mock = MagicMock(return_value=fake_builder)
+    fake_client = MagicMock()
+    fake_client.post = post_mock
+    resource.__dict__["_auth_client"] = fake_client
 
     await asyncio.gather(*[resource._ensure_token_valid() for _ in range(10)])
 
     assert post_mock.call_count == 1
+    assert send_call_count == 1
 
 
 @pytest.mark.asyncio
@@ -320,6 +316,45 @@ async def test_missing_credentials_raises():
     resource = OpenSkyResource()  # no client_id / client_secret
     with pytest.raises(RuntimeError, match="OPENSKY_CLIENT_ID"):
         await resource._ensure_token_valid()
+
+
+@pytest.mark.asyncio
+async def test_token_refreshed_between_chunks(monkeypatch):
+    """Multi-chunk fetches must re-check token validity at the top of each
+    iteration. We arrange for the first iteration to find a fresh token (fast
+    path) and the second iteration to find a near-expired one (forces a real
+    refresh) — proving that a long ingest spanning the token TTL still
+    authenticates correctly.
+    """
+    monkeypatch.delenv("OPENSKY_FIXTURE_DIR", raising=False)
+    resource = OpenSkyResource(client_id="id", client_secret="secret")
+    post_mock = _patch_post(resource, _make_token_response(expires_in=1800))
+
+    # 21-day window → 3 × 7-day chunks.
+    start_date = "2024-01-01"
+    end_date = "2024-01-22"
+
+    # Track each chunk call; between chunk 1 and chunk 2, expire the token
+    # by mutating _expires_at so the next _ensure_token_valid hits the slow
+    # path and triggers a fresh POST.
+    call_order: list[str] = []
+    expire_after_calls = {1}
+
+    async def fake_fetch_chunk(self, endpoint, airport_icao, begin, end):
+        call_order.append("chunk")
+        if len(call_order) in expire_after_calls:
+            # Make the token look "almost expired" — within the 60s margin.
+            self._expires_at = time.monotonic() + 30.0
+        return []
+
+    with patch.object(OpenSkyResource, "_fetch_chunk", new=fake_fetch_chunk):
+        # First call: triggers initial token POST + 3 chunks; the 1st chunk
+        # expires the token, so chunk 2 forces a 2nd POST.
+        await resource.fetch_departures("KJFK", start_date, end_date)
+
+    assert call_order.count("chunk") == 3
+    # Initial fetch (decorator) + refresh between chunk 1 and chunk 2 = 2.
+    assert post_mock.call_count == 2
 
 
 @pytest.mark.asyncio

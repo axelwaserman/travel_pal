@@ -43,8 +43,8 @@ async def test_fixture_mode_loads_departures(
     """fetch_departures returns a non-empty Arrow table from the fixture file."""
     monkeypatch.setenv("OPENSKY_FIXTURE_DIR", str(_FIXTURE_DIR))
 
-    adapter = OpenSkyResource()
-    table = await adapter.fetch_departures("KJFK", _START_DATE, _END_DATE)
+    resource = OpenSkyResource()
+    table = await resource.fetch_departures("KJFK", _START_DATE, _END_DATE)
 
     assert isinstance(table, pa.Table)
     assert table.num_rows == 7, f"expected 7 rows, got {table.num_rows}"
@@ -60,8 +60,8 @@ async def test_fixture_mode_loads_arrivals(
     """fetch_arrivals returns a non-empty Arrow table from the fixture file."""
     monkeypatch.setenv("OPENSKY_FIXTURE_DIR", str(_FIXTURE_DIR))
 
-    adapter = OpenSkyResource()
-    table = await adapter.fetch_arrivals("KJFK", _START_DATE, _END_DATE)
+    resource = OpenSkyResource()
+    table = await resource.fetch_arrivals("KJFK", _START_DATE, _END_DATE)
 
     assert isinstance(table, pa.Table)
     assert table.num_rows == 7, f"expected 7 rows, got {table.num_rows}"
@@ -74,11 +74,11 @@ async def test_fixture_mode_returns_empty_when_file_missing(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """When OPENSKY_FIXTURE_DIR is set but no file exists for the airport,
-    the adapter returns an empty Arrow table rather than raising."""
+    the resource returns an empty Arrow table rather than raising."""
     monkeypatch.setenv("OPENSKY_FIXTURE_DIR", str(_FIXTURE_DIR))
 
-    adapter = OpenSkyResource()
-    table = await adapter.fetch_departures(_UNKNOWN_AIRPORT, _START_DATE, _END_DATE)
+    resource = OpenSkyResource()
+    table = await resource.fetch_departures(_UNKNOWN_AIRPORT, _START_DATE, _END_DATE)
 
     assert isinstance(table, pa.Table)
     assert table.num_rows == 0
@@ -112,8 +112,8 @@ async def test_fixture_mode_filters_by_date_window(
 
     monkeypatch.setenv("OPENSKY_FIXTURE_DIR", str(tmp_path))
 
-    adapter = OpenSkyResource()
-    table = await adapter.fetch_departures("KJFK", "2024-01-01", "2024-01-02")
+    resource = OpenSkyResource()
+    table = await resource.fetch_departures("KJFK", "2024-01-01", "2024-01-02")
 
     assert table.num_rows == 1
     assert table.column("callsign")[0].as_py() == "TST001"
@@ -126,9 +126,9 @@ async def test_fixture_mode_validates_pydantic_model(
     """All fixture records parse cleanly through OpenSkyFlight validation."""
     monkeypatch.setenv("OPENSKY_FIXTURE_DIR", str(_FIXTURE_DIR))
 
-    adapter = OpenSkyResource()
-    dep_table = await adapter.fetch_departures("KJFK", _START_DATE, _END_DATE)
-    arr_table = await adapter.fetch_arrivals("KJFK", _START_DATE, _END_DATE)
+    resource = OpenSkyResource()
+    dep_table = await resource.fetch_departures("KJFK", _START_DATE, _END_DATE)
+    arr_table = await resource.fetch_arrivals("KJFK", _START_DATE, _END_DATE)
 
     # If Pydantic validation failed, model_validate would have raised.
     assert dep_table.num_rows > 0

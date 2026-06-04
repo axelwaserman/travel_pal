@@ -198,6 +198,8 @@ class OpenSkyResource(ConfigurableResource):
             and self._expires_at - time.monotonic() >= _TOKEN_REFRESH_MARGIN_S
         ):
             return
+        # Lazy lock init: safe under Dagster's single-thread-per-asset-run
+        # execution model; not safe across threads.
         if self._lock is None:
             self._lock = asyncio.Lock()
         async with self._lock:
@@ -236,7 +238,11 @@ class OpenSkyResource(ConfigurableResource):
         data = await response.json()
         access_token = data.get("access_token") if isinstance(data, dict) else None
         expires_in = data.get("expires_in") if isinstance(data, dict) else None
-        if not access_token or not isinstance(expires_in, (int, float)):
+        if (
+            not access_token
+            or not isinstance(expires_in, (int, float))
+            or isinstance(expires_in, bool)
+        ):
             raise RuntimeError(
                 f"OpenSky token response missing access_token or expires_in: {data}"
             )
@@ -268,6 +274,10 @@ class OpenSkyResource(ConfigurableResource):
 
         all_records: list[OpenSkyFlight] = []
         for begin, end in _date_chunks(start_date, end_date):
+            # Re-check token between chunks: a multi-week ingest may outlast
+            # OpenSky's ~30min token TTL. The fast path is a single attribute
+            # compare when the token is still fresh.
+            await self._ensure_token_valid()
             chunk = await self._fetch_chunk(endpoint, airport_icao, begin, end)
             all_records.extend(chunk)
         return _to_arrow(all_records)
@@ -309,8 +319,9 @@ class OpenSkyResource(ConfigurableResource):
     async def _fetch_chunk(
         self, endpoint: str, airport_icao: str, begin: int, end: int
     ) -> list[OpenSkyFlight]:
-        # Token guaranteed fresh by the @with_valid_token decorator on the
-        # public callers; pass it through as a Bearer auth header.
+        # Pure HTTP helper: callers (`_fetch`) are responsible for ensuring
+        # `self._token` is still fresh before invoking. The current bearer
+        # is forwarded as an `Authorization: Bearer <token>` header.
         return await _do_fetch_chunk(
             self._api_client,
             endpoint,
