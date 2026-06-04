@@ -50,7 +50,7 @@ services:
     restart: unless-stopped
 
   seaweedfs-master:
-    image: chrislusf/seaweedfs:3.68
+    image: chrislusf/seaweedfs:4.31
     command: master -ip=seaweedfs-master -port=9333
     ports:
       - "9333:9333"
@@ -61,7 +61,7 @@ services:
       retries: 5
 
   seaweedfs-volume:
-    image: chrislusf/seaweedfs:3.68
+    image: chrislusf/seaweedfs:4.31
     command: volume -mserver=seaweedfs-master:9333 -port=8080
     ports:
       - "8080:8080"
@@ -77,7 +77,7 @@ services:
       retries: 5
 
   seaweedfs-filer:
-    image: chrislusf/seaweedfs:3.68
+    image: chrislusf/seaweedfs:4.31
     command: filer -master=seaweedfs-master:9333 -port=8888
     ports:
       - "8888:8888"
@@ -91,7 +91,7 @@ services:
       retries: 5
 
   seaweedfs-s3:
-    image: chrislusf/seaweedfs:3.68
+    image: chrislusf/seaweedfs:4.31
     command: s3 -filer=seaweedfs-filer:8888 -port=8333 -ip.bind=0.0.0.0
     ports:
       - "8333:8333"
