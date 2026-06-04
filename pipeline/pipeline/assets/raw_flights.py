@@ -3,7 +3,7 @@ import pyarrow as pa
 import pyiceberg.schema as sch
 from dagster import asset, ResourceParam
 from pipeline.config import PipelineConfig
-from pipeline.resources.opensky import OpenSkyAdapter
+from pipeline.resources.opensky import OpenSkyResource
 from pipeline.resources.nessie import NessieResource
 from pyiceberg.types import NestedField, StringType, LongType
 
@@ -11,7 +11,7 @@ from pyiceberg.types import NestedField, StringType, LongType
 @asset
 def raw_flights(
     pipeline_config: ResourceParam[PipelineConfig],
-    opensky: ResourceParam[OpenSkyAdapter],
+    opensky: ResourceParam[OpenSkyResource],
     nessie: ResourceParam[NessieResource],
 ) -> pa.Table:
     tables: list[pa.Table] = []

@@ -12,8 +12,8 @@ class PipelineConfig(BaseSettings):
     nessie_endpoint: str
     raw_bucket: str = "raw-flights"
     export_bucket: str = "frontend-exports"
-    opensky_username: str = ""
-    opensky_password: str = ""
+    opensky_client_id: str = ""
+    opensky_client_secret: str = ""
 
     model_config = SettingsConfigDict(frozen=True, case_sensitive=False)
 

@@ -1,12 +1,16 @@
+import asyncio
+import functools
 import json
 import os
+import time
 from datetime import datetime, timedelta, timezone
 from functools import cached_property
 from pathlib import Path
-from typing import Any
+from typing import Any, Awaitable, Callable, TypeVar
 
 import pyarrow as pa
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from dagster import ConfigurableResource
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, field_validator
 from pyreqwest.client import Client, ClientBuilder
 
 # Fixture JSON files contain arrays of OpenSky flight records (loose dicts
@@ -17,6 +21,15 @@ _JsonObject = dict[str, Any]
 
 BASE_URL = "https://opensky-network.org/api/flights"
 _MAX_CHUNK_DAYS = 7
+
+# OAuth2 token endpoint for OpenSky's Keycloak realm.
+OPENSKY_TOKEN_URL = (
+    "https://auth.opensky-network.org/auth/realms/opensky-network/"
+    "protocol/openid-connect/token"
+)
+# Refresh proactively once we are within this many seconds of the token's
+# expiry, to avoid losing in-flight requests to a token that expires mid-call.
+_TOKEN_REFRESH_MARGIN_S = 60.0
 
 
 class OpenSkyFlight(BaseModel):
@@ -66,15 +79,20 @@ async def _do_fetch_chunk(
     airport_icao: str,
     begin: int,
     end: int,
+    bearer: str | None = None,
 ) -> list[OpenSkyFlight]:
     """Fetch one time-window chunk from OpenSky. Accepts the client explicitly
-    so it can be unit-tested without touching cached_property descriptors."""
-    response = await (
-        client.get(endpoint)
-        .query({"airport": airport_icao, "begin": begin, "end": end})
-        .build()
-        .send()
+    so it can be unit-tested without touching cached_property descriptors.
+
+    When ``bearer`` is set, the request is authenticated with an
+    ``Authorization: Bearer <token>`` header.
+    """
+    builder = client.get(endpoint).query(
+        {"airport": airport_icao, "begin": begin, "end": end}
     )
+    if bearer:
+        builder = builder.header("Authorization", f"Bearer {bearer}")
+    response = await builder.build().send()
     if response.status == 404:
         return []
     raw: list[dict] = await response.json() or []
@@ -108,40 +126,130 @@ def _load_fixture(fixture_dir: str, endpoint: str, airport_icao: str) -> list[_J
     return data
 
 
-class OpenSkyAdapter(BaseModel):
-    """Async adapter for the OpenSky historical flights API.
+T = TypeVar("T")
 
-    **Fixture mode** (testing only): when the environment variable
-    ``OPENSKY_FIXTURE_DIR`` is set, the adapter reads JSON files from that
-    directory instead of making HTTP requests.  Files must follow the naming
-    convention ``{endpoint}s_{airport_icao_lower}.json`` (e.g.
-    ``departures_kjfk.json``).  Records are filtered to those whose
+
+def with_valid_token(
+    method: Callable[..., Awaitable[T]],
+) -> Callable[..., Awaitable[T]]:
+    """Decorator: ensure the OAuth2 token is valid before invoking the wrapped coroutine.
+
+    Skips the check entirely when running in fixture mode (OPENSKY_FIXTURE_DIR set),
+    so stub-mode tests never need credentials.
+    """
+
+    @functools.wraps(method)
+    async def wrapper(self: "OpenSkyResource", *args: Any, **kwargs: Any) -> T:
+        if not os.environ.get("OPENSKY_FIXTURE_DIR"):
+            await self._ensure_token_valid()
+        return await method(self, *args, **kwargs)
+
+    return wrapper
+
+
+class OpenSkyResource(ConfigurableResource):
+    """OpenSky historical flights API client with OAuth2 client_credentials.
+
+    Acquires and caches a bearer token, refreshing proactively when within
+    ``_TOKEN_REFRESH_MARGIN_S`` of expiry. Concurrent refresh attempts are
+    serialized via an ``asyncio.Lock`` with a double-checked fast path.
+
+    **Fixture mode**: when ``OPENSKY_FIXTURE_DIR`` is set, all HTTP (including
+    token fetch) is bypassed; records load from JSON files on disk. Files must
+    follow the naming convention ``{endpoint}s_{airport_icao_lower}.json``
+    (e.g. ``departures_kjfk.json``). Records are filtered to those whose
     ``firstSeen`` timestamp falls within the requested date window.
     Do **not** set ``OPENSKY_FIXTURE_DIR`` in production.
     """
 
-    username: str = ""
-    password: str = ""
+    client_id: str = ""
+    client_secret: str = ""
 
-    model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True)
+    _token: str | None = PrivateAttr(default=None)
+    _expires_at: float = PrivateAttr(default=0.0)
+    # Lazily initialised inside `_ensure_token_valid` to avoid binding the lock
+    # to the wrong event loop (Dagster may construct the resource outside the
+    # asset's loop).
+    _lock: asyncio.Lock | None = PrivateAttr(default=None)
 
     @cached_property
-    def _client(self) -> Client:
-        builder = (
+    def _auth_client(self) -> Client:
+        return (
+            ClientBuilder()
+            .connect_timeout(timedelta(seconds=5))
+            .timeout(timedelta(seconds=30))
+            .build()
+        )
+
+    @cached_property
+    def _api_client(self) -> Client:
+        return (
             ClientBuilder()
             .base_url(BASE_URL + "/")
             .connect_timeout(timedelta(seconds=5))
             .timeout(timedelta(seconds=30))
+            .build()
         )
-        if self.username:
-            builder = builder.basic_auth(self.username, self.password)
-        return builder.build()
 
+    async def _ensure_token_valid(self) -> None:
+        # Fast path: no lock if token still has > margin seconds left.
+        if (
+            self._token is not None
+            and self._expires_at - time.monotonic() >= _TOKEN_REFRESH_MARGIN_S
+        ):
+            return
+        if self._lock is None:
+            self._lock = asyncio.Lock()
+        async with self._lock:
+            # Re-check inside the lock — another coroutine may have refreshed
+            # while we waited.
+            if (
+                self._token is not None
+                and self._expires_at - time.monotonic() >= _TOKEN_REFRESH_MARGIN_S
+            ):
+                return
+            await self._refresh_token()
+
+    async def _refresh_token(self) -> None:
+        if not self.client_id or not self.client_secret:
+            raise RuntimeError(
+                "OpenSkyResource requires client_id and client_secret to be set "
+                "(via OPENSKY_CLIENT_ID / OPENSKY_CLIENT_SECRET env vars)"
+            )
+        response = await (
+            self._auth_client.post(OPENSKY_TOKEN_URL)
+            .form(
+                {
+                    "grant_type": "client_credentials",
+                    "client_id": self.client_id,
+                    "client_secret": self.client_secret,
+                }
+            )
+            .build()
+            .send()
+        )
+        if response.status != 200:
+            body = await response.text()
+            raise RuntimeError(
+                f"OpenSky token endpoint returned {response.status}: {body[:500]}"
+            )
+        data = await response.json()
+        access_token = data.get("access_token") if isinstance(data, dict) else None
+        expires_in = data.get("expires_in") if isinstance(data, dict) else None
+        if not access_token or not isinstance(expires_in, (int, float)):
+            raise RuntimeError(
+                f"OpenSky token response missing access_token or expires_in: {data}"
+            )
+        self._token = access_token
+        self._expires_at = time.monotonic() + float(expires_in)
+
+    @with_valid_token
     async def fetch_departures(
         self, airport_icao: str, start_date: str, end_date: str
     ) -> pa.Table:
         return await self._fetch("departure", airport_icao, start_date, end_date)
 
+    @with_valid_token
     async def fetch_arrivals(
         self, airport_icao: str, start_date: str, end_date: str
     ) -> pa.Table:
@@ -154,7 +262,9 @@ class OpenSkyAdapter(BaseModel):
         if fixture_dir:
             # Sync return inside async fn — fixture mode reads from disk, no
             # awaitable work. Caller awaits the coroutine the same way.
-            return self._fetch_from_fixture(fixture_dir, endpoint, airport_icao, start_date, end_date)
+            return self._fetch_from_fixture(
+                fixture_dir, endpoint, airport_icao, start_date, end_date
+            )
 
         all_records: list[OpenSkyFlight] = []
         for begin, end in _date_chunks(start_date, end_date):
@@ -199,4 +309,13 @@ class OpenSkyAdapter(BaseModel):
     async def _fetch_chunk(
         self, endpoint: str, airport_icao: str, begin: int, end: int
     ) -> list[OpenSkyFlight]:
-        return await _do_fetch_chunk(self._client, endpoint, airport_icao, begin, end)
+        # Token guaranteed fresh by the @with_valid_token decorator on the
+        # public callers; pass it through as a Bearer auth header.
+        return await _do_fetch_chunk(
+            self._api_client,
+            endpoint,
+            airport_icao,
+            begin,
+            end,
+            bearer=self._token,
+        )

@@ -5,16 +5,20 @@ from pipeline.assets.transformed_flights import transformed_flights
 from pipeline.assets.frontend_exports import frontend_exports
 from pipeline.config import PipelineConfig
 from pydantic import ValidationError
-from pipeline.resources.opensky import OpenSkyAdapter
+from pipeline.resources.opensky import OpenSkyResource
 from pipeline.resources.seaweedfs import SeaweedFSResource
 from pipeline.resources.nessie import NessieResource
 
 
 def _make_resources() -> dict[str, ResourceDefinition]:
     cfg = PipelineConfig.from_env()
-    # When OPENSKY_FIXTURE_DIR is set the adapter reads JSON fixtures instead
-    # of making live HTTP requests.  This is the mechanism used by CI E2E jobs.
-    opensky = OpenSkyAdapter(username=cfg.opensky_username, password=cfg.opensky_password)
+    # When OPENSKY_FIXTURE_DIR is set the resource reads JSON fixtures instead
+    # of making live HTTP requests (token endpoint included).  This is the
+    # mechanism used by CI E2E jobs.
+    opensky = OpenSkyResource(
+        client_id=cfg.opensky_client_id,
+        client_secret=cfg.opensky_client_secret,
+    )
     return {
         "pipeline_config": ResourceDefinition.hardcoded_resource(cfg),
         "opensky": ResourceDefinition.hardcoded_resource(opensky),
