@@ -12,4 +12,3 @@ pipeline/.telemetry/
 pipeline/transforms/logs/
 pipeline/transforms/.user.yml
 *.egg-info/
-uv.lock
