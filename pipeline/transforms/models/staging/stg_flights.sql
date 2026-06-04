@@ -1,20 +1,16 @@
 -- Staging: cast and clean raw OpenSky fields.
--- Reads via DuckDB iceberg_scan() so that Iceberg metadata (snapshots,
--- manifests, partition specs) is honoured rather than bypassed.
--- The table root is the Iceberg warehouse path managed by pyiceberg + Nessie;
--- allow_moved_paths = true handles any relocation of data files between
--- Iceberg snapshot writes.
+-- Reads via the Nessie REST catalog (ATTACHed in macros/setup_iceberg.sql) so
+-- the table location is resolved by the catalog at query time.  This avoids
+-- hardcoding the UUID-suffixed Iceberg table directory, which Nessie always
+-- appends and which the catalog is the only authority on.
 SELECT
     icao24,
     TRIM(callsign)                                  AS callsign,
-    CAST(first_seen AS TIMESTAMP)                   AS departed_at,
-    CAST(last_seen  AS TIMESTAMP)                   AS arrived_at,
+    to_timestamp(first_seen)                        AS departed_at,
+    to_timestamp(last_seen)                         AS arrived_at,
     est_departure_airport                           AS origin_icao,
     est_arrival_airport                             AS destination_icao
-FROM iceberg_scan(
-    's3://{{ env_var("RAW_BUCKET", "raw-flights") }}/warehouse/flights/raw_flights',
-    allow_moved_paths = true
-)
+FROM nessie.flights.raw_flights
 WHERE icao24 IS NOT NULL
   AND NULLIF(TRIM(callsign), '') IS NOT NULL
   AND first_seen IS NOT NULL

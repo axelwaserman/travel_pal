@@ -1,26 +1,21 @@
 {% macro setup_iceberg() %}
     {#
-        Installs and loads the DuckDB extensions required to read Iceberg tables
-        from a custom S3-compatible endpoint (SeaweedFS).
+        Installs DuckDB extensions and ATTACHes the Nessie Iceberg REST catalog so
+        models can read Iceberg tables by catalog identifier rather than addressing
+        S3 paths directly.  This avoids the UUID-suffixed table-location coupling
+        that would otherwise leak into staging SQL: Nessie always appends a UUID to
+        the warehouse path (`<warehouse>/<ns>/<table>_<uuid>/`), and the catalog is
+        the only authority on the current location.
 
-        Run via on-run-start so that iceberg_scan() calls in models work regardless
-        of whether the DuckDB binary ships extensions pre-bundled.
+        S3 access for data files goes through the `travel_pal_s3` secret because
+        Nessie's vended credentials (`X-Iceberg-Access-Delegation: vended-credentials`)
+        do not include access keys for self-hosted SeaweedFS.  We pin
+        `ACCESS_DELEGATION_MODE 'none'` so DuckDB skips the vended-creds path and
+        falls back to the matching S3 secret for object-store reads.
 
-        S3 credentials are taken from the same env vars used by the Dagster pipeline
-        so that the dbt run and the asset writes target the same bucket.
-
-        Note: profiles.yml already installs/loads these extensions and configures S3
-        via SET statements per cursor.  This macro is a belt-and-suspenders guarantee:
-        it makes the intent explicit in SQL and ensures the secret is present when
-        iceberg_scan() resolves S3 paths inside model queries.
-
-        Nessie REST catalog support:
-        DuckDB's iceberg extension (as of v1.x) does NOT expose a first-class
-        REST catalog connector; it reads Iceberg metadata directly from object
-        storage.  The raw_flights Iceberg table is managed by pyiceberg + Nessie,
-        but dbt reads it by addressing the table root on S3 — Nessie is only needed
-        for writes (the Dagster asset side).  Catalog registration via Nessie is
-        deferred to a future task once DuckDB gains native REST catalog support.
+        `AUTHORIZATION_TYPE 'none'` matches Nessie's default unauthenticated REST
+        endpoint in the dev/test stack.  Production deployments that put auth in
+        front of Nessie would change this and add an ICEBERG SECRET with a token.
     #}
     INSTALL iceberg;
     LOAD iceberg;
@@ -34,6 +29,14 @@
         SECRET '{{ env_var("SEAWEEDFS_SECRET_KEY", "admin") }}',
         ENDPOINT '{{ env_var("SEAWEEDFS_S3_ENDPOINT", "localhost:8333") | replace("http://", "") | replace("https://", "") }}',
         USE_SSL false,
-        URL_STYLE path
+        URL_STYLE path,
+        REGION 'us-east-1'
+    );
+
+    ATTACH '{{ env_var("NESSIE_WAREHOUSE", "warehouse") }}' AS nessie (
+        TYPE iceberg,
+        ENDPOINT '{{ env_var("NESSIE_ENDPOINT", "http://localhost:19120/iceberg/") }}',
+        AUTHORIZATION_TYPE 'none',
+        ACCESS_DELEGATION_MODE 'none'
     );
 {% endmacro %}

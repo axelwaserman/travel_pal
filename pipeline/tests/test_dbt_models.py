@@ -15,18 +15,26 @@ MACROS_DIR = TRANSFORMS_DIR / "macros"
 
 
 @pytest.mark.unit
-def test_stg_flights_uses_iceberg_scan_with_s3_uri() -> None:
-    """stg_flights.sql must read via iceberg_scan('s3://...'), not read_parquet or a dbt source.
+def test_stg_flights_reads_via_attached_nessie_catalog() -> None:
+    """stg_flights.sql must read via the Nessie REST catalog (ATTACHed in the
+    setup_iceberg macro), not iceberg_scan() with a hardcoded S3 path.
 
-    This ensures the Iceberg metadata layer (snapshots, manifests, partition specs)
-    is honoured rather than bypassed by globbing raw parquet files.
+    Nessie appends a UUID to the table location on every create, so the
+    catalog is the only authority on the current path. Hardcoding it is a
+    bug: writes from PyIceberg + reads from a hardcoded path will diverge.
     """
     sql = (STAGING_DIR / "stg_flights.sql").read_text()
-    assert "iceberg_scan(" in sql, "stg_flights.sql must use iceberg_scan(...)"
-    assert "read_parquet(" not in sql, (
-        "stg_flights.sql must not fall back to read_parquet(...); use iceberg_scan instead"
+    assert "FROM nessie." in sql, (
+        "stg_flights.sql must read FROM the ATTACHed nessie catalog "
+        "(e.g. FROM nessie.flights.raw_flights)"
     )
-    assert "s3://" in sql, "iceberg_scan path must be an s3:// URI"
+    assert "iceberg_scan(" not in sql, (
+        "stg_flights.sql must not call iceberg_scan() with a hardcoded path; "
+        "use the Nessie catalog ATTACH instead"
+    )
+    assert "read_parquet(" not in sql, (
+        "stg_flights.sql must not fall back to read_parquet(...)"
+    )
     assert "{{ source(" not in sql, (
         "stg_flights.sql must not reference an unpopulated dbt source"
     )
@@ -97,10 +105,12 @@ def test_sources_yml_deleted() -> None:
 
 @pytest.mark.unit
 def test_marts_use_external_parquet_materialization() -> None:
-    """dbt_project.yml must configure marts as external parquet written to S3.
+    """dbt_project.yml must configure marts as external parquet, and each mart
+    model must declare its own +location pointing to S3.
 
-    This prevents regression to the old local-table materialization that
-    coupled frontend_exports to a local DuckDB file.
+    Per-model location is required because dbt_project.yml does not have
+    `this` available at parse time; `{{ this.name }}` only resolves inside
+    a model's config() block.
     """
     dbt_project = yaml.safe_load(
         (TRANSFORMS_DIR / "dbt_project.yml").read_text()
@@ -114,13 +124,17 @@ def test_marts_use_external_parquet_materialization() -> None:
     assert marts_config.get("+format") == "parquet", (
         "marts must set '+format: parquet'"
     )
-    location = marts_config.get("+location", "")
-    assert "s3://" in location, (
-        "marts '+location' must point to an s3:// URI"
-    )
-    assert "warehouse/marts/" in location, (
-        "marts '+location' must write under warehouse/marts/"
-    )
+
+    marts_dir = TRANSFORMS_DIR / "models" / "marts"
+    for mart in marts_dir.glob("*.sql"):
+        text = mart.read_text()
+        assert "config(" in text and "location=" in text, (
+            f"{mart.name} must declare its own location via {{{{ config(location=...) }}}}; "
+            "dbt_project.yml cannot reference `this` at parse time"
+        )
+        assert "s3://" in text and "warehouse/marts/" in text, (
+            f"{mart.name} location must be an s3:// URI under warehouse/marts/"
+        )
 
 
 @pytest.mark.unit
@@ -145,11 +159,12 @@ def test_dbt_project_wires_setup_iceberg_on_run_start() -> None:
 
 
 @pytest.mark.unit
-def test_setup_iceberg_macro_installs_extensions_and_creates_secret() -> None:
-    """macros/setup_iceberg.sql must install iceberg + httpfs and create an S3 secret.
+def test_setup_iceberg_macro_installs_extensions_creates_secret_and_attaches_catalog() -> None:
+    """macros/setup_iceberg.sql must install iceberg + httpfs, create an S3
+    secret, and ATTACH the Nessie REST catalog with vended credentials disabled.
 
-    These are the prerequisites for iceberg_scan() to resolve s3:// URIs
-    against a custom SeaweedFS endpoint.
+    Nessie does not vend access keys for self-hosted SeaweedFS, so DuckDB must
+    fall back to the explicit S3 secret for object-store reads.
     """
     macro_path = MACROS_DIR / "setup_iceberg.sql"
     assert macro_path.exists(), "macros/setup_iceberg.sql must exist"
@@ -161,7 +176,7 @@ def test_setup_iceberg_macro_installs_extensions_and_creates_secret() -> None:
     assert "INSTALL httpfs" in text, "macro must INSTALL httpfs extension"
     assert "LOAD httpfs" in text, "macro must LOAD httpfs extension"
     assert "CREATE OR REPLACE SECRET" in text, (
-        "macro must create an S3 secret for iceberg_scan to resolve s3:// URIs"
+        "macro must create an S3 secret for object-store reads"
     )
     assert "SEAWEEDFS_ACCESS_KEY" in text, (
         "macro must read S3 key from SEAWEEDFS_ACCESS_KEY env var"
@@ -175,4 +190,14 @@ def test_setup_iceberg_macro_installs_extensions_and_creates_secret() -> None:
     assert 'replace("http://", "")' in text, (
         "macro ENDPOINT must strip http:// scheme via Jinja replace — "
         "DuckDB CREATE SECRET rejects scheme prefixes"
+    )
+    assert "ATTACH" in text and "TYPE iceberg" in text, (
+        "macro must ATTACH the Nessie REST catalog via TYPE iceberg"
+    )
+    assert "NESSIE_ENDPOINT" in text, (
+        "macro must point ATTACH at NESSIE_ENDPOINT env var"
+    )
+    assert "ACCESS_DELEGATION_MODE 'none'" in text, (
+        "macro must disable vended credentials — Nessie does not return "
+        "access keys for self-hosted SeaweedFS"
     )
