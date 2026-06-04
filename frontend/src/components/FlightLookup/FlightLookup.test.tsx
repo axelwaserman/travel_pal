@@ -82,6 +82,26 @@ describe('FlightLookup', () => {
     expect(screen.getByText('1,234')).toBeInTheDocument()
   })
 
+  it('renders em-dash for null fields without crashing', async () => {
+    mockQuery.mockResolvedValue([
+      {
+        origin_icao: 'KJFK',
+        destination_icao: 'KLAX',
+        total_flights: 1,
+        avg_delay_minutes: null,
+        delay_volatility: null,
+        on_time_ratio: null,
+      },
+    ])
+    render(<FlightLookup airportIcao="KJFK" />)
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'KLAX' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }))
+    await waitFor(() => expect(screen.getByText('KJFK → KLAX')).toBeInTheDocument())
+    // on_time_ratio dd shows '—'; avg_delay dd shows '—'
+    const dashes = screen.getAllByText('—')
+    expect(dashes.length).toBeGreaterThanOrEqual(2)
+  })
+
   it('renders error message when query fails', async () => {
     mockQuery.mockRejectedValue(new Error('boom'))
     render(<FlightLookup airportIcao="KJFK" />)

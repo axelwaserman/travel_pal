@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { queryFlightLookup, RouteTimeliness } from '../../db/queries'
+import { pct, fmt, NULL_PLACEHOLDER } from '../../db/format'
 import './FlightLookup.css'
 
 interface Props {
@@ -49,9 +50,9 @@ export default function FlightLookup({ airportIcao }: Props) {
             <h3>{r.origin_icao} → {r.destination_icao}</h3>
             <dl>
               <dt>On-time ratio</dt>
-              <dd>{(r.on_time_ratio * 100).toFixed(1)}%</dd>
+              <dd>{pct(r.on_time_ratio)}</dd>
               <dt>Avg delay</dt>
-              <dd>{r.avg_delay_minutes} min</dd>
+              <dd>{r.avg_delay_minutes == null ? NULL_PLACEHOLDER : `${fmt(r.avg_delay_minutes)} min`}</dd>
               <dt>Total flights</dt>
               <dd>{r.total_flights.toLocaleString()}</dd>
             </dl>

@@ -73,4 +73,54 @@ describe('TimelinessDashboard', () => {
     expect(screen.getByText('100')).toBeInTheDocument()
     expect(screen.getByText('200')).toBeInTheDocument()
   })
+
+  it('renders em-dash for null aggregate values without crashing', async () => {
+    mockQuery.mockResolvedValue([
+      {
+        flight_date: '2024-01-01',
+        origin_icao: 'KJFK',
+        total_flights: 1,
+        avg_delay_minutes: null,
+        delay_volatility: null,
+        on_time_ratio: null,
+      },
+    ])
+    render(<TimelinessDashboard airportIcao="KJFK" />)
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { level: 2 })).toBeInTheDocument()
+    )
+    // Metric cards: on_time '—', avg_delay '— min', volatility '— min'.
+    // Table row: '—' (pct), '—' (avg_delay), '—' (volatility).
+    expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(4)
+    expect(screen.getAllByText('— min').length).toBe(2)
+  })
+
+  it('mean returns null when every row has null for the column', async () => {
+    mockQuery.mockResolvedValue([
+      {
+        flight_date: '2024-01-01',
+        origin_icao: 'KJFK',
+        total_flights: 10,
+        avg_delay_minutes: null,
+        delay_volatility: 8.0,
+        on_time_ratio: 0.5,
+      },
+      {
+        flight_date: '2024-01-02',
+        origin_icao: 'KJFK',
+        total_flights: 20,
+        avg_delay_minutes: null,
+        delay_volatility: 12.0,
+        on_time_ratio: 0.7,
+      },
+    ])
+    render(<TimelinessDashboard airportIcao="KJFK" />)
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { level: 2 })).toBeInTheDocument()
+    )
+    // avg_delay metric card → '— min'; on_time_ratio = 0.6 → '60.0%'; volatility = 10.0 → '10.0 min'
+    expect(screen.getByText('60.0%')).toBeInTheDocument()
+    expect(screen.getByText('10.0 min')).toBeInTheDocument()
+    expect(screen.getByText('— min')).toBeInTheDocument()
+  })
 })

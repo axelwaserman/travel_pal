@@ -1,13 +1,22 @@
 import { useEffect, useState } from 'react'
 import { queryDailyTimeliness, DailyTimeliness } from '../../db/queries'
+import { pct, fmt } from '../../db/format'
 import './TimelinessDashboard.css'
 
 interface Props {
   airportIcao: string
 }
 
-function pct(n: number) {
-  return `${(n * 100).toFixed(1)}%`
+type NumericKey = {
+  [K in keyof DailyTimeliness]: DailyTimeliness[K] extends number | null ? K : never
+}[keyof DailyTimeliness]
+
+function mean(rows: readonly DailyTimeliness[], key: NumericKey): number | null {
+  const nums = rows
+    .map(r => r[key])
+    .filter((v): v is number => typeof v === 'number' && Number.isFinite(v))
+  if (nums.length === 0) return null
+  return nums.reduce((s, n) => s + n, 0) / nums.length
 }
 
 export default function TimelinessDashboard({ airportIcao }: Props) {
@@ -28,9 +37,9 @@ export default function TimelinessDashboard({ airportIcao }: Props) {
   if (error) return <p role="alert">{error}</p>
   if (data.length === 0) return <p>No data available. Run the pipeline first.</p>
 
-  const avgOnTime = data.reduce((sum, d) => sum + d.on_time_ratio, 0) / data.length
-  const avgDelay = data.reduce((sum, d) => sum + d.avg_delay_minutes, 0) / data.length
-  const avgVolatility = data.reduce((sum, d) => sum + d.delay_volatility, 0) / data.length
+  const avgOnTime = mean(data, 'on_time_ratio')
+  const avgDelay = mean(data, 'avg_delay_minutes')
+  const avgVolatility = mean(data, 'delay_volatility')
 
   return (
     <section className="timeliness-dashboard" aria-labelledby="dashboard-heading">
@@ -43,12 +52,12 @@ export default function TimelinessDashboard({ airportIcao }: Props) {
         </div>
         <div className="metric-card">
           <span className="metric-label">Average delay</span>
-          <span className="metric-value">{avgDelay.toFixed(1)} min</span>
+          <span className="metric-value">{fmt(avgDelay)} min</span>
           <span className="metric-sub">vs. route median</span>
         </div>
         <div className="metric-card">
           <span className="metric-label">Delay volatility</span>
-          <span className="metric-value">{avgVolatility.toFixed(1)} min</span>
+          <span className="metric-value">{fmt(avgVolatility)} min</span>
           <span className="metric-sub">std dev of delay</span>
         </div>
       </div>
@@ -68,8 +77,8 @@ export default function TimelinessDashboard({ airportIcao }: Props) {
               <td>{d.flight_date}</td>
               <td>{d.total_flights.toLocaleString()}</td>
               <td>{pct(d.on_time_ratio)}</td>
-              <td>{d.avg_delay_minutes.toFixed(1)}</td>
-              <td>{d.delay_volatility.toFixed(1)}</td>
+              <td>{fmt(d.avg_delay_minutes)}</td>
+              <td>{fmt(d.delay_volatility)}</td>
             </tr>
           ))}
         </tbody>

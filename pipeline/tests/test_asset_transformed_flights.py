@@ -92,8 +92,8 @@ def test_frontend_exports_reads_marts_from_s3():
         MagicMock(),  # SET s3_secret_access_key
         MagicMock(),  # SET s3_use_ssl
         MagicMock(),  # SET s3_url_style
-        MagicMock(arrow=lambda: AGG_ROUTE_TABLE),
-        MagicMock(arrow=lambda: AGG_DAILY_TABLE),
+        MagicMock(to_arrow_table=lambda: AGG_ROUTE_TABLE),
+        MagicMock(to_arrow_table=lambda: AGG_DAILY_TABLE),
     ]
 
     with patch("pipeline.assets.frontend_exports.duckdb.connect", return_value=mock_con):
@@ -115,11 +115,16 @@ def test_frontend_exports_reads_marts_from_s3():
 
     # Validate uploads
     assert mock_seaweedfs.upload_parquet.call_count == 2
-    keys = [c.kwargs["key"] for c in mock_seaweedfs.upload_parquet.call_args_list]
+    upload_calls = mock_seaweedfs.upload_parquet.call_args_list
+    keys = [c.kwargs["key"] for c in upload_calls]
     assert "KJFK/route_timeliness.parquet" in keys
     assert "KJFK/daily_timeliness.parquet" in keys
-    buckets = {c.kwargs["bucket"] for c in mock_seaweedfs.upload_parquet.call_args_list}
+    buckets = {c.kwargs["bucket"] for c in upload_calls}
     assert buckets == {"frontend-exports"}
+    # Validate the arrow table from DuckDB reaches upload_parquet (regression: .arrow() vs .to_arrow_table())
+    uploaded_tables = [c.args[0] for c in upload_calls]
+    assert AGG_ROUTE_TABLE in uploaded_tables
+    assert AGG_DAILY_TABLE in uploaded_tables
 
 
 def test_frontend_exports_strips_scheme_from_endpoint():
@@ -132,8 +137,8 @@ def test_frontend_exports_strips_scheme_from_endpoint():
     mock_con.execute.side_effect = [
         MagicMock() for _ in range(7)
     ] + [
-        MagicMock(arrow=lambda: AGG_ROUTE_TABLE),
-        MagicMock(arrow=lambda: AGG_DAILY_TABLE),
+        MagicMock(to_arrow_table=lambda: AGG_ROUTE_TABLE),
+        MagicMock(to_arrow_table=lambda: AGG_DAILY_TABLE),
     ]
 
     with patch("pipeline.assets.frontend_exports.duckdb.connect", return_value=mock_con):

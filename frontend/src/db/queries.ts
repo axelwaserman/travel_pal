@@ -1,21 +1,24 @@
 import { getDb, SEAWEEDFS_PUBLIC_BASE } from './client'
 
+// total_flights is COUNT(*) in the dbt marts and therefore non-null.
+// The aggregate columns (avg_delay_minutes, delay_volatility, on_time_ratio) can be null:
+// STDDEV over a single-row group is null; NULLIF(...) on a zero denominator is null.
 export interface RouteTimeliness {
   origin_icao: string
   destination_icao: string
   total_flights: number
-  avg_delay_minutes: number
-  delay_volatility: number
-  on_time_ratio: number
+  avg_delay_minutes: number | null
+  delay_volatility: number | null
+  on_time_ratio: number | null
 }
 
 export interface DailyTimeliness {
   flight_date: string
   origin_icao: string
   total_flights: number
-  avg_delay_minutes: number
-  delay_volatility: number
-  on_time_ratio: number
+  avg_delay_minutes: number | null
+  delay_volatility: number | null
+  on_time_ratio: number | null
 }
 
 export async function queryRouteTimeliness(

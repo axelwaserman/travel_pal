@@ -20,7 +20,8 @@ _JsonObject = dict[str, Any]
 
 
 BASE_URL = "https://opensky-network.org/api/flights"
-_MAX_CHUNK_DAYS = 7
+# OpenSky rejects queries spanning >2 days with HTTP 400.
+_MAX_CHUNK_DAYS = 2
 
 # OAuth2 token endpoint for OpenSky's Keycloak realm.
 OPENSKY_TOKEN_URL = (
@@ -95,6 +96,11 @@ async def _do_fetch_chunk(
     response = await builder.build().send()
     if response.status == 404:
         return []
+    if response.status != 200:
+        body = await response.text()
+        raise RuntimeError(
+            f"OpenSky {endpoint} returned {response.status}: {body[:500]}"
+        )
     raw: list[dict] = await response.json() or []
     return [OpenSkyFlight.model_validate(r) for r in raw]
 

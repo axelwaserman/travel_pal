@@ -34,7 +34,7 @@ def frontend_exports(
             source = f"s3://{pipeline_config.raw_bucket}/warehouse/marts/{mart}.parquet"
             arrow_table: pa.Table = con.execute(
                 f"SELECT * FROM read_parquet('{source}')"
-            ).arrow()
+            ).to_arrow_table()
             seaweedfs.upload_parquet(
                 arrow_table,
                 bucket=pipeline_config.export_bucket,
