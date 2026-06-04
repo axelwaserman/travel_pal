@@ -7,7 +7,8 @@ Exercises the full dbt path against the live Nessie + SeaweedFS stack:
     3. Assert returncode == 0 and that both mart parquets exist on S3 and
        have at least one row when read back via DuckDB httpfs.
 
-Marked ``@pytest.mark.integration``. Skipped when Docker is not reachable.
+Marked ``@pytest.mark.integration``. Skipped when Docker is not reachable
+or the ``dbt`` CLI is not on PATH.
 
 Depends on two production fixes already on the branch:
     - SeaweedFS 4.31 (commit 959ec5e) — fixes aws-chunked verbatim storage.
@@ -15,8 +16,8 @@ Depends on two production fixes already on the branch:
       hardcoded UUID-less table path that previously required mirroring.
 """
 import os
+import shutil
 import subprocess
-import uuid
 from pathlib import Path
 
 import duckdb
@@ -28,10 +29,13 @@ from pyiceberg.exceptions import (
     NoSuchNamespaceError,
     NoSuchTableError,
 )
-from pyiceberg.schema import Schema
-from pyiceberg.types import LongType, NestedField, StringType
 
 from tests.integration._docker import DOCKER_AVAILABLE
+from tests.integration._iceberg import (
+    RAW_FLIGHTS_SCHEMA,
+    InfraEndpoints,
+    make_catalog,
+)
 
 # ---------------------------------------------------------------------------
 # Paths and constants
@@ -55,15 +59,9 @@ _MART_KEYS: tuple[str, ...] = (
     "warehouse/marts/agg_route_timeliness.parquet",
 )
 
-# Mirrors production raw_flights schema (pipeline/assets/raw_flights.py).
-_SCHEMA: Schema = Schema(
-    NestedField(1, "icao24", StringType(), required=False),
-    NestedField(2, "callsign", StringType(), required=False),
-    NestedField(3, "first_seen", LongType(), required=False),
-    NestedField(4, "last_seen", LongType(), required=False),
-    NestedField(5, "est_departure_airport", StringType(), required=False),
-    NestedField(6, "est_arrival_airport", StringType(), required=False),
-)
+# Subprocess budget for ``dbt build``. Five minutes is generous for the local
+# stack and still bounded enough that a hung process surfaces in CI.
+_DBT_BUILD_TIMEOUT_S: float = 300.0
 
 # Two surviving rows + one empty-callsign row that exercises the NULLIF guard
 # in stg_flights.sql. The two surviving rows fly different dates so the daily
@@ -88,22 +86,6 @@ skip_if_no_docker = pytest.mark.skipif(not DOCKER_AVAILABLE, reason=_SKIP_REASON
 # ---------------------------------------------------------------------------
 
 
-def _make_catalog(endpoints: dict[str, str]) -> RestCatalog:
-    """Build a RestCatalog pointing at the live Nessie + SeaweedFS stack."""
-    return RestCatalog(
-        name="nessie",
-        **{
-            "uri": endpoints["nessie_uri"],
-            "warehouse": endpoints["warehouse"],
-            "s3.endpoint": endpoints["s3_endpoint"],
-            "s3.access-key-id": endpoints["s3_access_key"],
-            "s3.secret-access-key": endpoints["s3_secret_key"],
-            "s3.path-style-access": "true",
-            "s3.region": "us-east-1",
-        },
-    )
-
-
 def _reset_namespace(catalog: RestCatalog) -> None:
     """Drop ``flights.raw_flights`` and the ``flights`` namespace if present.
 
@@ -120,7 +102,7 @@ def _reset_namespace(catalog: RestCatalog) -> None:
         pass
 
 
-def _build_dbt_env(endpoints: dict[str, str], duckdb_path: Path) -> dict[str, str]:
+def _build_dbt_env(endpoints: InfraEndpoints, duckdb_path: Path) -> dict[str, str]:
     """Compose the env mapping passed to ``dbt build``.
 
     Inherits the parent process env (PATH, HOME, etc.) and overlays only the
@@ -138,7 +120,9 @@ def _build_dbt_env(endpoints: dict[str, str], duckdb_path: Path) -> dict[str, st
     }
 
 
-def _configure_duckdb_for_s3(con: duckdb.DuckDBPyConnection, endpoints: dict[str, str]) -> None:
+def _configure_duckdb_for_s3(
+    con: duckdb.DuckDBPyConnection, endpoints: InfraEndpoints
+) -> None:
     """Install httpfs + create an S3 secret for SeaweedFS reads.
 
     Mirrors the secret form used by ``macros/setup_iceberg.sql`` so the read
@@ -172,52 +156,67 @@ def _configure_duckdb_for_s3(con: duckdb.DuckDBPyConnection, endpoints: dict[str
 @pytest.mark.integration
 @skip_if_no_docker
 def test_dbt_build_against_iceberg_fixture(
-    infra_endpoints: dict[str, str],
+    infra_endpoints: InfraEndpoints,
     seaweedfs_init: None,  # noqa: ARG001 — fixture side-effect (bucket init).
     tmp_path: Path,
 ) -> None:
     """End-to-end dbt build over Nessie-cataloged Iceberg + SeaweedFS S3."""
-    catalog = _make_catalog(infra_endpoints)
+    if shutil.which("dbt") is None:
+        pytest.skip("dbt CLI not on PATH")
 
-    # 1. Reset and populate the canonical flights.raw_flights table.
-    _reset_namespace(catalog)
+    catalog = make_catalog(infra_endpoints)
+
     try:
-        catalog.create_namespace(_NAMESPACE)
-    except NamespaceAlreadyExistsError:
-        # Concurrent run created it between our drop and create — fine.
-        pass
-    table = catalog.create_table(_TABLE_ID, schema=_SCHEMA)
-    table.append(_SAMPLE_ROWS)
+        # 1. Reset and populate the canonical flights.raw_flights table.
+        _reset_namespace(catalog)
+        try:
+            catalog.create_namespace(_NAMESPACE)
+        except NamespaceAlreadyExistsError:
+            # Concurrent run created it between our drop and create — fine.
+            pass
+        table = catalog.create_table(_TABLE_ID, schema=RAW_FLIGHTS_SCHEMA)
+        table.append(_SAMPLE_ROWS)
 
-    # 2. Run dbt build with a tmp-scoped DuckDB so runs don't share state.
-    #    The uuid suffix makes the path unique even if tmp_path is reused.
-    duckdb_path = tmp_path / f"travel_pal_{uuid.uuid4().hex[:8]}.duckdb"
-    env = _build_dbt_env(infra_endpoints, duckdb_path)
-    result = subprocess.run(
-        ["dbt", "build", "--project-dir", str(_TRANSFORMS_DIR),
-         "--profiles-dir", str(_TRANSFORMS_DIR)],
-        cwd=str(_TRANSFORMS_DIR),
-        env=env,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    assert result.returncode == 0, (
-        f"dbt build failed (exit={result.returncode})\n"
-        f"--- stdout ---\n{result.stdout}\n"
-        f"--- stderr ---\n{result.stderr}"
-    )
+        # 2. Run dbt build with a tmp-scoped DuckDB so runs don't share state.
+        #    tmp_path is already unique per pytest invocation.
+        duckdb_path = tmp_path / "travel_pal.duckdb"
+        env = _build_dbt_env(infra_endpoints, duckdb_path)
+        try:
+            result = subprocess.run(
+                ["dbt", "build", "--project-dir", str(_TRANSFORMS_DIR),
+                 "--profiles-dir", str(_TRANSFORMS_DIR)],
+                cwd=str(_TRANSFORMS_DIR),
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=_DBT_BUILD_TIMEOUT_S,
+            )
+        except subprocess.TimeoutExpired as exc:
+            pytest.fail(
+                f"dbt build timed out after {_DBT_BUILD_TIMEOUT_S} s\n"
+                f"--- stdout ---\n{exc.stdout}\n"
+                f"--- stderr ---\n{exc.stderr}"
+            )
+        assert result.returncode == 0, (
+            f"dbt build failed (exit={result.returncode})\n"
+            f"--- stdout ---\n{result.stdout}\n"
+            f"--- stderr ---\n{result.stderr}"
+        )
 
-    # 3. Verify each mart parquet exists on S3 and has at least one row.
-    con = duckdb.connect(":memory:")
-    try:
-        _configure_duckdb_for_s3(con, infra_endpoints)
-        for key in _MART_KEYS:
-            uri = f"s3://{_RAW_BUCKET}/{key}"
-            row = con.execute(
-                f"SELECT COUNT(*) FROM read_parquet('{uri}')"
-            ).fetchone()
-            assert row is not None, f"COUNT(*) returned no row for {uri}"
-            assert row[0] > 0, f"Mart parquet {uri} has zero rows"
+        # 3. Verify each mart parquet exists on S3 and has at least one row.
+        con = duckdb.connect(":memory:")
+        try:
+            _configure_duckdb_for_s3(con, infra_endpoints)
+            for key in _MART_KEYS:
+                uri = f"s3://{_RAW_BUCKET}/{key}"
+                row = con.execute(
+                    f"SELECT COUNT(*) FROM read_parquet('{uri}')"
+                ).fetchone()
+                assert row is not None, f"COUNT(*) returned no row for {uri}"
+                assert row[0] > 0, f"Mart parquet {uri} has zero rows"
+        finally:
+            con.close()
     finally:
-        con.close()
+        # Drop the table+namespace so the dev stack is not polluted across runs.
+        _reset_namespace(catalog)

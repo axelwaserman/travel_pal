@@ -17,24 +17,17 @@ import uuid
 
 import pyarrow as pa
 import pytest
-from pyiceberg.catalog.rest import RestCatalog
-from pyiceberg.schema import Schema
-from pyiceberg.types import LongType, NestedField, StringType
 
 from tests.integration._docker import DOCKER_AVAILABLE
-
-# ---------------------------------------------------------------------------
-# Shared constants
-# ---------------------------------------------------------------------------
-
-SCHEMA = Schema(
-    NestedField(1, "icao24", StringType(), required=False),
-    NestedField(2, "callsign", StringType(), required=False),
-    NestedField(3, "first_seen", LongType(), required=False),
-    NestedField(4, "last_seen", LongType(), required=False),
-    NestedField(5, "est_departure_airport", StringType(), required=False),
-    NestedField(6, "est_arrival_airport", StringType(), required=False),
+from tests.integration._iceberg import (
+    RAW_FLIGHTS_SCHEMA,
+    InfraEndpoints,
+    make_catalog,
 )
+
+# ---------------------------------------------------------------------------
+# Sample data
+# ---------------------------------------------------------------------------
 
 SAMPLE: pa.Table = pa.table(
     {
@@ -56,51 +49,26 @@ skip_if_no_docker = pytest.mark.skipif(not DOCKER_AVAILABLE, reason=_SKIP_REASON
 
 
 # ---------------------------------------------------------------------------
-# Catalog helper
-# ---------------------------------------------------------------------------
-
-def _make_catalog(endpoints: dict[str, str]) -> RestCatalog:
-    """Build a RestCatalog pointing at the live Nessie + SeaweedFS stack.
-
-    PyIceberg's ``RestCatalog.url()`` appends ``/v1/`` to the supplied uri,
-    so ``http://host:19120/iceberg/`` becomes ``http://host:19120/iceberg/v1/...``,
-    which matches Nessie's Iceberg REST Catalog namespace.
-    """
-    return RestCatalog(
-        name="nessie",
-        **{
-            "uri": endpoints["nessie_uri"],
-            "warehouse": endpoints["warehouse"],
-            "s3.endpoint": endpoints["s3_endpoint"],
-            "s3.access-key-id": endpoints["s3_access_key"],
-            "s3.secret-access-key": endpoints["s3_secret_key"],
-            "s3.path-style-access": "true",
-            "s3.region": "us-east-1",
-        },
-    )
-
-
-# ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
 
 @pytest.mark.integration
 @skip_if_no_docker
 def test_iceberg_append_and_scan_round_trip(
-    infra_endpoints: dict[str, str],
+    infra_endpoints: InfraEndpoints,
     seaweedfs_init: None,
 ) -> None:
     """Create an Iceberg table on the Nessie REST catalog backed by SeaweedFS S3,
     append sample data, read it back, and assert the row count and a column value.
     """
-    catalog = _make_catalog(infra_endpoints)
+    catalog = make_catalog(infra_endpoints)
 
     # Use a unique namespace per test run so parallel/repeated runs don't clash.
     namespace = f"flights_test_{uuid.uuid4().hex[:8]}"
     catalog.create_namespace(namespace)
     table_id = f"{namespace}.raw_flights"
 
-    catalog.create_table(table_id, schema=SCHEMA)
+    catalog.create_table(table_id, schema=RAW_FLIGHTS_SCHEMA)
     table = catalog.load_table(table_id)
     table.append(SAMPLE)
 
@@ -115,11 +83,11 @@ def test_iceberg_append_and_scan_round_trip(
 @pytest.mark.integration
 @skip_if_no_docker
 def test_iceberg_append_multiple_batches(
-    infra_endpoints: dict[str, str],
+    infra_endpoints: InfraEndpoints,
     seaweedfs_init: None,
 ) -> None:
     """Appending two separate batches should accumulate rows correctly."""
-    catalog = _make_catalog(infra_endpoints)
+    catalog = make_catalog(infra_endpoints)
 
     namespace = f"flights_test_{uuid.uuid4().hex[:8]}"
     catalog.create_namespace(namespace)
@@ -136,7 +104,7 @@ def test_iceberg_append_multiple_batches(
         }
     )
 
-    catalog.create_table(table_id, schema=SCHEMA)
+    catalog.create_table(table_id, schema=RAW_FLIGHTS_SCHEMA)
     table = catalog.load_table(table_id)
     table.append(SAMPLE)
     table.append(second_batch)

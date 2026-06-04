@@ -32,6 +32,7 @@ from urllib.error import URLError
 import pytest
 
 from tests.integration._docker import DOCKER_AVAILABLE
+from tests.integration._iceberg import InfraEndpoints
 
 # ---------------------------------------------------------------------------
 # Shared constants
@@ -152,7 +153,7 @@ def _compose_down(project: str) -> None:
 
 
 @pytest.fixture(scope="session")
-def infra_endpoints(request: pytest.FixtureRequest) -> Generator[dict[str, str], None, None]:
+def infra_endpoints(request: pytest.FixtureRequest) -> Generator[InfraEndpoints, None, None]:
     """Yield Nessie and SeaweedFS S3 endpoint URLs once both services are ready.
 
     Skips the session when Docker is not available.
@@ -234,7 +235,7 @@ def _detect_project() -> str:
 
 
 @pytest.fixture(scope="session")
-def seaweedfs_init(infra_endpoints: dict[str, str]) -> None:  # noqa: ARG001
+def seaweedfs_init(infra_endpoints: InfraEndpoints) -> None:  # noqa: ARG001
     """Run scripts/seaweedfs/init.sh inside the running seaweedfs-master container.
 
     Idempotent: safe to call even if buckets already exist.
