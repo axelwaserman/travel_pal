@@ -5,6 +5,7 @@ moto patches boto3 at the client layer, intercepting calls regardless of
 endpoint_url.  SeaweedFSResource creates its boto3 client via a cached_property;
 each test instantiates a fresh resource so there is no cross-test cache pollution.
 """
+
 import io
 
 import boto3
@@ -14,7 +15,6 @@ import pytest
 from moto import mock_aws
 
 from pipeline.resources.seaweedfs import SeaweedFSResource
-
 
 SAMPLE = pa.table(
     {

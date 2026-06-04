@@ -1,4 +1,5 @@
 """Docker availability detection shared between conftest and test modules."""
+
 import subprocess
 
 #: Wall-clock budget for the ``docker info`` probe used to detect a daemon.

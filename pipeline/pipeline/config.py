@@ -19,4 +19,4 @@ class PipelineConfig(BaseSettings):
 
     @classmethod
     def from_env(cls) -> "PipelineConfig":
-        return cls()
+        return cls()  # ty: ignore[missing-argument]  # BaseSettings reads env

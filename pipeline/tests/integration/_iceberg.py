@@ -8,6 +8,7 @@ The schema mirrors the production table written by
 ``pipeline/pipeline/assets/raw_flights.py`` (same field IDs, types, and
 required flags). Keep them in lock-step.
 """
+
 from typing import TypedDict
 
 from pyiceberg.catalog.rest import RestCatalog

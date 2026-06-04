@@ -1,13 +1,15 @@
 import os
+
 from dagster import Definitions, ResourceDefinition
+from pydantic import ValidationError
+
+from pipeline.assets.frontend_exports import frontend_exports
 from pipeline.assets.raw_flights import raw_flights
 from pipeline.assets.transformed_flights import transformed_flights
-from pipeline.assets.frontend_exports import frontend_exports
 from pipeline.config import PipelineConfig
-from pydantic import ValidationError
+from pipeline.resources.nessie import NessieResource
 from pipeline.resources.opensky import OpenSkyResource
 from pipeline.resources.seaweedfs import SeaweedFSResource
-from pipeline.resources.nessie import NessieResource
 
 
 def _make_resources() -> dict[str, ResourceDefinition]:

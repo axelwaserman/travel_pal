@@ -3,10 +3,11 @@ import functools
 import json
 import os
 import time
-from datetime import datetime, timedelta, timezone
+from collections.abc import Awaitable, Callable
+from datetime import UTC, datetime, timedelta
 from functools import cached_property
 from pathlib import Path
-from typing import Any, Awaitable, Callable, TypeVar
+from typing import Any
 
 import pyarrow as pa
 from dagster import ConfigurableResource
@@ -25,8 +26,7 @@ _MAX_CHUNK_DAYS = 2
 
 # OAuth2 token endpoint for OpenSky's Keycloak realm.
 OPENSKY_TOKEN_URL = (
-    "https://auth.opensky-network.org/auth/realms/opensky-network/"
-    "protocol/openid-connect/token"
+    "https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token"
 )
 # Refresh proactively once we are within this many seconds of the token's
 # expiry, to avoid losing in-flight requests to a token that expires mid-call.
@@ -53,8 +53,8 @@ class OpenSkyFlight(BaseModel):
 
 
 def _date_chunks(start: str, end: str) -> list[tuple[int, int]]:
-    current = datetime.fromisoformat(start).replace(tzinfo=timezone.utc)
-    end_dt = datetime.fromisoformat(end).replace(tzinfo=timezone.utc)
+    current = datetime.fromisoformat(start).replace(tzinfo=UTC)
+    end_dt = datetime.fromisoformat(end).replace(tzinfo=UTC)
     chunks: list[tuple[int, int]] = []
     while current < end_dt:
         chunk_end = min(current + timedelta(days=_MAX_CHUNK_DAYS), end_dt)
@@ -64,14 +64,16 @@ def _date_chunks(start: str, end: str) -> list[tuple[int, int]]:
 
 
 def _to_arrow(records: list[OpenSkyFlight]) -> pa.Table:
-    return pa.table({
-        "icao24": [r.icao24 for r in records],
-        "callsign": [r.callsign for r in records],
-        "first_seen": [r.first_seen for r in records],
-        "last_seen": [r.last_seen for r in records],
-        "est_departure_airport": [r.est_departure_airport for r in records],
-        "est_arrival_airport": [r.est_arrival_airport for r in records],
-    })
+    return pa.table(
+        {
+            "icao24": [r.icao24 for r in records],
+            "callsign": [r.callsign for r in records],
+            "first_seen": [r.first_seen for r in records],
+            "last_seen": [r.last_seen for r in records],
+            "est_departure_airport": [r.est_departure_airport for r in records],
+            "est_arrival_airport": [r.est_arrival_airport for r in records],
+        }
+    )
 
 
 async def _do_fetch_chunk(
@@ -88,9 +90,7 @@ async def _do_fetch_chunk(
     When ``bearer`` is set, the request is authenticated with an
     ``Authorization: Bearer <token>`` header.
     """
-    builder = client.get(endpoint).query(
-        {"airport": airport_icao, "begin": begin, "end": end}
-    )
+    builder = client.get(endpoint).query({"airport": airport_icao, "begin": begin, "end": end})
     if bearer:
         builder = builder.header("Authorization", f"Bearer {bearer}")
     response = await builder.build().send()
@@ -98,9 +98,7 @@ async def _do_fetch_chunk(
         return []
     if response.status != 200:
         body = await response.text()
-        raise RuntimeError(
-            f"OpenSky {endpoint} returned {response.status}: {body[:500]}"
-        )
+        raise RuntimeError(f"OpenSky {endpoint} returned {response.status}: {body[:500]}")
     raw: list[dict] = await response.json() or []
     return [OpenSkyFlight.model_validate(r) for r in raw]
 
@@ -132,10 +130,7 @@ def _load_fixture(fixture_dir: str, endpoint: str, airport_icao: str) -> list[_J
     return data
 
 
-T = TypeVar("T")
-
-
-def with_valid_token(
+def with_valid_token[T](
     method: Callable[..., Awaitable[T]],
 ) -> Callable[..., Awaitable[T]]:
     """Decorator: ensure the OAuth2 token is valid before invoking the wrapped coroutine.
@@ -238,9 +233,7 @@ class OpenSkyResource(ConfigurableResource):
         )
         if response.status != 200:
             body = await response.text()
-            raise RuntimeError(
-                f"OpenSky token endpoint returned {response.status}: {body[:500]}"
-            )
+            raise RuntimeError(f"OpenSky token endpoint returned {response.status}: {body[:500]}")
         data = await response.json()
         access_token = data.get("access_token") if isinstance(data, dict) else None
         expires_in = data.get("expires_in") if isinstance(data, dict) else None
@@ -249,22 +242,16 @@ class OpenSkyResource(ConfigurableResource):
             or not isinstance(expires_in, (int, float))
             or isinstance(expires_in, bool)
         ):
-            raise RuntimeError(
-                f"OpenSky token response missing access_token or expires_in: {data}"
-            )
+            raise RuntimeError(f"OpenSky token response missing access_token or expires_in: {data}")
         self._token = access_token
         self._expires_at = time.monotonic() + float(expires_in)
 
     @with_valid_token
-    async def fetch_departures(
-        self, airport_icao: str, start_date: str, end_date: str
-    ) -> pa.Table:
+    async def fetch_departures(self, airport_icao: str, start_date: str, end_date: str) -> pa.Table:
         return await self._fetch("departure", airport_icao, start_date, end_date)
 
     @with_valid_token
-    async def fetch_arrivals(
-        self, airport_icao: str, start_date: str, end_date: str
-    ) -> pa.Table:
+    async def fetch_arrivals(self, airport_icao: str, start_date: str, end_date: str) -> pa.Table:
         return await self._fetch("arrival", airport_icao, start_date, end_date)
 
     async def _fetch(

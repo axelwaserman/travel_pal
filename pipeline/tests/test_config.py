@@ -1,5 +1,6 @@
 import pytest
 from pydantic import ValidationError
+
 from pipeline.config import PipelineConfig
 
 
@@ -21,8 +22,12 @@ def test_config_from_env(monkeypatch):
 
 def test_config_missing_env_raises(monkeypatch):
     for key in [
-        "AIRPORT_ICAO", "INGEST_START_DATE", "INGEST_END_DATE",
-        "SEAWEEDFS_S3_ENDPOINT", "SEAWEEDFS_ACCESS_KEY", "SEAWEEDFS_SECRET_KEY",
+        "AIRPORT_ICAO",
+        "INGEST_START_DATE",
+        "INGEST_END_DATE",
+        "SEAWEEDFS_S3_ENDPOINT",
+        "SEAWEEDFS_ACCESS_KEY",
+        "SEAWEEDFS_SECRET_KEY",
         "NESSIE_ENDPOINT",
     ]:
         monkeypatch.delenv(key, raising=False)
@@ -32,14 +37,18 @@ def test_config_missing_env_raises(monkeypatch):
 
 
 def test_config_is_frozen():
-    config = PipelineConfig.model_validate({
-        "airport_icao": "KJFK",
-        "ingest_start_date": "2024-01-01",
-        "ingest_end_date": "2024-12-31",
-        "SEAWEEDFS_S3_ENDPOINT": "http://localhost:8333",
-        "seaweedfs_access_key": "admin",
-        "seaweedfs_secret_key": "admin",
-        "nessie_endpoint": "http://localhost:19120/api/v1",
-    })
-    with pytest.raises(Exception):
+    config = PipelineConfig.model_validate(
+        {
+            "airport_icao": "KJFK",
+            "ingest_start_date": "2024-01-01",
+            "ingest_end_date": "2024-12-31",
+            "SEAWEEDFS_S3_ENDPOINT": "http://localhost:8333",
+            "seaweedfs_access_key": "admin",
+            "seaweedfs_secret_key": "admin",
+            "nessie_endpoint": "http://localhost:19120/api/v1",
+        }
+    )
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError):
         config.airport_icao = "EGLL"  # type: ignore[misc]

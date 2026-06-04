@@ -84,6 +84,11 @@ jobs:
           INGEST_END_DATE: "2024-01-02"
           # Fixture mode: adapter reads JSON files instead of making HTTP requests.
           OPENSKY_FIXTURE_DIR: tests/fixtures
+          # dagster.yaml reads these for postgres-backed run/event-log storage.
+          DAGSTER_POSTGRES_USER: dagster
+          DAGSTER_POSTGRES_PASSWORD: dagster
+          DAGSTER_POSTGRES_HOST: localhost
+          DAGSTER_POSTGRES_DB: dagster
         working-directory: pipeline
         run: dagster asset materialize --select '*' -m pipeline
 

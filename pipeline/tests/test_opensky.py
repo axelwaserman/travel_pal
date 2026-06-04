@@ -1,18 +1,17 @@
 import asyncio
 import time
-
-import pytest
-import pyarrow as pa
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pyarrow as pa
+import pytest
+
 from pipeline.resources.opensky import (
-    OpenSkyResource,
     OpenSkyFlight,
+    OpenSkyResource,
     _date_chunks,
     _do_fetch_chunk,
     _to_arrow,
 )
-
 
 SAMPLE_RESPONSE = [
     {
@@ -67,8 +66,12 @@ def test_to_arrow_produces_correct_schema():
     assert isinstance(table, pa.Table)
     assert table.num_rows == 1
     assert set(table.column_names) == {
-        "icao24", "callsign", "first_seen", "last_seen",
-        "est_departure_airport", "est_arrival_airport",
+        "icao24",
+        "callsign",
+        "first_seen",
+        "last_seen",
+        "est_departure_airport",
+        "est_arrival_airport",
     }
 
 
@@ -77,16 +80,17 @@ def test_to_arrow_empty():
     assert table.num_rows == 0
 
 
-def test_date_chunks_splits_by_7_days():
-    # 2024-01-01 → 2024-01-22 = 21 days = exactly 3 × 7-day chunks
-    chunks = _date_chunks("2024-01-01", "2024-01-22")
+def test_date_chunks_splits_by_2_days():
+    # OpenSky rejects ranges >2 days. 2024-01-01 → 2024-01-07 = 6 days = 3 × 2-day chunks.
+    chunks = _date_chunks("2024-01-01", "2024-01-07")
     assert len(chunks) == 3
     for begin, end in chunks:
-        assert end - begin <= 7 * 86400
+        assert end - begin <= 2 * 86400
 
 
 def test_date_chunks_single_window():
-    chunks = _date_chunks("2024-01-01", "2024-01-05")
+    # 2-day window fits in one chunk (boundary == _MAX_CHUNK_DAYS).
+    chunks = _date_chunks("2024-01-01", "2024-01-03")
     assert len(chunks) == 1
 
 
@@ -105,17 +109,21 @@ async def test_fetch_departures_calls_fetch_chunk_when_no_fixture(monkeypatch):
     monkeypatch.delenv("OPENSKY_FIXTURE_DIR", raising=False)
     expected_flight = OpenSkyFlight.model_validate(SAMPLE_RESPONSE[0])
 
-    with patch.object(
-        OpenSkyResource,
-        "_ensure_token_valid",
-        new=AsyncMock(return_value=None),
-    ), patch.object(
-        OpenSkyResource,
-        "_fetch_chunk",
-        new=AsyncMock(return_value=[expected_flight]),
+    with (
+        patch.object(
+            OpenSkyResource,
+            "_ensure_token_valid",
+            new=AsyncMock(return_value=None),
+        ),
+        patch.object(
+            OpenSkyResource,
+            "_fetch_chunk",
+            new=AsyncMock(return_value=[expected_flight]),
+        ),
     ):
         resource = OpenSkyResource(client_id="id", client_secret="secret")
-        table = await resource.fetch_departures("KJFK", "2024-01-01", "2024-01-07")
+        # 2-day window → exactly one chunk (matches _MAX_CHUNK_DAYS).
+        table = await resource.fetch_departures("KJFK", "2024-01-01", "2024-01-03")
 
     assert isinstance(table, pa.Table)
     assert table.num_rows == 1
@@ -172,9 +180,7 @@ async def test_fetch_chunk_passes_bearer_header_when_set():
     after_query.header.return_value = after_header
     mock_client.get.return_value.query.return_value = after_query
 
-    result = await _do_fetch_chunk(
-        mock_client, "departure", "KJFK", 0, 86400, bearer="tok_abc"
-    )
+    result = await _do_fetch_chunk(mock_client, "departure", "KJFK", 0, 86400, bearer="tok_abc")
 
     assert result == []
     after_query.header.assert_called_once_with("Authorization", "Bearer tok_abc")
@@ -189,9 +195,7 @@ def _make_token_response(access_token: str = "tok_xyz", expires_in: int = 1800):
     """Build a MagicMock that mimics a pyreqwest Response for a token POST."""
     response = MagicMock()
     response.status = 200
-    response.json = AsyncMock(
-        return_value={"access_token": access_token, "expires_in": expires_in}
-    )
+    response.json = AsyncMock(return_value={"access_token": access_token, "expires_in": expires_in})
     response.text = AsyncMock(return_value="")
     return response
 
@@ -206,9 +210,7 @@ def _patch_post(resource: OpenSkyResource, response):
     """
     post_mock = MagicMock()
     fake_builder = MagicMock()
-    fake_builder.form.return_value.build.return_value.send = AsyncMock(
-        return_value=response
-    )
+    fake_builder.form.return_value.build.return_value.send = AsyncMock(return_value=response)
     post_mock.return_value = fake_builder
     fake_client = MagicMock()
     fake_client.post = post_mock
@@ -330,9 +332,9 @@ async def test_token_refreshed_between_chunks(monkeypatch):
     resource = OpenSkyResource(client_id="id", client_secret="secret")
     post_mock = _patch_post(resource, _make_token_response(expires_in=1800))
 
-    # 21-day window → 3 × 7-day chunks.
+    # 6-day window → 3 × 2-day chunks (matches _MAX_CHUNK_DAYS).
     start_date = "2024-01-01"
-    end_date = "2024-01-22"
+    end_date = "2024-01-07"
 
     # Track each chunk call; between chunk 1 and chunk 2, expire the token
     # by mutating _expires_at so the next _ensure_token_valid hits the slow

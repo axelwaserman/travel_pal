@@ -15,13 +15,13 @@ Expected behaviour:
       own OpenSkyResource — there is no shared resource fixture, so the
       second test does NOT rely on the first having run.
 """
+
 import os
 import time
 
 import pytest
 
 from pipeline.resources.opensky import OpenSkyResource
-
 
 pytestmark = pytest.mark.integration
 
@@ -63,9 +63,7 @@ async def test_live_token_endpoint_returns_bearer(
     # OpenSky tokens typically last ~30 minutes; assert at least 60s remaining
     # so the assertion holds even on a slow/loaded test machine.
     remaining = resource._expires_at - time.monotonic()
-    assert remaining > 60, (
-        f"expected at least 60s of token life, got {remaining:.1f}s"
-    )
+    assert remaining > 60, f"expected at least 60s of token life, got {remaining:.1f}s"
 
 
 @pytest.mark.asyncio

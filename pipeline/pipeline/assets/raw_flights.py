@@ -1,11 +1,13 @@
 import asyncio
+
 import pyarrow as pa
 import pyiceberg.schema as sch
-from dagster import asset, ResourceParam
+from dagster import ResourceParam, asset
+from pyiceberg.types import LongType, NestedField, StringType
+
 from pipeline.config import PipelineConfig
-from pipeline.resources.opensky import OpenSkyResource
 from pipeline.resources.nessie import NessieResource
-from pyiceberg.types import NestedField, StringType, LongType
+from pipeline.resources.opensky import OpenSkyResource
 
 
 @asset

@@ -15,6 +15,7 @@ Depends on two production fixes already on the branch:
     - stg_flights via Nessie ATTACH (commit 9599d1a) — removes the
       hardcoded UUID-less table path that previously required mirroring.
 """
+
 import os
 import shutil
 import subprocess
@@ -120,17 +121,13 @@ def _build_dbt_env(endpoints: InfraEndpoints, duckdb_path: Path) -> dict[str, st
     }
 
 
-def _configure_duckdb_for_s3(
-    con: duckdb.DuckDBPyConnection, endpoints: InfraEndpoints
-) -> None:
+def _configure_duckdb_for_s3(con: duckdb.DuckDBPyConnection, endpoints: InfraEndpoints) -> None:
     """Install httpfs + create an S3 secret for SeaweedFS reads.
 
     Mirrors the secret form used by ``macros/setup_iceberg.sql`` so the read
     path here behaves the same way dbt does on the production setup.
     """
-    endpoint_host = (
-        endpoints["s3_endpoint"].replace("http://", "").replace("https://", "")
-    )
+    endpoint_host = endpoints["s3_endpoint"].replace("http://", "").replace("https://", "")
     con.execute("INSTALL httpfs; LOAD httpfs;")
     con.execute(
         f"""
@@ -183,8 +180,14 @@ def test_dbt_build_against_iceberg_fixture(
         env = _build_dbt_env(infra_endpoints, duckdb_path)
         try:
             result = subprocess.run(
-                ["dbt", "build", "--project-dir", str(_TRANSFORMS_DIR),
-                 "--profiles-dir", str(_TRANSFORMS_DIR)],
+                [
+                    "dbt",
+                    "build",
+                    "--project-dir",
+                    str(_TRANSFORMS_DIR),
+                    "--profiles-dir",
+                    str(_TRANSFORMS_DIR),
+                ],
                 cwd=str(_TRANSFORMS_DIR),
                 env=env,
                 capture_output=True,
@@ -210,9 +213,7 @@ def test_dbt_build_against_iceberg_fixture(
             _configure_duckdb_for_s3(con, infra_endpoints)
             for key in _MART_KEYS:
                 uri = f"s3://{_RAW_BUCKET}/{key}"
-                row = con.execute(
-                    f"SELECT COUNT(*) FROM read_parquet('{uri}')"
-                ).fetchone()
+                row = con.execute(f"SELECT COUNT(*) FROM read_parquet('{uri}')").fetchone()
                 assert row is not None, f"COUNT(*) returned no row for {uri}"
                 assert row[0] > 0, f"Mart parquet {uri} has zero rows"
         finally:

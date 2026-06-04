@@ -7,14 +7,12 @@ decorator must skip OAuth2 token acquisition when fixture mode is active.
 """
 
 import json
-import os
 import pathlib
 
 import pyarrow as pa
 import pytest
 
 from pipeline.resources.opensky import OpenSkyResource
-
 
 # ---------------------------------------------------------------------------
 # Helpers

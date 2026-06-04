@@ -62,7 +62,8 @@ jobs:
         run: |
           uv pip install --system -e ./pipeline[dev]
       - name: ty check pipeline
-        run: uvx ty check pipeline
+        working-directory: pipeline
+        run: uvx ty check .
 
   test:
     name: pytest unit + integration with coverage

@@ -4,6 +4,7 @@ These are file-content sanity checks — no runtime execution required.
 They catch regressions like accidentally reverting to the unpopulated
 DuckDB source reference or reintroducing a scheme prefix in s3_endpoint.
 """
+
 import pathlib
 
 import pytest
@@ -32,12 +33,8 @@ def test_stg_flights_reads_via_attached_nessie_catalog() -> None:
         "stg_flights.sql must not call iceberg_scan() with a hardcoded path; "
         "use the Nessie catalog ATTACH instead"
     )
-    assert "read_parquet(" not in sql, (
-        "stg_flights.sql must not fall back to read_parquet(...)"
-    )
-    assert "{{ source(" not in sql, (
-        "stg_flights.sql must not reference an unpopulated dbt source"
-    )
+    assert "read_parquet(" not in sql, "stg_flights.sql must not fall back to read_parquet(...)"
+    assert "{{ source(" not in sql, "stg_flights.sql must not reference an unpopulated dbt source"
 
 
 @pytest.mark.unit
@@ -89,9 +86,7 @@ def test_schema_yml_has_not_null_tests_on_icao24_and_departed_at() -> None:
     for col in ("icao24", "departed_at"):
         assert col in columns, f"schema.yml must declare column '{col}' on stg_flights"
         tests = columns[col].get("tests", [])
-        assert "not_null" in tests, (
-            f"schema.yml must have a not_null test on stg_flights.{col}"
-        )
+        assert "not_null" in tests, f"schema.yml must have a not_null test on stg_flights.{col}"
 
 
 @pytest.mark.unit
@@ -112,18 +107,14 @@ def test_marts_use_external_parquet_materialization() -> None:
     `this` available at parse time; `{{ this.name }}` only resolves inside
     a model's config() block.
     """
-    dbt_project = yaml.safe_load(
-        (TRANSFORMS_DIR / "dbt_project.yml").read_text()
-    )
+    dbt_project = yaml.safe_load((TRANSFORMS_DIR / "dbt_project.yml").read_text())
 
     marts_config = dbt_project["models"]["travel_pal"]["marts"]
 
     assert marts_config.get("+materialized") == "external", (
         "marts must use '+materialized: external' so dbt-duckdb writes parquet to S3"
     )
-    assert marts_config.get("+format") == "parquet", (
-        "marts must set '+format: parquet'"
-    )
+    assert marts_config.get("+format") == "parquet", "marts must set '+format: parquet'"
 
     marts_dir = TRANSFORMS_DIR / "models" / "marts"
     for mart in marts_dir.glob("*.sql"):
@@ -144,18 +135,14 @@ def test_dbt_project_wires_setup_iceberg_on_run_start() -> None:
     This ensures DuckDB extensions and the S3 secret are configured before
     any model runs, so iceberg_scan() can resolve s3:// paths.
     """
-    dbt_project = yaml.safe_load(
-        (TRANSFORMS_DIR / "dbt_project.yml").read_text()
-    )
+    dbt_project = yaml.safe_load((TRANSFORMS_DIR / "dbt_project.yml").read_text())
 
     on_run_start = dbt_project.get("on-run-start", [])
     assert isinstance(on_run_start, list) and len(on_run_start) > 0, (
         "dbt_project.yml must declare at least one on-run-start hook"
     )
     joined = " ".join(on_run_start)
-    assert "setup_iceberg" in joined, (
-        "on-run-start must invoke the setup_iceberg() macro"
-    )
+    assert "setup_iceberg" in joined, "on-run-start must invoke the setup_iceberg() macro"
 
 
 @pytest.mark.unit
@@ -194,9 +181,7 @@ def test_setup_iceberg_macro_installs_extensions_creates_secret_and_attaches_cat
     assert "ATTACH" in text and "TYPE iceberg" in text, (
         "macro must ATTACH the Nessie REST catalog via TYPE iceberg"
     )
-    assert "NESSIE_ENDPOINT" in text, (
-        "macro must point ATTACH at NESSIE_ENDPOINT env var"
-    )
+    assert "NESSIE_ENDPOINT" in text, "macro must point ATTACH at NESSIE_ENDPOINT env var"
     assert "ACCESS_DELEGATION_MODE 'none'" in text, (
         "macro must disable vended credentials — Nessie does not return "
         "access keys for self-hosted SeaweedFS"

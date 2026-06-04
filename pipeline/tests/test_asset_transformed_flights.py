@@ -1,23 +1,27 @@
-import pytest
-import pyarrow as pa
 from datetime import date
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-from pipeline.assets.transformed_flights import transformed_flights
+
+import pyarrow as pa
+import pytest
+
 from pipeline.assets.frontend_exports import frontend_exports
+from pipeline.assets.transformed_flights import transformed_flights
 from pipeline.config import PipelineConfig
 
 
 def _make_config() -> PipelineConfig:
-    return PipelineConfig.model_validate({
-        "airport_icao": "KJFK",
-        "ingest_start_date": "2024-01-01",
-        "ingest_end_date": "2024-01-08",
-        "SEAWEEDFS_S3_ENDPOINT": "http://localhost:8333",
-        "seaweedfs_access_key": "admin",
-        "seaweedfs_secret_key": "admin",
-        "nessie_endpoint": "http://localhost:19120/api/v1",
-    })
+    return PipelineConfig.model_validate(
+        {
+            "airport_icao": "KJFK",
+            "ingest_start_date": "2024-01-01",
+            "ingest_end_date": "2024-01-08",
+            "SEAWEEDFS_S3_ENDPOINT": "http://localhost:8333",
+            "seaweedfs_access_key": "admin",
+            "seaweedfs_secret_key": "admin",
+            "nessie_endpoint": "http://localhost:19120/api/v1",
+        }
+    )
 
 
 CONFIG = _make_config()
@@ -134,9 +138,7 @@ def test_frontend_exports_strips_scheme_from_endpoint():
     mock_con = MagicMock()
     mock_con.__enter__ = lambda s: mock_con
     mock_con.__exit__ = MagicMock(return_value=False)
-    mock_con.execute.side_effect = [
-        MagicMock() for _ in range(7)
-    ] + [
+    mock_con.execute.side_effect = [MagicMock() for _ in range(7)] + [
         MagicMock(to_arrow_table=lambda: AGG_ROUTE_TABLE),
         MagicMock(to_arrow_table=lambda: AGG_DAILY_TABLE),
     ]
@@ -144,7 +146,11 @@ def test_frontend_exports_strips_scheme_from_endpoint():
     with patch("pipeline.assets.frontend_exports.duckdb.connect", return_value=mock_con):
         frontend_exports(pipeline_config=config, seaweedfs=mock_seaweedfs)
 
-    set_calls = [c.args[0] for c in mock_con.execute.call_args_list if c.args[0].startswith("SET s3_endpoint")]
+    set_calls = [
+        c.args[0]
+        for c in mock_con.execute.call_args_list
+        if c.args[0].startswith("SET s3_endpoint")
+    ]
     assert len(set_calls) == 1
     assert "http://" not in set_calls[0]
     assert "localhost:8333" in set_calls[0]

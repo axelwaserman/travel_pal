@@ -20,6 +20,7 @@ registers a finaliser to tear them down via ``docker compose down -v``.
 The dagster-webserver and dagster-daemon services carry ``profiles: ["app"]``
 in docker-compose.yml and are therefore NOT started in either path.
 """
+
 import os
 import socket
 import subprocess
@@ -153,7 +154,7 @@ def _compose_down(project: str) -> None:
 
 
 @pytest.fixture(scope="session")
-def infra_endpoints(request: pytest.FixtureRequest) -> Generator[InfraEndpoints, None, None]:
+def infra_endpoints(request: pytest.FixtureRequest) -> Generator[InfraEndpoints]:
     """Yield Nessie and SeaweedFS S3 endpoint URLs once both services are ready.
 
     Skips the session when Docker is not available.
@@ -179,9 +180,7 @@ def infra_endpoints(request: pytest.FixtureRequest) -> Generator[InfraEndpoints,
         timeout=_NESSIE_READY_TIMEOUT_S,
         pause=_NESSIE_READY_POLL_S,
     ):
-        pytest.fail(
-            f"Nessie did not become responsive within {_NESSIE_READY_TIMEOUT_S} s."
-        )
+        pytest.fail(f"Nessie did not become responsive within {_NESSIE_READY_TIMEOUT_S} s.")
 
     if not _wait_for(
         lambda: _tcp_open(S3_HOST, S3_PORT),
@@ -189,8 +188,7 @@ def infra_endpoints(request: pytest.FixtureRequest) -> Generator[InfraEndpoints,
         pause=_S3_READY_POLL_S,
     ):
         pytest.fail(
-            f"SeaweedFS S3 did not become responsive on :{S3_PORT} "
-            f"within {_S3_READY_TIMEOUT_S} s."
+            f"SeaweedFS S3 did not become responsive on :{S3_PORT} within {_S3_READY_TIMEOUT_S} s."
         )
 
     # PyIceberg RestCatalog.url() appends "/v1/" to the uri, so "/iceberg/"
@@ -240,9 +238,7 @@ def seaweedfs_init(infra_endpoints: InfraEndpoints) -> None:  # noqa: ARG001
 
     Idempotent: safe to call even if buckets already exist.
     """
-    init_script = (_REPO_ROOT / "scripts" / "seaweedfs" / "init.sh").read_text(
-        encoding="utf-8"
-    )
+    init_script = (_REPO_ROOT / "scripts" / "seaweedfs" / "init.sh").read_text(encoding="utf-8")
     project = _detect_project()
     subprocess.run(
         [

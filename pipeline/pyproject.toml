@@ -39,7 +39,10 @@ module_name = "pipeline"
 [tool.ruff]
 line-length = 100
 target-version = "py313"
-extend-exclude = ["transforms/target", "storage", "logs", ".telemetry"]
+extend-exclude = ["transforms/target", "storage", "logs", ".telemetry", "build"]
+
+[tool.ty.src]
+exclude = ["build", "tests", "transforms", "storage", "logs", ".telemetry"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "W"]

@@ -2,7 +2,8 @@ import subprocess
 from pathlib import Path
 
 import pyarrow as pa
-from dagster import asset, ResourceParam
+from dagster import ResourceParam, asset
+
 from pipeline.config import PipelineConfig
 from pipeline.resources.seaweedfs import SeaweedFSResource
 

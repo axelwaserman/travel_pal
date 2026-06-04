@@ -1,9 +1,9 @@
 import duckdb
 import pyarrow as pa
-from dagster import asset, AssetIn, Nothing, ResourceParam
+from dagster import AssetIn, Nothing, ResourceParam, asset
+
 from pipeline.config import PipelineConfig
 from pipeline.resources.seaweedfs import SeaweedFSResource
-
 
 _MARTS = ("agg_route_timeliness", "agg_daily_timeliness")
 _EXPORT_KEYS = {

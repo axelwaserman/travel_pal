@@ -13,6 +13,7 @@ Infrastructure is started (and torn down) by fixtures in
 Iceberg schema mirrors the production ``raw_flights`` table schema used in
 ``pipeline/assets/raw_flights.py``.
 """
+
 import uuid
 
 import pyarrow as pa
@@ -51,6 +52,7 @@ skip_if_no_docker = pytest.mark.skipif(not DOCKER_AVAILABLE, reason=_SKIP_REASON
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @skip_if_no_docker
