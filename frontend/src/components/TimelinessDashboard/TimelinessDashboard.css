@@ -1,60 +1,124 @@
 .timeliness-dashboard {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: var(--space-section, 2rem);
+  margin-block-end: var(--space-2xl);
+}
+
+.timeliness-dashboard h2 {
+  margin-block-end: var(--space-lg);
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+}
+
+.timeliness-dashboard h2::before {
+  content: '01';
+  font-family: var(--font-mono);
+  font-size: var(--text-eyebrow);
+  color: var(--color-ink-subtle);
+  letter-spacing: 0.1em;
+  font-weight: 500;
 }
 
 .metric-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  margin-block: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-md);
+  margin-block: var(--space-lg) var(--space-2xl);
 }
 
 .metric-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  padding: 1rem;
-  border: 1px solid currentColor;
+  display: grid;
+  gap: var(--space-2xs);
+  padding: var(--space-lg);
+  background: var(--color-bg-raised);
+  border: var(--rule);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+  transition: transform var(--duration-normal) var(--ease-out-expo),
+              box-shadow var(--duration-normal) var(--ease-out-expo);
+  position: relative;
+  overflow: hidden;
+}
+
+.metric-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 60%, var(--color-accent-soft) 140%);
+  opacity: 0;
+  transition: opacity var(--duration-normal) var(--ease-out-expo);
+  pointer-events: none;
+}
+
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card);
+}
+
+.metric-card:hover::after {
+  opacity: 1;
 }
 
 .metric-label {
-  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-eyebrow);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  opacity: 0.7;
+  letter-spacing: 0.14em;
+  color: var(--color-ink-subtle);
 }
 
 .metric-value {
-  font-size: 2rem;
+  font-family: var(--font-display);
+  font-size: var(--text-metric);
+  font-weight: 400;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.025em;
   line-height: 1;
+  margin-block: var(--space-xs) var(--space-2xs);
 }
 
 .metric-sub {
-  font-size: 0.75rem;
-  opacity: 0.6;
+  font-size: var(--text-meta);
+  color: var(--color-ink-muted);
+  font-style: italic;
 }
 
 .daily-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-meta);
 }
 
-.daily-table th,
-.daily-table td {
-  padding: 0.5rem 0.75rem;
+.daily-table thead th {
   text-align: left;
-  border-bottom: 1px solid currentColor;
+  font-family: var(--font-mono);
+  font-size: var(--text-eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-ink-subtle);
+  font-weight: 500;
+  padding: var(--space-sm) var(--space-md);
+  border-block-end: var(--rule);
 }
 
-.daily-table th {
-  opacity: 0.7;
-  font-weight: 600;
+.daily-table tbody td {
+  padding: var(--space-sm) var(--space-md);
+  border-block-end: 1px solid oklch(from var(--color-rule) l c h / 0.5);
 }
 
-.daily-table tr:hover td {
-  opacity: 0.8;
+.daily-table tbody td:first-child {
+  font-family: var(--font-mono);
+  color: var(--color-ink-muted);
+}
+
+.daily-table tbody tr {
+  transition: background var(--duration-fast) var(--ease-out-expo);
+}
+
+.daily-table tbody tr:hover {
+  background: var(--color-accent-soft);
+}
+
+.daily-table tbody tr:last-child td {
+  border-block-end: none;
 }

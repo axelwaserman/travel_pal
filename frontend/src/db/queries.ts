@@ -12,8 +12,11 @@ export interface RouteTimeliness {
   on_time_ratio: number | null
 }
 
+// flight_date arrives from Arrow as either an epoch-ms number, a days-since-epoch
+// number, or an ISO string depending on the duckdb-wasm Arrow build — keep it loose
+// here and let format.fmtDate normalise.
 export interface DailyTimeliness {
-  flight_date: string
+  flight_date: number | string | Date
   origin_icao: string
   total_flights: number
   avg_delay_minutes: number | null
