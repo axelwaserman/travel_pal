@@ -12,6 +12,7 @@ import yaml
 
 TRANSFORMS_DIR = pathlib.Path(__file__).parents[1] / "transforms"
 STAGING_DIR = TRANSFORMS_DIR / "models" / "staging"
+MARTS_DIR = TRANSFORMS_DIR / "models" / "marts"
 MACROS_DIR = TRANSFORMS_DIR / "macros"
 
 
@@ -126,6 +127,23 @@ def test_marts_use_external_parquet_materialization() -> None:
         assert "s3://" in text and "warehouse/marts/" in text, (
             f"{mart.name} location must be an s3:// URI under warehouse/marts/"
         )
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("mart", ["agg_daily_timeliness", "agg_route_timeliness"])
+def test_marts_coalesce_stddev_to_zero(mart: str) -> None:
+    """Aggregation marts must wrap STDDEV(delay_minutes) in COALESCE(..., 0).
+
+    STDDEV over a single-row group returns NULL in DuckDB; the frontend
+    treats those as missing data when they are really "not enough samples
+    to compute volatility, but volatility is zero". Coalescing to 0 in the
+    mart removes the null path entirely and keeps the column non-nullable.
+    """
+    sql = (MARTS_DIR / f"{mart}.sql").read_text()
+    assert "COALESCE(STDDEV(delay_minutes), 0)" in sql, (
+        f"{mart}.sql must wrap STDDEV(delay_minutes) in COALESCE(..., 0) — "
+        "single-row groups produce NULL otherwise"
+    )
 
 
 @pytest.mark.unit
