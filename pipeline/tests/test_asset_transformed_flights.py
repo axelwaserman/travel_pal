@@ -117,6 +117,22 @@ def test_frontend_exports_reads_marts_from_s3():
         for s in executed_sql
     )
 
+    # Validate per-mart airport predicate is wired and parameter is bound to airport_icao.
+    # Daily mart filters on origin_icao only; route mart filters on either side.
+    read_calls = [c for c in mock_con.execute.call_args_list if "read_parquet" in c.args[0]]
+    daily_call = next(c for c in read_calls if "agg_daily_timeliness" in c.args[0])
+    route_call = next(c for c in read_calls if "agg_route_timeliness" in c.args[0])
+
+    assert "WHERE origin_icao = $airport" in daily_call.args[0]
+    assert "destination_icao" not in daily_call.args[0].split("WHERE", 1)[1], (
+        "daily mart predicate must not include destination_icao — the mart only "
+        "carries origin_icao, so a destination filter would always be false"
+    )
+    assert daily_call.args[1] == {"airport": "KJFK"}
+
+    assert "WHERE origin_icao = $airport OR destination_icao = $airport" in route_call.args[0]
+    assert route_call.args[1] == {"airport": "KJFK"}
+
     # Validate uploads
     assert mock_seaweedfs.upload_parquet.call_count == 2
     upload_calls = mock_seaweedfs.upload_parquet.call_args_list
