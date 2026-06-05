@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { queryDailyTimeliness, DailyTimeliness } from '../../db/queries'
-import { pct, fmt } from '../../db/format'
+import { pct, fmt, fmtDate } from '../../db/format'
 import './TimelinessDashboard.css'
 
 interface Props {
@@ -72,9 +72,9 @@ export default function TimelinessDashboard({ airportIcao }: Props) {
           </tr>
         </thead>
         <tbody>
-          {data.map(d => (
-            <tr key={d.flight_date}>
-              <td>{d.flight_date}</td>
+          {data.map((d, i) => (
+            <tr key={`${fmtDate(d.flight_date)}-${d.origin_icao}-${i}`}>
+              <td>{fmtDate(d.flight_date)}</td>
               <td>{d.total_flights.toLocaleString()}</td>
               <td>{pct(d.on_time_ratio)}</td>
               <td>{fmt(d.avg_delay_minutes)}</td>

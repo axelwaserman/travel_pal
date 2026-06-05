@@ -10,6 +10,17 @@ _EXPORT_KEYS = {
     "agg_route_timeliness": "route_timeliness.parquet",
     "agg_daily_timeliness": "daily_timeliness.parquet",
 }
+# Marts are airport-agnostic; export keys namespace by airport, so each file
+# must only contain rows that pertain to that airport.
+#
+# - agg_route_timeliness has both origin_icao and destination_icao, and a
+#   "route through KJFK" can flow in either direction — filter on either.
+# - agg_daily_timeliness groups by (flight_date, origin_icao) only, so
+#   "Historic Timeliness — KJFK" means departures from KJFK on each date.
+_MART_AIRPORT_PREDICATE = {
+    "agg_route_timeliness": "origin_icao = $airport OR destination_icao = $airport",
+    "agg_daily_timeliness": "origin_icao = $airport",
+}
 
 
 def _configure_s3(con: duckdb.DuckDBPyConnection, config: PipelineConfig) -> None:
@@ -32,8 +43,10 @@ def frontend_exports(
         _configure_s3(con, pipeline_config)
         for mart in _MARTS:
             source = f"s3://{pipeline_config.raw_bucket}/warehouse/marts/{mart}.parquet"
+            predicate = _MART_AIRPORT_PREDICATE[mart]
+            sql = f"SELECT * FROM read_parquet('{source}') WHERE {predicate}"
             arrow_table: pa.Table = con.execute(
-                f"SELECT * FROM read_parquet('{source}')"
+                sql, {"airport": pipeline_config.airport_icao}
             ).to_arrow_table()
             seaweedfs.upload_parquet(
                 arrow_table,
