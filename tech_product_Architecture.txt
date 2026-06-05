@@ -1,0 +1,302 @@
+erverless-Serving Flight Tracker:
+Product & Technical Architecture Plan
+Document Classification: Engineering & Product Specification Report
+Architectural Grade: 9.8 / 10 (Best-in-Class Cloud-Native / Lakehouse Pattern)
+
+1. Product Vision & Strategy
+1.1 Vision and Core Value Proposition
+The platform serves as the definitive, universal system that ingests, analyzes, and advises upon
+an individual’s entire travel history. By deeply inspecting patterns, systemic bottlenecks, and the
+structural costs of a user’s previous journeys, the platform transitions travel telemetry from
+static, descriptive logs into personalized, prescriptive, and data-driven advice. The core
+mandate is to optimize future travel configurations across three vectors: temporal efficiency,
+financial predictability, and operational reliability.
+While generic travel applications offer probabilistic forecasting based on coarse global
+averages, this platform delivers precise operational intelligence. The foundational value
+proposition is: "We analyze your past so your future travels better." The system evaluates how
+the travel ecosystem actively behaved during the exact historical intervals matching the user's
+footprint, transforming raw ledger details into structural travel wisdom.
+1.2 Target User Persona: "The Optimizing Nomad"
+The target user profile comprises high-frequency leisure and semi-professional travelers,
+including management consultants, distributed systems engineers, and digital nomads. These
+users frequently navigate highly fragmented, disconnected travel segments and are highly
+sensitive to unpredictable delays. They view transit time as a billable asset or a critical
+quality-of-life metric. They possess high data literacy, actively reject generic travel advice, and
+demand quantitative transparency behind recommended routing configurations.
+1.3 Adaptive Bandwidth Product Strategy
+Operating in transit hubs introduces severe network volatility (e.g., congested airport Wi-Fi, cell
+tower handoff lag, 3G roaming constraints). To ensure high user retention, the application
+implements an adaptive frontend execution model:
+● High-Bandwidth Environments: The frontend utilizes full edge-compute mode via
+DuckDB-WASM, fetching highly targeted Parquet byte-ranges directly from storage to
+
+support completely zero-latency, interactive client-side exploration and multi-dimensional
+analysis.
+● Low-Bandwidth / High-Latency Fallback: Upon detecting restricted connection
+parameters or degraded range-request performance, the client seamlessly shifts
+execution states. Instead of scraping thick file segments, it routes queries directly to the
+Go API Gateway. The gateway executes optimized backend aggregations or pulls
+micro-payloads from cached live streams, serving a minimal JSON structure to the UI.
+This eliminates unnecessary network round trips and keeps the client application perfectly
+responsive under suboptimal conditions.
+
+2. Product Roadmap & Feature Specifications
+2.1 Multi-Phase Execution Roadmap
+The phased execution matrix guarantees that platform scale aligns strictly with infrastructure
+maturation, isolating data governance from computational complexity at each milestone.
+Phase Milestone Name Product Scope Key Engineering
+Enabler
+
+Phase 0 Data Lake Genesis Internal testing
+baseline. Validate
+ingestion stability
+and micro-batch
+durability. Zero
+public visibility.
+
+Redis → Go Writer
+→ SeaweedFS →
+Project Nessie
+Catalog.
+
+Phase 1 MVP: Flight
+Timeliness
+
+Public beta for
+single international
+hub (e.g., JFK).
+Historical
+arrival/departure
+reliability mapping
+by route.
+
+DuckDB-WASM
+Frontend serving
+transpiled sqlglot
+compilation models.
+
+Phase 2 Alpha: Personal Authenticated profile Go API Gateway
+
+Phase Milestone Name Product Scope Key Engineering
+Enabler
+
+History space. Secure
+upload of personal
+CSV/JSON
+itineraries. Baseline
+variance
+comparisons.
+
+Token Validation, S3
+Presigned URL
+Vending, dbt
+modeling extension.
+
+Phase 3 Beta: Multimodal
+Growth
+
+Integration of public
+transit networks
+(GTFS feeds).
+Bottleneck advisory
+for airport-to-city
+center transit legs.
+
+Expanded dbt
+Directed Acyclic
+Graph (DAG);
+concurrent Go
+ingestion services
+for real-time GTFS
+streams.
+
+Phase 4 v1.0 Advisory
+Engine
+
+Contextual
+recommendation
+engine providing
+structured heuristics
+and behavioral trip
+buffer modification
+tips.
+
+Advanced dbt
+analytics layer
+combined with a
+specialized
+serverless heuristic
+matching matrix.
+
+2.2 Phase 1: MVP Feature Matrix
+The Minimum Viable Product concentrates exclusively on descriptive data analytics for a
+primary hub airport, ensuring bulletproof data pipelines before broad multi-modal scaling.
+
+Feature ID Feature Name Functional
+Description
+
+Underlying Data
+Requirement
+
+F1.1 Flight Lookup
+Engine
+
+Unfused query box
+accepting flight
+numbers or specific
+route pairs, returning
+instantaneous
+performance
+summary data
+cards.
+
+Cleansed, structured
+flight execution
+status logs recorded
+in Apache Iceberg
+tables.
+
+F1.2 Historic Timeliness
+Dashboard
+
+Visual UI modules
+displaying structural
+metrics: Average
+Delay Volatility,
+Outright
+Cancellation
+Probability, and
+On-Time Arrival
+Ratio (defined by ≤
+15-minute variance).
+
+Pre-aggregated dbt
+data assets
+materialized into the
+Lakehouse storage
+layer.
+
+F1.3 Competitor
+Comparison Matrix
+
+Interactive matrix
+juxtaposing
+operational
+performance
+parameters between
+Carrier A and
+Carrier B servicing
+identical route
+segments.
+
+Transpiled
+target-specific SQL
+execution strings
+executed directly via
+DuckDB-WASM.
+
+F1.4 Temporal Bottleneck
+
+Heatmap
+
+Two-dimensional
+graphical grid
+
+Complex
+dimensional
+
+Feature ID Feature Name Functional
+Description
+
+Underlying Data
+Requirement
+
+plotting Hour of Day
+against Day of
+Week, shaded
+contextually by
+mean systemic
+delay metrics.
+
+aggregations
+compiled via sqlglot
+semantic structures.
+
+3. High-Performance Technical Architecture
+3.1 Architectural Philosophy & Data Flow
+The technical stack leverages complete decoupled computation and storage. The execution
+chain guarantees zero backend query-compute expenses under baseline load by deploying
+data directly to edge storage formats. Raw data ingestion is completely detached from
+down-stream I/O constraints via micro-batch staging boundaries.
+3.2 Component Breakdown & Rationale
+● Go Ingest Service: A lightweight, highly concurrent service engineered in Go. It handles
+thousands of inbound raw telemetry hooks per second, validating payload schemas and
+dropping data points directly onto memory structures with zero disk operations.
+● Redis Ingestion Buffer: Acts as an asynchronous shock absorber, decoupling incoming
+network events from the analytical write engine to isolate the infrastructure from
+downstream backpressure during significant operational delay incidents.
+● Go Writer Service (The Core Linchpin): A long-running background process supervised
+or kicked off via programmatic orchestration hooks. It drains the Redis buffer, structures
+the events into heavily compressed, size-optimized Parquet structures, writes to object
+storage, and formally registers updates into the data catalog.
+● SeaweedFS (Self-Hosted S3 Storage): Provides high-throughput object storage,
+supporting atomic multi-part range queries and acting as our primary distributed,
+file-system datalake.
+● Project Nessie Table Catalog: Implements a Git-like branching paradigm for Apache
+Iceberg metadata records. This enables multi-table transactional safety and allows the
+
+testing and isolation of new data schemas on isolated branches before merging into
+master production states.
+● Dagster Orchestrator with ClickHouse Backend: Coordinates table transforms,
+pipeline testing, and asset tracking. Utilizing ClickHouse as its operational log and status
+engine ensures linear horizontal storage scalability for metadata and execution history.
+3.3 Go API Gateway & Security Boundary (Presigned URLs)
+To support multi-tenant isolation and safeguard individual user data during Phase 2 transitions,
+the application prohibits public client-side access to object storage. Security enforcement is
+handled via an optimized API Gateway written in Go:
+1. Authentication & Claims Verification: The client issues requests carrying structured
+authorization tokens. The Go API Gateway evaluates signature states at the edge within
+sub-millisecond windows.
+2. Dynamic Presigned URL Vending: Upon validating user access to specific requested
+analytical paths, the gateway communicates with SeaweedFS to generate short-lived,
+deeply restricted S3 presigned URLs. This gives DuckDB-WASM direct access only to the
+precise byte locations of the authorized Parquet paths.
+3. Compute Proxying: For clients operating in low-bandwidth execution states, the Go
+Gateway intercepts the request, runs a fast native local query plan against backend
+storage nodes, and relays highly compact JSON records down to the browser, completely
+saving client battery and bandwidth.
+3.4 Active Metadata Loop with Dagster Pipes
+Rather than relying on blind execution patterns, the pipeline achieves deep observability via
+Dagster Pipes. The Go Writer natively reads execution contexts passed down by Dagster and
+streams structured JSON state blocks across stdout/stderr pipelines during data loads. This
+real-time telemetry updates row mutations, block alignments, file hashes, and Project Nessie
+commit IDs directly inside the orchestrator's central control dashboard, offering absolute
+operational transparency without Python overhead in the write loop.
+3.5 SQL Standardization & Transpilation Layer
+To avoid dialect fragmentation across dbt data modeling layers and client-side visualization
+scripts, the platform adopts an ANSI-compliant base SQL standard as its canonical modeling
+language. During asset compilation, sqlglot reads these base models and transpiles them into
+optimized dialects matching the target execution environment:
+● Upstream Models: Transpiled seamlessly into Trino/Spark SQL specifications for heavy
+batch processing during lakehouse aggregation stages.
+
+● Client-Side Assets: Transpiled into high-performance DuckDB SQL dialects. These
+pre-compiled syntax trees are packed as immutable assets directly inside the React Vite
+bundle, enabling zero-overhead schema consumption at the edge.
+
+4. LLM Agent Scaffolding Blueprint
+This structural section provides clear blueprint guidelines optimized for agentic coding tools to
+generate the fundamental architectural scaffolding blocks.
+4.1 Docker Infrastructure Specification
+The agent must output a fully configured docker-compose.yml` topology including the following
+definitions:
+● Redis Stack Node: Port 6379 for hot ingestion caching.
+● SeaweedFS: S3-API compatibility configuration (Master and Volume servers), avoiding
+MinIO completely.
+● Project Nessie Server: Port 19120, configured to track Apache Iceberg table states.
+● ClickHouse Instance: Dedicated database schemas for systemic run logging.
+● Dagster Core Services: Separate structures for the webserver (port 3000) and daemon,
+using dagster-clickhouse for persistent runtime storage state backends.
+4.2 Dagster Pipes Core Asset Scaffold
+The orchestrator scaffolding must contain an operational definition establishing external
+communication boundaries with the Go execution environment via Pipes context definitions.

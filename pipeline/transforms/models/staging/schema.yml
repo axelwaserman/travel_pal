@@ -1,0 +1,27 @@
+version: 2
+
+models:
+  - name: stg_flights
+    description: >
+      Cleaned and cast OpenSky flight records read directly from Iceberg
+      parquet data files on S3. Replaces the former DuckDB source reference
+      which was never populated by any asset.
+    columns:
+      - name: icao24
+        description: 24-bit ICAO aircraft address (hex string)
+        tests:
+          - not_null
+      - name: callsign
+        description: Flight callsign (trimmed)
+        tests:
+          - not_null
+      - name: departed_at
+        description: Departure timestamp cast from first_seen epoch
+        tests:
+          - not_null
+      - name: arrived_at
+        description: Arrival timestamp cast from last_seen epoch
+      - name: origin_icao
+        description: Estimated departure airport ICAO code
+      - name: destination_icao
+        description: Estimated arrival airport ICAO code

@@ -151,6 +151,7 @@ Sourced from `agg_route_timeliness` and `agg_daily_timeliness` dbt models.
 | Aviationstack vs. OpenSky for Phase 1 (live/richer data) | Open | Phase 1 kickoff |
 | SeaweedFS S3 multipart upload configuration specifics | Resolve at scaffold | Phase 0 |
 | DuckDB version pinning across all three execution environments | Resolve at scaffold | Phase 0 |
+| Cancellation rate metric | Deferred — OpenSky only records completed flights; `cancellation_rate` removed from all models pending a richer data source (Aviationstack candidate in Phase 1) | Phase 1 |
 
 ---
 

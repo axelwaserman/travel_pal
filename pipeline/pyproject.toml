@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "travel_pal_pipeline"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "dagster>=1.9",
+    "dagster-webserver>=1.9",
+    "dagster-postgres",
+    "dagster-dbt",
+    "dbt-duckdb>=1.9",
+    "duckdb>=1.4.0",
+    "pyiceberg[s3fs,nessie]>=0.8",
+    "boto3",
+    "pyreqwest>=0.12",
+    "pydantic>=2.0",
+    "pydantic-settings>=2.0",
+    "pyarrow>=15",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "moto[s3]",
+]
+
+[tool.setuptools.packages.find]
+include = ["pipeline*"]
+
+
+[tool.dagster]
+module_name = "pipeline"
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+extend-exclude = ["transforms/target", "storage", "logs", ".telemetry", "build"]
+
+[tool.ty.src]
+exclude = ["build", "tests", "transforms", "storage", "logs", ".telemetry"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "W"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+markers = [
+    "unit: fast, dependency-free unit tests",
+    "integration: tests that exercise round-trips through real Nessie REST catalog + SeaweedFS S3 (requires Docker)",
+]
+testpaths = ["tests"]
+

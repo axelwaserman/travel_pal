@@ -1,0 +1,14 @@
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+node_modules/
+dist/
+pipeline/transforms/target/
+pipeline/storage/
+pipeline/logs/
+pipeline/.telemetry/
+pipeline/transforms/logs/
+pipeline/transforms/.user.yml
+*.egg-info/

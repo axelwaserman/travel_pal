@@ -1,0 +1,8 @@
+version: 2
+
+models:
+  - name: agg_route_timeliness
+    columns:
+      - name: on_time_ratio
+        tests:
+          - not_null
