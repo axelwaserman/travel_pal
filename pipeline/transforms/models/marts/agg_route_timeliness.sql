@@ -6,7 +6,7 @@ SELECT
     destination_icao,
     COUNT(*)                                                    AS total_flights,
     ROUND(AVG(delay_minutes), 1)                                AS avg_delay_minutes,
-    ROUND(STDDEV(delay_minutes), 1)                             AS delay_volatility,
+    ROUND(COALESCE(STDDEV(delay_minutes), 0), 1)                AS delay_volatility,
     ROUND(
         COUNT(CASE WHEN is_on_time = TRUE THEN 1 END) * 1.0
             / NULLIF(COUNT(CASE WHEN is_on_time IS NOT NULL THEN 1 END), 0),
