@@ -62,7 +62,11 @@ services:
 
   seaweedfs-volume:
     image: chrislusf/seaweedfs:4.31
-    command: volume -mserver=seaweedfs-master:9333 -port=8080
+    # -max=64 raises the per-collection writable-volume cap; without this,
+    # the default of 7 is exhausted across our buckets (raw-flights,
+    # frontend-exports, bts-raw, warehouse) and PutObject starts failing
+    # with "topo failed to pick 1 from 0 node candidates".
+    command: volume -mserver=seaweedfs-master:9333 -port=8080 -max=64
     ports:
       - "8080:8080"
     depends_on:
