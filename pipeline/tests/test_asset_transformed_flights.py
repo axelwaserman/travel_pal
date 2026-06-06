@@ -48,6 +48,31 @@ AGG_DAILY_TABLE = pa.table(
     }
 )
 
+AGG_CARRIER_CANC = pa.table(
+    {
+        "origin_icao": ["KJFK"],
+        "carrier_icao": ["AAL"],
+        "carrier_name": ["American Airlines"],
+        "total_scheduled": [1000],
+        "cancelled": [50],
+        "cancellation_rate": [0.05],
+        "period_start": pa.array([date(2024, 1, 1)], type=pa.date32()),
+        "period_end": pa.array([date(2024, 12, 31)], type=pa.date32()),
+    }
+)
+
+AGG_ROUTE_CANC = pa.table(
+    {
+        "origin_icao": ["KJFK"],
+        "destination_icao": ["KLAX"],
+        "total_scheduled": [800],
+        "cancelled": [40],
+        "cancellation_rate": [0.05],
+        "period_start": pa.array([date(2024, 1, 1)], type=pa.date32()),
+        "period_end": pa.array([date(2024, 12, 31)], type=pa.date32()),
+    }
+)
+
 
 def test_transformed_flights_depends_on_bts_on_time():
     """transformed_flights must declare an AssetIn for bts_on_time so dbt build
@@ -114,7 +139,7 @@ def test_frontend_exports_reads_marts_from_s3():
     mock_con = MagicMock()
     mock_con.__enter__ = lambda s: mock_con
     mock_con.__exit__ = MagicMock(return_value=False)
-    # Two read_parquet calls, one per mart
+    # Four read_parquet calls, one per mart
     mock_con.execute.side_effect = [
         MagicMock(),  # INSTALL httpfs
         MagicMock(),  # LOAD httpfs
@@ -125,6 +150,8 @@ def test_frontend_exports_reads_marts_from_s3():
         MagicMock(),  # SET s3_url_style
         MagicMock(to_arrow_table=lambda: AGG_ROUTE_TABLE),
         MagicMock(to_arrow_table=lambda: AGG_DAILY_TABLE),
+        MagicMock(to_arrow_table=lambda: AGG_CARRIER_CANC),
+        MagicMock(to_arrow_table=lambda: AGG_ROUTE_CANC),
     ]
 
     with patch("pipeline.assets.frontend_exports.duckdb.connect", return_value=mock_con):
@@ -161,17 +188,21 @@ def test_frontend_exports_reads_marts_from_s3():
     assert route_call.args[1] == {"airport": "KJFK"}
 
     # Validate uploads
-    assert mock_seaweedfs.upload_parquet.call_count == 2
+    assert mock_seaweedfs.upload_parquet.call_count == 4
     upload_calls = mock_seaweedfs.upload_parquet.call_args_list
     keys = [c.kwargs["key"] for c in upload_calls]
     assert "KJFK/route_timeliness.parquet" in keys
     assert "KJFK/daily_timeliness.parquet" in keys
+    assert "KJFK/carrier_cancellations.parquet" in keys
+    assert "KJFK/route_cancellations.parquet" in keys
     buckets = {c.kwargs["bucket"] for c in upload_calls}
     assert buckets == {"frontend-exports"}
     # Validate the arrow table from DuckDB reaches upload_parquet (regression: .arrow() vs .to_arrow_table())
     uploaded_tables = [c.args[0] for c in upload_calls]
     assert AGG_ROUTE_TABLE in uploaded_tables
     assert AGG_DAILY_TABLE in uploaded_tables
+    assert AGG_CARRIER_CANC in uploaded_tables
+    assert AGG_ROUTE_CANC in uploaded_tables
 
 
 def test_frontend_exports_strips_scheme_from_endpoint():
@@ -184,6 +215,8 @@ def test_frontend_exports_strips_scheme_from_endpoint():
     mock_con.execute.side_effect = [MagicMock() for _ in range(7)] + [
         MagicMock(to_arrow_table=lambda: AGG_ROUTE_TABLE),
         MagicMock(to_arrow_table=lambda: AGG_DAILY_TABLE),
+        MagicMock(to_arrow_table=lambda: AGG_CARRIER_CANC),
+        MagicMock(to_arrow_table=lambda: AGG_ROUTE_CANC),
     ]
 
     with patch("pipeline.assets.frontend_exports.duckdb.connect", return_value=mock_con):
@@ -197,3 +230,35 @@ def test_frontend_exports_strips_scheme_from_endpoint():
     assert len(set_calls) == 1
     assert "http://" not in set_calls[0]
     assert "localhost:8333" in set_calls[0]
+
+
+def test_frontend_exports_includes_cancellation_marts():
+    """frontend_exports must read both cancellation marts and upload them under
+    the airport-namespaced keys carrier_cancellations.parquet + route_cancellations.parquet.
+    """
+    config = _make_config()
+    mock_seaweedfs = MagicMock()
+    mock_con = MagicMock()
+    mock_con.__enter__ = lambda s: mock_con
+    mock_con.__exit__ = MagicMock(return_value=False)
+    mock_con.execute.side_effect = [MagicMock() for _ in range(7)] + [
+        MagicMock(to_arrow_table=lambda: AGG_ROUTE_TABLE),
+        MagicMock(to_arrow_table=lambda: AGG_DAILY_TABLE),
+        MagicMock(to_arrow_table=lambda: AGG_CARRIER_CANC),
+        MagicMock(to_arrow_table=lambda: AGG_ROUTE_CANC),
+    ]
+
+    with patch("pipeline.assets.frontend_exports.duckdb.connect", return_value=mock_con):
+        frontend_exports(pipeline_config=config, seaweedfs=mock_seaweedfs)
+
+    keys = [c.kwargs["key"] for c in mock_seaweedfs.upload_parquet.call_args_list]
+    assert "KJFK/carrier_cancellations.parquet" in keys
+    assert "KJFK/route_cancellations.parquet" in keys
+
+    read_calls = [c for c in mock_con.execute.call_args_list if "read_parquet" in c.args[0]]
+    carrier_call = next(c for c in read_calls if "agg_carrier_cancellations" in c.args[0])
+    route_canc_call = next(c for c in read_calls if "agg_route_cancellations" in c.args[0])
+    assert "WHERE origin_icao = $airport" in carrier_call.args[0]
+    assert "WHERE origin_icao = $airport OR destination_icao = $airport" in route_canc_call.args[0]
+    assert carrier_call.args[1] == {"airport": "KJFK"}
+    assert route_canc_call.args[1] == {"airport": "KJFK"}

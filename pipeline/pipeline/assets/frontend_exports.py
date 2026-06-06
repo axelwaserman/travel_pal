@@ -5,21 +5,30 @@ from dagster import AssetIn, Nothing, ResourceParam, asset
 from pipeline.config import PipelineConfig
 from pipeline.resources.seaweedfs import SeaweedFSResource
 
-_MARTS = ("agg_route_timeliness", "agg_daily_timeliness")
+_MARTS = (
+    "agg_route_timeliness",
+    "agg_daily_timeliness",
+    "agg_carrier_cancellations",
+    "agg_route_cancellations",
+)
 _EXPORT_KEYS = {
     "agg_route_timeliness": "route_timeliness.parquet",
     "agg_daily_timeliness": "daily_timeliness.parquet",
+    "agg_carrier_cancellations": "carrier_cancellations.parquet",
+    "agg_route_cancellations": "route_cancellations.parquet",
 }
 # Marts are airport-agnostic; export keys namespace by airport, so each file
 # must only contain rows that pertain to that airport.
 #
-# - agg_route_timeliness has both origin_icao and destination_icao, and a
-#   "route through KJFK" can flow in either direction — filter on either.
-# - agg_daily_timeliness groups by (flight_date, origin_icao) only, so
-#   "Historic Timeliness — KJFK" means departures from KJFK on each date.
+# - agg_route_timeliness / agg_route_cancellations have origin + destination,
+#   "route through KJFK" can flow either way → filter on either.
+# - agg_daily_timeliness groups by (date, origin_icao) only.
+# - agg_carrier_cancellations groups by (origin_icao, carrier_icao) only.
 _MART_AIRPORT_PREDICATE = {
     "agg_route_timeliness": "origin_icao = $airport OR destination_icao = $airport",
     "agg_daily_timeliness": "origin_icao = $airport",
+    "agg_carrier_cancellations": "origin_icao = $airport",
+    "agg_route_cancellations": "origin_icao = $airport OR destination_icao = $airport",
 }
 
 
