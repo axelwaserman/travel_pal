@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -14,6 +16,11 @@ class PipelineConfig(BaseSettings):
     export_bucket: str = "frontend-exports"
     opensky_client_id: str = ""
     opensky_client_secret: str = ""
+
+    # Phase 1 — BTS On-Time Performance ingestion
+    bts_endpoint: str = "https://transtats.bts.gov/PREZIP"
+    bts_fixture_file: Path | None = None
+    bts_cache_bucket: str = "bts-raw"
 
     model_config = SettingsConfigDict(frozen=True, case_sensitive=False)
 

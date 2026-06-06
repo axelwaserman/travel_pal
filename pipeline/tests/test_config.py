@@ -52,3 +52,40 @@ def test_config_is_frozen():
 
     with pytest.raises(ValidationError):
         config.airport_icao = "EGLL"  # type: ignore[misc]
+
+
+def test_pipeline_config_has_bts_settings_with_defaults(monkeypatch):
+    """PipelineConfig must expose bts_endpoint (default to BTS PREZIP URL),
+    bts_fixture_file (None by default), and bts_cache_bucket ('bts-raw' default).
+    """
+    monkeypatch.setenv("AIRPORT_ICAO", "KJFK")
+    monkeypatch.setenv("INGEST_START_DATE", "2024-01-01")
+    monkeypatch.setenv("INGEST_END_DATE", "2024-01-08")
+    monkeypatch.setenv("SEAWEEDFS_S3_ENDPOINT", "http://localhost:8333")
+    monkeypatch.setenv("SEAWEEDFS_ACCESS_KEY", "admin")
+    monkeypatch.setenv("SEAWEEDFS_SECRET_KEY", "admin")
+    monkeypatch.setenv("NESSIE_ENDPOINT", "http://localhost:19120/iceberg/")
+
+    cfg = PipelineConfig.from_env()
+
+    assert cfg.bts_endpoint == "https://transtats.bts.gov/PREZIP"
+    assert cfg.bts_fixture_file is None
+    assert cfg.bts_cache_bucket == "bts-raw"
+
+
+def test_pipeline_config_bts_fixture_file_overrides(monkeypatch, tmp_path):
+    """When BTS_FIXTURE_FILE env var is set, the corresponding field is populated."""
+    monkeypatch.setenv("AIRPORT_ICAO", "KJFK")
+    monkeypatch.setenv("INGEST_START_DATE", "2024-01-01")
+    monkeypatch.setenv("INGEST_END_DATE", "2024-01-08")
+    monkeypatch.setenv("SEAWEEDFS_S3_ENDPOINT", "http://localhost:8333")
+    monkeypatch.setenv("SEAWEEDFS_ACCESS_KEY", "admin")
+    monkeypatch.setenv("SEAWEEDFS_SECRET_KEY", "admin")
+    monkeypatch.setenv("NESSIE_ENDPOINT", "http://localhost:19120/iceberg/")
+    fixture = tmp_path / "bts.zip"
+    fixture.write_bytes(b"PK\x03\x04")  # ZIP magic
+    monkeypatch.setenv("BTS_FIXTURE_FILE", str(fixture))
+
+    cfg = PipelineConfig.from_env()
+
+    assert cfg.bts_fixture_file == fixture
