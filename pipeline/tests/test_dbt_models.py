@@ -272,3 +272,60 @@ def test_stg_bts_coverage_test_exists() -> None:
     assert "stg_bts_on_time" in sql
     assert "0.99" in sql
     assert "severity='warn'" in sql
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("mart", ["agg_carrier_cancellations", "agg_route_cancellations"])
+def test_cancellation_marts_use_external_parquet_with_correct_location(mart: str) -> None:
+    """Each cancellation mart must declare an s3:// location for external parquet."""
+    sql = (MARTS_DIR / f"{mart}.sql").read_text()
+    assert "config(" in sql and "location=" in sql
+    assert "s3://" in sql and "warehouse/marts/" in sql
+    assert "this.name" in sql, f"{mart}.sql must reference its own name via {{{{ this.name }}}}"
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "mart,required",
+    [
+        (
+            "agg_carrier_cancellations",
+            (
+                "origin_icao",
+                "carrier_icao",
+                "carrier_name",
+                "total_scheduled",
+                "cancelled",
+                "cancellation_rate",
+                "period_start",
+                "period_end",
+            ),
+        ),
+        (
+            "agg_route_cancellations",
+            (
+                "origin_icao",
+                "destination_icao",
+                "total_scheduled",
+                "cancelled",
+                "cancellation_rate",
+                "period_start",
+                "period_end",
+            ),
+        ),
+    ],
+)
+def test_cancellation_marts_have_required_columns(mart: str, required: tuple[str, ...]) -> None:
+    sql = (MARTS_DIR / f"{mart}.sql").read_text()
+    for col in required:
+        assert col in sql, f"{mart}.sql missing required column {col}"
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("mart", ["agg_carrier_cancellations", "agg_route_cancellations"])
+def test_cancellation_rate_uses_nullif_count_pattern(mart: str) -> None:
+    """NULLIF(COUNT(*), 0) guards against empty-group division."""
+    sql = (MARTS_DIR / f"{mart}.sql").read_text()
+    assert "NULLIF(COUNT(*), 0)" in sql, (
+        f"{mart}.sql must use NULLIF(COUNT(*), 0) for the cancellation_rate denom"
+    )
