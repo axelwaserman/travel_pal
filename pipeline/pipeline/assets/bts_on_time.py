@@ -88,7 +88,9 @@ def bts_on_time(
 
     flight_date_str = table.column("flight_date")
     flight_date_date = pc.cast(
-        pc.strptime(flight_date_str, format="%Y-%m-%d", unit="s"),
+        pc.strptime(  # ty: ignore[unresolved-attribute]  # pyarrow.compute stubs incomplete
+            flight_date_str, format="%Y-%m-%d", unit="s"
+        ),
         pa.date32(),
     )
     table = table.set_column(
