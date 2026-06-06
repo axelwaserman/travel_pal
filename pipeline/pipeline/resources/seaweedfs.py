@@ -30,5 +30,15 @@ class SeaweedFSResource(BaseModel):
         buf.seek(0)
         self._client.put_object(Bucket=bucket, Key=key, Body=buf.read())
 
+    def get_object(self, *, bucket: str, key: str) -> bytes:
+        try:
+            response = self._client.get_object(Bucket=bucket, Key=key)
+        except self._client.exceptions.NoSuchKey as exc:
+            raise FileNotFoundError(f"s3://{bucket}/{key} not found") from exc
+        return response["Body"].read()  # type: ignore[no-any-return]
+
+    def put_object(self, *, bucket: str, key: str, body: bytes) -> None:
+        self._client.put_object(Bucket=bucket, Key=key, Body=body)
+
     def get_public_url(self, bucket: str, key: str) -> str:
         return f"{self.endpoint}/{bucket}/{key}"

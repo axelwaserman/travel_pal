@@ -24,6 +24,7 @@ from pyiceberg.types import BooleanType, DateType, NestedField, StringType
 from pipeline.config import PipelineConfig
 from pipeline.resources.bts import BTSResource, extract_csv_from_zip
 from pipeline.resources.nessie import NessieResource
+from pipeline.resources.seaweedfs import SeaweedFSResource
 
 BTS_PARTITIONS = MonthlyPartitionsDefinition(start_date="2024-01-01")
 
@@ -63,12 +64,33 @@ def bts_on_time(
     pipeline_config: ResourceParam[PipelineConfig],
     bts: ResourceParam[BTSResource],
     nessie: ResourceParam[NessieResource],
+    seaweedfs: ResourceParam[SeaweedFSResource],
 ) -> None:
     year_str, month_str = context.partition_key.split("-")
     year = int(year_str)
     month = int(month_str)
 
-    zip_bytes = asyncio.run(bts.download_month(year, month))
+    cache_key = f"{context.partition_key}.zip"
+    try:
+        zip_bytes = seaweedfs.get_object(
+            bucket=pipeline_config.bts_cache_bucket,
+            key=cache_key,
+        )
+        context.log.info(
+            f"BTS partition {context.partition_key} loaded from cache "
+            f"s3://{pipeline_config.bts_cache_bucket}/{cache_key}"
+        )
+    except FileNotFoundError:
+        zip_bytes = asyncio.run(bts.download_month(year, month))
+        seaweedfs.put_object(
+            bucket=pipeline_config.bts_cache_bucket,
+            key=cache_key,
+            body=zip_bytes,
+        )
+        context.log.info(
+            f"BTS partition {context.partition_key} downloaded and cached "
+            f"to s3://{pipeline_config.bts_cache_bucket}/{cache_key}"
+        )
 
     table = extract_csv_from_zip(
         zip_bytes,

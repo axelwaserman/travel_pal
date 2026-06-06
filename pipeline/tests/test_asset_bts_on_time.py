@@ -51,12 +51,16 @@ def test_bts_on_time_creates_table_and_appends_for_partition(tmp_path):
     appended_tables: list[pa.Table] = []
     nessie.catalog.load_table.return_value.append = lambda t: appended_tables.append(t)
 
+    seaweedfs_mock = MagicMock()
+    seaweedfs_mock.get_object.side_effect = FileNotFoundError("no cache")
+
     ctx = build_asset_context(
         partition_key="2024-01",
         resources={
             "pipeline_config": config,
             "bts": bts_resource,
             "nessie": nessie,
+            "seaweedfs": seaweedfs_mock,
         },
     )
 
@@ -92,12 +96,16 @@ def test_bts_on_time_no_op_on_zero_rows(tmp_path):
     nessie = MagicMock()
     nessie.catalog.table_exists.return_value = False
 
+    seaweedfs_mock = MagicMock()
+    seaweedfs_mock.get_object.side_effect = FileNotFoundError("no cache")
+
     ctx = build_asset_context(
         partition_key="2024-01",
         resources={
             "pipeline_config": config,
             "bts": bts_resource,
             "nessie": nessie,
+            "seaweedfs": seaweedfs_mock,
         },
     )
 
@@ -118,12 +126,16 @@ def test_bts_on_time_does_not_recreate_existing_table(tmp_path):
     nessie.catalog.table_exists.return_value = True
     nessie.catalog.load_table.return_value.append = MagicMock()
 
+    seaweedfs_mock = MagicMock()
+    seaweedfs_mock.get_object.side_effect = FileNotFoundError("no cache")
+
     ctx = build_asset_context(
         partition_key="2024-01",
         resources={
             "pipeline_config": config,
             "bts": bts_resource,
             "nessie": nessie,
+            "seaweedfs": seaweedfs_mock,
         },
     )
 
@@ -151,12 +163,16 @@ def test_bts_on_time_calls_update_schema_before_append(tmp_path):
     )
     nessie.catalog.load_table.return_value.update_schema.return_value.__exit__ = lambda *args: None
 
+    seaweedfs_mock = MagicMock()
+    seaweedfs_mock.get_object.side_effect = FileNotFoundError("no cache")
+
     ctx = build_asset_context(
         partition_key="2024-01",
         resources={
             "pipeline_config": config,
             "bts": bts_resource,
             "nessie": nessie,
+            "seaweedfs": seaweedfs_mock,
         },
     )
 
@@ -164,6 +180,72 @@ def test_bts_on_time_calls_update_schema_before_append(tmp_path):
 
     update_ctx.union_by_name.assert_called_once()
     nessie.catalog.load_table.return_value.append.assert_called_once()
+
+
+@pytest.mark.unit
+def test_bts_on_time_uses_seaweedfs_cache_when_present(tmp_path):
+    """When SeaweedFS already holds a cached BTS ZIP for this partition,
+    the asset must read from the cache and NOT call BTSResource.download_month.
+    """
+    config = _make_config(tmp_path)
+
+    bts_resource = MagicMock()
+    bts_resource.download_month = MagicMock(return_value=_async(FIXTURE_PATH.read_bytes()))
+
+    seaweedfs = MagicMock()
+    seaweedfs.get_object.return_value = FIXTURE_PATH.read_bytes()
+
+    nessie = _make_nessie_mock()
+    nessie.catalog.table_exists.return_value = True
+
+    ctx = build_asset_context(
+        partition_key="2024-01",
+        resources={
+            "pipeline_config": config,
+            "bts": bts_resource,
+            "nessie": nessie,
+            "seaweedfs": seaweedfs,
+        },
+    )
+    bts_on_time(ctx)
+
+    bts_resource.download_month.assert_not_called()
+    seaweedfs.get_object.assert_called_once_with(bucket="bts-raw", key="2024-01.zip")
+
+
+@pytest.mark.unit
+def test_bts_on_time_writes_to_cache_after_download(tmp_path):
+    """When SeaweedFS does not have a cached ZIP, asset downloads from BTS,
+    writes the bytes to seaweedfs.put_object, then proceeds with append.
+    """
+    config = _make_config(tmp_path)
+
+    bts_resource = MagicMock()
+    bts_resource.download_month = MagicMock(return_value=_async(FIXTURE_PATH.read_bytes()))
+
+    seaweedfs = MagicMock()
+    seaweedfs.get_object.side_effect = FileNotFoundError("no cache")
+
+    nessie = _make_nessie_mock()
+    nessie.catalog.table_exists.return_value = True
+
+    ctx = build_asset_context(
+        partition_key="2024-01",
+        resources={
+            "pipeline_config": config,
+            "bts": bts_resource,
+            "nessie": nessie,
+            "seaweedfs": seaweedfs,
+        },
+    )
+    bts_on_time(ctx)
+
+    bts_resource.download_month.assert_called_once_with(2024, 1)
+    seaweedfs.put_object.assert_called_once()
+    args = seaweedfs.put_object.call_args.kwargs
+    assert args["bucket"] == "bts-raw"
+    assert args["key"] == "2024-01.zip"
+    assert args["body"][:2] == b"PK"
 
 
 def _async(value):
