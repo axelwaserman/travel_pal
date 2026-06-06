@@ -42,3 +42,31 @@ Always invoke these skills for relevant tasks:
 - `_resources_or_empty()` pattern for unit-test-compatible `Definitions`
 - dbt models: written directly in DuckDB dialect (single engine, Phase 0)
 - No `cancellation_rate` — OpenSky only records completed flights (deferred to Phase 1)
+
+## End-to-End UAT (MANDATORY: do it yourself, do not hand off to user)
+
+When the user asks "did you test it" or "does it work" — actually run the full
+stack and verify, do not just describe steps. The repo has Playwright +
+DuckDB-WASM + Dagster wired up; you have everything needed.
+
+Steps:
+1. `just down -v` → `just up` → `just buckets-init` (clean SeaweedFS state)
+2. `just run-pipeline` (materializes bts_on_time partition + raw + transformed + frontend_exports)
+3. `just ls-exports` — confirm 5 parquets in `frontend-exports`
+4. `cd frontend && npm run dev &` (vite at :5173) — or `npm run preview` after `npm run build`
+5. Run Playwright headed against the running dev server:
+   `cd frontend && npx playwright test --reporter=list`
+   Screenshots + traces land in `frontend/test-results/` and `frontend/playwright-report/`
+6. For ad-hoc DOM inspection beyond the smoke spec, write a one-off Playwright
+   script (or extend `tests/e2e/smoke.spec.ts`) that calls `page.screenshot`,
+   `page.locator(...).innerHTML()`, and `page.evaluate(() => document.title)`.
+
+If a chrome-devtools or playwright MCP is attached, prefer that for interactive
+inspection. Otherwise the local `npx playwright` path works headlessly without
+any MCP.
+
+Only ask the user to test manually if:
+- Visual judgment is required (typography polish, design feel)
+- The bug only repros against external services the user controls (real OpenSky
+  account, real BTS download)
+- An explicit user gate (Pre-Code Gate, design approval) is in play

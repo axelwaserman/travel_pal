@@ -2,7 +2,7 @@ import subprocess
 from pathlib import Path
 
 import pyarrow as pa
-from dagster import ResourceParam, asset
+from dagster import AssetIn, Nothing, ResourceParam, asset
 
 from pipeline.config import PipelineConfig
 from pipeline.resources.seaweedfs import SeaweedFSResource
@@ -10,16 +10,11 @@ from pipeline.resources.seaweedfs import SeaweedFSResource
 DBT_PROJECT_DIR = Path(__file__).resolve().parent.parent.parent / "transforms"
 
 
-@asset
-def transformed_flights(
-    pipeline_config: ResourceParam[PipelineConfig],
-    raw_flights: pa.Table,
-    seaweedfs: ResourceParam[SeaweedFSResource],
-) -> None:
+def _run_dbt(subcommand: str) -> None:
     result = subprocess.run(
         [
             "dbt",
-            "run",
+            subcommand,
             "--project-dir",
             str(DBT_PROJECT_DIR),
             "--profiles-dir",
@@ -29,4 +24,14 @@ def transformed_flights(
         text=True,
     )
     if result.returncode != 0:
-        raise RuntimeError(f"dbt run failed:\n{result.stdout}\n{result.stderr}")
+        raise RuntimeError(f"dbt {subcommand} failed:\n{result.stdout}\n{result.stderr}")
+
+
+@asset(ins={"bts_on_time": AssetIn(dagster_type=Nothing)})
+def transformed_flights(
+    pipeline_config: ResourceParam[PipelineConfig],
+    raw_flights: pa.Table,
+    seaweedfs: ResourceParam[SeaweedFSResource],
+) -> None:
+    _run_dbt("seed")
+    _run_dbt("run")

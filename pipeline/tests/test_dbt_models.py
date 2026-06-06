@@ -204,3 +204,128 @@ def test_setup_iceberg_macro_installs_extensions_creates_secret_and_attaches_cat
         "macro must disable vended credentials — Nessie does not return "
         "access keys for self-hosted SeaweedFS"
     )
+
+
+@pytest.mark.unit
+def test_dbt_project_configures_seeds() -> None:
+    """dbt_project.yml must declare a seeds: block with quote_columns disabled.
+
+    OurAirports + OpenFlights seeds carry numeric (lat/lon) columns; if
+    +quote_columns were left at the dbt default of true, dbt-duckdb would
+    materialise everything as VARCHAR and the staging joins would coerce
+    awkwardly.
+    """
+    dbt_project = yaml.safe_load((TRANSFORMS_DIR / "dbt_project.yml").read_text())
+    seeds = dbt_project.get("seeds", {})
+    travel_pal_seeds = seeds.get("travel_pal", {})
+    assert travel_pal_seeds.get("+quote_columns") is False, (
+        "seeds.travel_pal.+quote_columns must be false so DuckDB infers "
+        "numeric types from dim_airport.lat/lon"
+    )
+
+
+@pytest.mark.unit
+def test_dbt_seeds_present() -> None:
+    """The dim_airport and dim_carrier seeds must exist with ICAO as the first column."""
+    seeds_dir = TRANSFORMS_DIR / "seeds"
+    for seed in ("dim_airport.csv", "dim_carrier.csv"):
+        path = seeds_dir / seed
+        assert path.exists(), f"transforms/seeds/{seed} must exist"
+        first_line = path.read_text().splitlines()[0]
+        assert first_line.split(",")[0] == "icao", (
+            f"{seed} first column must be 'icao' (canonical PK across the warehouse)"
+        )
+
+
+@pytest.mark.unit
+def test_stg_bts_on_time_inner_joins_dim_airport_and_dim_carrier() -> None:
+    """stg_bts_on_time.sql must inner-join dim_airport (origin + dest) and dim_carrier."""
+    sql = (STAGING_DIR / "stg_bts_on_time.sql").read_text()
+    assert "INNER JOIN {{ ref('dim_airport') }}" in sql
+    assert sql.count("INNER JOIN {{ ref('dim_airport') }}") == 2, (
+        "stg_bts_on_time must INNER JOIN dim_airport twice (origin + dest)"
+    )
+    assert "INNER JOIN {{ ref('dim_carrier') }}" in sql
+
+
+@pytest.mark.unit
+def test_stg_bts_on_time_filters_empty_iata_codes() -> None:
+    """stg_bts_on_time must filter rows with empty IATA codes via NULLIF."""
+    sql = (STAGING_DIR / "stg_bts_on_time.sql").read_text()
+    for col in ("origin_iata", "destination_iata", "carrier_iata"):
+        assert f"NULLIF(b.{col}, '') IS NOT NULL" in sql, (
+            f"stg_bts_on_time must filter empty {col} via NULLIF"
+        )
+
+
+@pytest.mark.unit
+def test_stg_bts_on_time_carries_carrier_name_through() -> None:
+    """stg_bts_on_time aliases dim_carrier.name as carrier_name so marts don't re-join."""
+    sql = (STAGING_DIR / "stg_bts_on_time.sql").read_text()
+    assert "c.name" in sql and "AS carrier_name" in sql
+
+
+@pytest.mark.unit
+def test_stg_bts_coverage_test_exists() -> None:
+    """A dbt singular test guarding the IATA→ICAO mapping coverage must exist."""
+    sql = (TRANSFORMS_DIR / "tests" / "stg_bts_coverage.sql").read_text()
+    assert "stg_bts_on_time" in sql
+    assert "0.99" in sql
+    assert "severity='warn'" in sql
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("mart", ["agg_carrier_cancellations", "agg_route_cancellations"])
+def test_cancellation_marts_use_external_parquet_with_correct_location(mart: str) -> None:
+    """Each cancellation mart must declare an s3:// location for external parquet."""
+    sql = (MARTS_DIR / f"{mart}.sql").read_text()
+    assert "config(" in sql and "location=" in sql
+    assert "s3://" in sql and "warehouse/marts/" in sql
+    assert "this.name" in sql, f"{mart}.sql must reference its own name via {{{{ this.name }}}}"
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "mart,required",
+    [
+        (
+            "agg_carrier_cancellations",
+            (
+                "origin_icao",
+                "carrier_icao",
+                "carrier_name",
+                "total_scheduled",
+                "cancelled",
+                "cancellation_rate",
+                "period_start",
+                "period_end",
+            ),
+        ),
+        (
+            "agg_route_cancellations",
+            (
+                "origin_icao",
+                "destination_icao",
+                "total_scheduled",
+                "cancelled",
+                "cancellation_rate",
+                "period_start",
+                "period_end",
+            ),
+        ),
+    ],
+)
+def test_cancellation_marts_have_required_columns(mart: str, required: tuple[str, ...]) -> None:
+    sql = (MARTS_DIR / f"{mart}.sql").read_text()
+    for col in required:
+        assert col in sql, f"{mart}.sql missing required column {col}"
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("mart", ["agg_carrier_cancellations", "agg_route_cancellations"])
+def test_cancellation_rate_uses_nullif_count_pattern(mart: str) -> None:
+    """NULLIF(COUNT(*), 0) guards against empty-group division."""
+    sql = (MARTS_DIR / f"{mart}.sql").read_text()
+    assert "NULLIF(COUNT(*), 0)" in sql, (
+        f"{mart}.sql must use NULLIF(COUNT(*), 0) for the cancellation_rate denom"
+    )

@@ -82,14 +82,26 @@ ls-raw:
 
 # ─────────────── Dagster materialization ───────────────
 
+# Materialize the monthly-partitioned bts_on_time asset for a given partition.
+# Partition keys are ISO date strings anchored at month-start (YYYY-MM-01).
+# Usage: just materialize-bts                 # defaults to 2024-01-01
+#        just materialize-bts 2024-02-01      # any month
+materialize-bts partition="2024-01-01":
+    docker compose exec dagster-webserver dagster asset materialize \
+      --select bts_on_time --partition "{{partition}}" -m pipeline
+
 # Materialize a single asset or asset selection inside the dagster-webserver container.
 # Selections are comma-separated. Use '+' suffix for downstream graph traversal.
-# Usage: just materialize raw_flights   |   just materialize "raw_flights,transformed_flights"
-materialize selection="raw_flights,transformed_flights,frontend_exports":
+# Includes the 2024-01-01 bts_on_time partition first so transformed_flights
+# (which depends on it via AssetIn) has its upstream populated.
+# Usage: just materialize                     # full default selection
+#        just materialize raw_flights         # subset
+#        just materialize "raw_flights,transformed_flights"
+materialize selection="raw_flights,transformed_flights,frontend_exports": materialize-bts
     docker compose exec dagster-webserver dagster asset materialize \
       --select "{{selection}}" -m pipeline
 
-# Full pipeline materialize end-to-end (raw → transformed → exports).
+# Full pipeline materialize end-to-end (bts → raw → transformed → exports).
 run-pipeline: (materialize "raw_flights,transformed_flights,frontend_exports")
 
 # Open the Dagster UI in default browser (mac).

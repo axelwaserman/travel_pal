@@ -84,13 +84,20 @@ jobs:
           INGEST_END_DATE: "2024-01-02"
           # Fixture mode: adapter reads JSON files instead of making HTTP requests.
           OPENSKY_FIXTURE_DIR: tests/fixtures
+          # BTS fixture-mode bypass: avoid hitting transtats.bts.gov in CI.
+          BTS_FIXTURE_FILE: tests/fixtures/bts_kjfk_2024_01.csv.zip
           # dagster.yaml reads these for postgres-backed run/event-log storage.
           DAGSTER_POSTGRES_USER: dagster
           DAGSTER_POSTGRES_PASSWORD: dagster
           DAGSTER_POSTGRES_HOST: localhost
           DAGSTER_POSTGRES_DB: dagster
         working-directory: pipeline
-        run: dagster asset materialize --select '*' -m pipeline
+        run: |
+          # bts_on_time is monthly-partitioned and rejects '*' selects without
+          # --partition; materialize it separately first, then the
+          # non-partitioned assets explicitly (omitting bts_on_time).
+          dagster asset materialize --select bts_on_time --partition 2024-01-01 -m pipeline
+          dagster asset materialize --select 'raw_flights,transformed_flights,frontend_exports' -m pipeline
 
       - name: assert non-zero rows in raw_flights iceberg table
         env:

@@ -3,10 +3,12 @@ import os
 from dagster import Definitions, ResourceDefinition
 from pydantic import ValidationError
 
+from pipeline.assets.bts_on_time import bts_on_time
 from pipeline.assets.frontend_exports import frontend_exports
 from pipeline.assets.raw_flights import raw_flights
 from pipeline.assets.transformed_flights import transformed_flights
 from pipeline.config import PipelineConfig
+from pipeline.resources.bts import BTSResource
 from pipeline.resources.nessie import NessieResource
 from pipeline.resources.opensky import OpenSkyResource
 from pipeline.resources.seaweedfs import SeaweedFSResource
@@ -21,9 +23,17 @@ def _make_resources() -> dict[str, ResourceDefinition]:
         client_id=cfg.opensky_client_id,
         client_secret=cfg.opensky_client_secret,
     )
+    bts = BTSResource(
+        endpoint=cfg.bts_endpoint,
+        # PipelineConfig types bts_fixture_file as Path | None; BTSResource
+        # accepts str | None because Dagster's ConfigurableResource rejects
+        # Path config fields.
+        fixture_file=str(cfg.bts_fixture_file) if cfg.bts_fixture_file is not None else None,
+    )
     return {
         "pipeline_config": ResourceDefinition.hardcoded_resource(cfg),
         "opensky": ResourceDefinition.hardcoded_resource(opensky),
+        "bts": ResourceDefinition.hardcoded_resource(bts),
         "seaweedfs": ResourceDefinition.hardcoded_resource(
             SeaweedFSResource(
                 endpoint=cfg.seaweedfs_endpoint,
@@ -52,6 +62,6 @@ def _resources_or_empty() -> dict[str, ResourceDefinition]:
 
 
 defs = Definitions(
-    assets=[raw_flights, transformed_flights, frontend_exports],
+    assets=[raw_flights, bts_on_time, transformed_flights, frontend_exports],
     resources=_resources_or_empty(),
 )

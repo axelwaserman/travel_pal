@@ -21,3 +21,8 @@ models:
     marts:
       +materialized: external
       +format: parquet
+
+seeds:
+  travel_pal:
+    +quote_columns: false
+    +schema: ref
