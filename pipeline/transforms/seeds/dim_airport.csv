@@ -2458,7 +2458,7 @@ icao,iata,name,city,country,lat,lon,airport_type
 25XA,,Headwaters Airport,Stonewall,US,30.092863,-98.701258,small_airport
 25XS,,Moonbow Field,Waxahachie,US,32.4865,-96.846397,small_airport
 26AL,,Richardson Field,Mobile,US,30.631424,-88.279748,closed
-26AR,,"Fly ""N"" K Airport",Searcy,US,35.2154998779,-91.807800293,small_airport
+26AR,,Fly 'N' K Airport,Searcy,US,35.2154998779,-91.807800293,small_airport
 26AZ,,Flying Dare's Ranch Airport,Aguila,US,34.012001037597656,-113.2030029296875,small_airport
 26CA,,Boeckmann Ranch Airport,Wilton,US,38.42689895629883,-121.1719970703125,small_airport
 26CN,,SCE Vincent Substation Heliport,Palmdale,US,34.486768,-118.115913,heliport
@@ -16638,7 +16638,7 @@ CA-0024,,Anderson Ranch Airport,,CA,53.45000076293945,-123.56666564941406,closed
 CA-0025,,Anglemont Airport,Anglemont,CA,50.9684,-119.166813,closed
 CA-0026,,Arthur North Airport,Arthur,CA,43.883333,-80.533333,closed
 CA-0027,,Asbestos Airport,Val-des-Sources,CA,45.79425,-71.995339,closed
-CA-0028,,"Sundance Guest Ranch ""C"" Airport",Ashcroft,CA,50.66669845581055,-121.26699829101562,closed
+CA-0028,,Sundance Guest Ranch 'C' Airport,Ashcroft,CA,50.66669845581055,-121.26699829101562,closed
 CA-0029,,Crystal Lake Airport,Atikokan,CA,48.71670150756836,-91.2667007446289,closed
 CA-0030,,Atkinson Point DEW Line Station,Atkinson Point,CA,69.933616,-131.431906,closed
 CA-0031,,Austin Airport,,CA,49.93333435058594,-98.91666412353516,closed
@@ -17019,7 +17019,7 @@ CA-0405,,West Baffin DEW Line Station,Nudluardjk Lake,CA,68.610044,-73.242081,cl
 CA-0406,,Whitecourt (Forestry) Heliport,,CA,54.13333511352539,-115.66666412353516,closed
 CA-0407,,Wiebenville Airport,Kenora District,CA,52.21702,-90.464859,small_airport
 CA-0408,,Wildhay Airport,,CA,53.86666488647461,-117.55000305175781,closed
-CA-0409,,"Milford ""Heliport"" (PPR)",Prince Edward County,CA,43.9375234968,-77.08777606490001,heliport
+CA-0409,,Milford 'Heliport' (PPR),Prince Edward County,CA,43.9375234968,-77.08777606490001,heliport
 CA-0410,,Willow Creek Airport,,CA,49.0,-109.73332977294922,closed
 CA-0411,,Wingham (Inglis Field) Airport,Wingham,CA,43.897621,-81.335737,small_airport
 CA-0412,,Winisk Airport,Winisk,CA,55.2242,-85.1174,closed
@@ -17694,7 +17694,7 @@ CA-1082,,Pryde Field Airport,Port Elgin,CA,44.458229,-81.378715,closed
 CA-1083,,Brockville (Medical) Heliport,Brockville,CA,44.6055016694,-75.6798309088,closed
 CA-1084,,Thessalon Municipal Airport,Thessalon,CA,46.316031,-83.533244,closed
 CA-1085,,Bowmanville (Memorial Hospital) Heliport,Bowmanville,CA,43.909501,-78.67652,closed
-CA-1086,,"Brampton (National ""P"") Heliport",Brampton,CA,43.811584,-79.698442,closed
+CA-1086,,Brampton (National 'P') Heliport,Brampton,CA,43.811584,-79.698442,closed
 CA-1087,,Lefroy Airport,Lefroy,CA,44.2919095924,-79.5472812653,closed
 CA-1088,,Smith Field,Orton,CA,43.775179,-80.228119,closed
 CA-1089,,St. Joseph Island Airport,Richards Landing,CA,46.281469,-83.950531,closed
@@ -24953,7 +24953,7 @@ ES-0109,,Folgueroles Airfield,Folgueroles,ES,41.9527,2.3072,medium_airport
 ES-0111,,Aeródromo Villanueva del Pardillo,Villanueva del Pardillo,ES,40.5001069999,-3.9920997,small_airport
 ES-0112,,Camaleño-Artañin ULM,Argüébanes,ES,43.17817,-4.674958,small_airport
 ES-0113,,Aeródromo de La Lora,Valderredible,ES,42.769601,-3.953427,closed
-ES-0114,,"Aeródromo ""Puente de Genave""",,ES,38.3666778,-2.7941751,small_airport
+ES-0114,,Aeródromo 'Puente de Genave',,ES,38.3666778,-2.7941751,small_airport
 ES-0115,,Aeròdrom de Viladamat,Viladamat,ES,42.142843,3.051141,small_airport
 ES-0116,,Ager Altiport,,ES,42.02277,0.7491,small_airport
 ES-0117,,Alcolea Airstrip,Alcolea,ES,37.945619,-4.615416,small_airport
@@ -25045,9 +25045,9 @@ ES-0202,,Aeródromo de Garrucha,,ES,37.197959,-1.830627,small_airport
 ES-0203,,Aeródromo Lanzahita UL,Lanzahita,ES,40.186112,-4.946256,small_airport
 ES-0204,,Mollerussa UL,Mollerussa,ES,41.6122017,0.8541227,small_airport
 ES-0205,,Castejón de Sos Airfield,Castejón de Sos,ES,42.522468,0.481114,small_airport
-ES-0206,,"Aeródromo privado ""Villamartin2""",Villamartin,ES,36.827132,-5.603212,small_airport
+ES-0206,,Aeródromo privado 'Villamartin2',Villamartin,ES,36.827132,-5.603212,small_airport
 ES-0207,,Aeródromo Calzada de Valdunciel,Calzada de Valdunciel,ES,41.07545,-5.728036,small_airport
-ES-0208,,"Aeródromo forestal ""Requena 2""",Requena,ES,39.4422585,-1.0493454,small_airport
+ES-0208,,Aeródromo forestal 'Requena 2',Requena,ES,39.4422585,-1.0493454,small_airport
 ES-0209,,Aeródromo de Griñón,Griñón,ES,40.2237809995,-3.866911,small_airport
 ES-0210,,Palma del Rio 2 UL,Palma del Rio,ES,37.668501,-5.262086,small_airport
 ES-0211,,Campo de Vuelo de Oteo,Oteo,ES,43.0168667,-3.3120333,small_airport
@@ -25064,7 +25064,7 @@ ES-0221,,Ruidera2,Ruidera,ES,39.02495,-2.911927,small_airport
 ES-0222,,Pista forestal de Fuencaliente,Fuencaliente,ES,38.5264323,-4.389622,small_airport
 ES-0223,,Almagro Helicopter Airbase,Almagro,ES,38.952096,-3.741126,heliport
 ES-0224,,Pozorrubio Airfield,Pozorrubio,ES,39.826221,-2.953085,small_airport
-ES-0225,,"Aeródromo Forestal ""Puebla de Don Rodrigo""",Puebla de Don Rodrigo,ES,39.066067,-4.488502,small_airport
+ES-0225,,Aeródromo Forestal 'Puebla de Don Rodrigo',Puebla de Don Rodrigo,ES,39.066067,-4.488502,small_airport
 ES-0226,,Aeródromo forestal de Herrera del Duque,Herrera del Duque,ES,39.2264442,-4.8863799,small_airport
 ES-0227,,Dima Airfield,,ES,43.075701,-2.683326,closed
 ES-0228,,Cortijo Grande,Turre,ES,37.1351217,-1.9360369,closed
@@ -25072,7 +25072,7 @@ ES-0229,,Villena,,ES,38.5868201,-0.8559465,closed
 ES-0230,,Sotillo de la Andrada,,ES,41.27115,-3.63005,small_airport
 ES-0231,,Prádanos de Ojeda Airstrip,,ES,42.6921604,-4.3486359,small_airport
 ES-0232,,Jarde Airport,Antigua,ES,28.391185,-13.982968,small_airport
-ES-0233,,"Aeródromo Forestal ""La Fonfría""",Villarejo,ES,42.3466117,-2.9109476,small_airport
+ES-0233,,Aeródromo Forestal 'La Fonfría',Villarejo,ES,42.3466117,-2.9109476,small_airport
 ES-0234,,Cóbreces Airfield,Cóbreces,ES,43.388518,-4.207752,small_airport
 ES-0235,,Santiago-Pontones Airstrip,,ES,38.0909891,-2.6484287,small_airport
 ES-0236,,Roses Aerial Military Radar Helipad,Roses,ES,42.278272,3.233359,heliport
@@ -25101,7 +25101,7 @@ ES-0258,,Helipuerto de Sahechores,,ES,42.62011,-5.19233,heliport
 ES-0259,,Piedrabuena - Los Jarales,Piedrabuena,ES,39.05953,-4.23651,closed
 ES-0260,,Illas Sisargas Heliport,Mapica,ES,43.3575972,-8.8440328,heliport
 ES-0261,,Sollana Agro Airstrip,Sollana,ES,39.270605,-0.364932,small_airport
-ES-0262,,"Base de aviones ""La Cerra""",Villanueva de Duero,ES,42.521305,-4.855477,small_airport
+ES-0262,,Base de aviones 'La Cerra',Villanueva de Duero,ES,42.521305,-4.855477,small_airport
 ES-0263,,El Barranco - Sierra Morena,Bailén (Jaén),ES,38.03774,-3.76585,small_airport
 ES-0264,,Aeródromo  Forestal Villaviciosa de Córdoba,,ES,38.05406,-5.04182,small_airport
 ES-0265,,Valdemorillo Airstrip,Valdemorillo,ES,40.485591,-4.050783,small_airport
@@ -27077,7 +27077,7 @@ FR-0464,,Chausey Heliport,Granville,FR,48.870166,-1.822713,heliport
 FR-0465,,Neuflieux Airfield,"Neuflieux, Aisne",FR,49.611111,3.148611,small_airport
 FR-0466,,Corbeny Ultralight Airfield,"Corbeny, Aisne",FR,49.457382,3.854544,small_airport
 FR-0467,,Taillefontaine Airfield,"Taillefontaine, Aisne",FR,49.307868,3.06599,small_airport
-FR-0468,,"Altisurface du Glacier du Passon ""du haut""",,FR,45.98044,6.979303,small_airport
+FR-0468,,Altisurface du Glacier du Passon 'du haut',,FR,45.98044,6.979303,small_airport
 FR-0469,,Kogenheim Ultralight Airfield,"Kogenheim, Bas-Rhin",FR,48.322866,7.535108,small_airport
 FR-0470,,Albé-Val de Villé Airfield,Albé,FR,48.349158,7.330171,small_airport
 FR-0471,,Salmbach Ultralight Airfield,"Salmbach, Bas-Rhin",FR,48.967949,8.070563,small_airport
@@ -32967,7 +32967,7 @@ IT-0019,,Campo di Volo Aidone (cugno),Aidone,IT,37.432392,14.61525,small_airport
 IT-0020,,Camemi Airfield,Mineo (CT),IT,37.263261,14.626579,small_airport
 IT-0021,,Elpifly Airfield,Santa Croce Camerina (RG),IT,36.810908,14.544772,small_airport
 IT-0022,,Campo di Volo Marano,Pietraperzia (EN),IT,37.386467,14.143471,small_airport
-IT-0023,,"Campo di Volo ""Il Cherubino""",Santa Maria di Licodia,IT,37.59441,14.880252,closed
+IT-0023,,Campo di Volo 'Il Cherubino',Santa Maria di Licodia,IT,37.59441,14.880252,closed
 IT-0024,,Campo di Volo Pachino Fly Dream,Pachino (SR),IT,36.726571,15.033717,closed
 IT-0025,,Albatros Airfield,Termini Imerese (PA),IT,37.972478,13.77335,small_airport
 IT-0026,,Campo di Volo Ali Val di Neto,Bucchi (KR),IT,39.184793,17.107129,closed
@@ -33041,7 +33041,7 @@ IT-0093,,Beppe Rascaglia Flying Field,Nicotera (RC),IT,38.515556,15.942222,small
 IT-0094,,Masseria Macri Airfield,Supersano (LE),IT,40.054607,18.214738,small_airport
 IT-0095,,Umberto Nobile Airfield,Sessa Aurunca (CE),IT,41.235278,13.820556,small_airport
 IT-0096,,Aviosuperficie Sabaudia,Sabaudia (LT),IT,41.333611,13.021389,small_airport
-IT-0097,,"Campo di Volo ""Fly Club""",Sant'Agata de'Goti (BN),IT,41.10457,14.45698,small_airport
+IT-0097,,Campo di Volo 'Fly Club',Sant'Agata de'Goti (BN),IT,41.10457,14.45698,small_airport
 IT-0098,,Aviosuperficie Condor,Borgo San Michele (LT),IT,41.415,12.979444,small_airport
 IT-0099,,Tuscania Airfield,San Lazzaro (VT),IT,42.410446,11.898665,small_airport
 IT-0100,,Aviosuperficie Alisoriano,Soriano nel Cimino (VT),IT,42.433658,12.292147,small_airport
@@ -33063,7 +33063,7 @@ IT-0115,,Sterzing / Vipiteno Airfield,Vipiteno (BZ),IT,46.883764,11.441338,small
 IT-0116,,Passo del Tonale Airfield,Vermiglio (TN),IT,46.265134,10.600662,small_airport
 IT-0117,,Ceraso Airfield/Aero Club I Templari,Altamura (BA),IT,40.93769,16.497,small_airport
 IT-0118,,Mezzana Bigli Airfield,Mezzana Bigli (PV),IT,45.065409,8.835176,small_airport
-IT-0119,,"Aviosuperficie ""Sa Doda""",Decimoputzu (CA),IT,39.361731,8.868309,small_airport
+IT-0119,,Aviosuperficie 'Sa Doda',Decimoputzu (CA),IT,39.361731,8.868309,small_airport
 IT-0120,,Campo di Volo Sardegna,Gesico (CA),IT,39.621944,9.101944,small_airport
 IT-0121,,Oasi da Peppe Airfield,Capaccio (SA),IT,40.452191,15.000098,small_airport
 IT-0122,,Aerotre Airfield,Manduria (TA),IT,40.449469,17.623654,small_airport
@@ -33075,7 +33075,7 @@ IT-0128,,Fiorano Wings Airfield,San Fiorano (LO),IT,45.11933,9.705951,small_airp
 IT-0129,,Caposile Airfield,San Donà di Piave,IT,45.56529,12.576835,small_airport
 IT-0130,,Aquile Randagie Airfield,Gazzo Veronese (VR),IT,45.165629,11.03503,small_airport
 IT-0131,,Chiusdino Airfield,Chiusdino (SI),IT,43.189768,11.146924,small_airport
-IT-0132,,"CdV ""38 N Fly Zone""",Condofuri Marina,IT,37.9458,15.8836,closed
+IT-0132,,CdV '38 N Fly Zone',Condofuri Marina,IT,37.9458,15.8836,closed
 IT-0133,,CdV Ass.Sp. Parvolo,Pramaggiore,IT,45.815556,12.752222,small_airport
 IT-0134,,Careas Airfield,Caravaggio (BG),IT,45.50668,9.66814,small_airport
 IT-0135,,La Zappaglia Airfield,Calvisano (BS),IT,45.326746,10.378411,small_airport
@@ -33086,7 +33086,7 @@ IT-0139,,Aviosuperficie Airone,Origgio (VA),IT,45.588056,9.003751,closed
 IT-0140,,Pravisdomini Airfield,Pravisdomini (PN),IT,45.821769,12.68341,small_airport
 IT-0141,,Ali Venete Airfield,Galliera Veneta (PD),IT,45.664881,11.807449,small_airport
 IT-0142,,Il Pioniero Airfield,Lusia (RO),IT,45.083975,11.663224,small_airport
-IT-0143,,"Aviosuperficie ""San Giuseppe""",Vidor (TV),IT,45.85649,12.06555,small_airport
+IT-0143,,Aviosuperficie 'San Giuseppe',Vidor (TV),IT,45.85649,12.06555,small_airport
 IT-0144,,Alla Colombara Airiield,Bassano del Grappa (VI),IT,45.752853,11.6925,small_airport
 IT-0145,,Il Fantasma Arcole Airfield,Arcole,IT,45.36,11.294444,closed
 IT-0146,,Cà del Conte Airfield,Alseno (PC),IT,44.870165,9.938164,small_airport
@@ -33111,7 +33111,7 @@ IT-0164,,AIRBAS Airfield,Montescaglioso (MT),IT,40.564519,16.592997,closed
 IT-0165,,Renzo Storai Airfield,Vicchio del Mugello (FI),IT,43.96583,11.458056,small_airport
 IT-0166,,Campo di Volo Alicocco,Ferentino (FR),IT,41.655,13.226389,small_airport
 IT-0167,,Ceresara Airfield,Ceresara (MN),IT,45.263695,10.582549,small_airport
-IT-0168,,"Campo di Volo ""Cab Club""",Montiglio,IT,45.057833,8.066817,small_airport
+IT-0168,,Campo di Volo 'Cab Club',Montiglio,IT,45.057833,8.066817,small_airport
 IT-0169,,Flying Tigers Airfield,Albiano d'Ivrea (TO),IT,45.440878,7.937,closed
 IT-0170,,Kong Airfield,Monte Marenzo (LC),IT,45.761969,9.445002,small_airport
 IT-0171,,Piancada Airfield,Palazzolo della Stella (UD),IT,45.76417,13.07304,small_airport
@@ -33155,10 +33155,10 @@ IT-0208,,Maccagno Airfield,Maccagno (CN),IT,44.423599,7.459128,small_airport
 IT-0209,,Il Pinguino Airfield,Quarrata (PT),IT,43.87137,10.94651,small_airport
 IT-0210,,Aviosuperficie Pegaso Flying Club,Ceccano (FR),IT,41.541847,13.370451,small_airport
 IT-0211,,Al Casale Airfield,Codroipo (UD),IT,45.984782,12.923537,small_airport
-IT-0212,,"Campo di Volo ""Air Patria""",Giuliano (NA),IT,40.926943,14.061944,small_airport
+IT-0212,,Campo di Volo 'Air Patria',Giuliano (NA),IT,40.926943,14.061944,small_airport
 IT-0213,,Aliquirra Airfield,Perdasdefogu (OG),IT,39.678438,9.462163,small_airport
 IT-0214,,Peter Pan Airfield,Marsciano (PG),IT,42.97183,12.371257,small_airport
-IT-0215,,"Campo di Volo ""Aligubbio""",Gubbio (PG),IT,43.3173,12.5731,small_airport
+IT-0215,,Campo di Volo 'Aligubbio',Gubbio (PG),IT,43.3173,12.5731,small_airport
 IT-0216,,L'Aquila Airfield,Poggio Picenze (AQ),IT,42.300878,13.517175,small_airport
 IT-0217,,VolAvisio Airfield,Cavalese (TN),IT,46.27888,11.44837,small_airport
 IT-0218,,Volopuro Airfield,Momo (NO),IT,45.564089,8.54184,small_airport
@@ -33217,9 +33217,9 @@ IT-0270,,Al Canale Airfield,Alberobello (BA),IT,40.8125,17.233056,small_airport
 IT-0271,,Agnedo Airfield,Agnedo (TN),IT,46.044722,11.541944,small_airport
 IT-0272,,Costa d'Argento Airfield,Orbetello (GR),IT,42.495327,11.239424,small_airport
 IT-0273,,Giuliano Borgonovi Airfield,Zerbolò (PV),IT,45.187103,9.042821,small_airport
-IT-0274,,"Aviosuperficie ""Villa Selva Air Park""",Civitella del Tronto (TE),IT,42.79277,13.75146,small_airport
+IT-0274,,Aviosuperficie 'Villa Selva Air Park',Civitella del Tronto (TE),IT,42.79277,13.75146,small_airport
 IT-0275,,Arcobaleno Airfield,Zola Predosa (BO),IT,44.496944,11.243611,small_airport
-IT-0276,,"Campo di Volo ""Ali del Montello""",Volpago del Montello (TV),IT,45.76157,12.16361,small_airport
+IT-0276,,Campo di Volo 'Ali del Montello',Volpago del Montello (TV),IT,45.76157,12.16361,small_airport
 IT-0277,,Aviosuperficie La Selva,Vitulazio,IT,41.155556,14.21,small_airport
 IT-0278,,Falcone Airfield,Lavello (PZ),IT,41.105084,15.876483,small_airport
 IT-0279,,Celano Airfield,Celano (AQ),IT,42.05167,13.55722,small_airport
@@ -33233,7 +33233,7 @@ IT-0286,,Skydive Venice Airfield,San Stino di Livenza (VE),IT,45.700009,12.76390
 IT-0287,,Banana Airfield,Casale sul Sile (TV),IT,45.597525,12.30855,closed
 IT-0288,,Il Ranch Airfield,Piazzola sul Brenta (PD),IT,45.545833,11.761944,closed
 IT-0289,,Conca del Re Airfield,Castrovillari (CS),IT,39.854278,16.19563,small_airport
-IT-0290,,"Aviosuperficie ""Il Pratone""",Carsoli (AQ),IT,42.093703,13.042332,small_airport
+IT-0290,,Aviosuperficie 'Il Pratone',Carsoli (AQ),IT,42.093703,13.042332,small_airport
 IT-0291,,Sky Ufita Airfield,Frigento (AV),IT,41.046165,15.121532,small_airport
 IT-0292,,Blue Devil Centre Airfield,Offlaga (BS),IT,45.392393,10.127678,small_airport
 IT-0293,,Le Panizze Airfield,Lonato (BS),IT,45.419359,10.557346,small_airport
@@ -33251,9 +33251,9 @@ IT-0304,,Base Bravo Airfield,Cervarese Santa Croce (PD),IT,45.392864,11.692645,s
 IT-0305,,Da Domenico Airfield,San Cosma (PD),IT,45.233379,11.797942,small_airport
 IT-0306,,Padova Sud Airfield,Maserà di Padova (PD),IT,45.325086,11.872916,small_airport
 IT-0307,,Dominio di Bagnoli Airfield,Bagnoli di Sopra (PD),IT,45.183946,11.857326,small_airport
-IT-0308,,"Campo di Volo ""Le Risare""",Campo San Martino (PD),IT,45.574906,11.84464,closed
-IT-0309,,"Aviosuperficie ""Avioclub Alanno""",Alanno (PE),IT,42.31458,14.000913,small_airport
-IT-0310,,"Campo di Volo ""Avioclub Elice""",Elice (PE),IT,42.49048,13.995545,small_airport
+IT-0308,,Campo di Volo 'Le Risare',Campo San Martino (PD),IT,45.574906,11.84464,closed
+IT-0309,,Aviosuperficie 'Avioclub Alanno',Alanno (PE),IT,42.31458,14.000913,small_airport
+IT-0310,,Campo di Volo 'Avioclub Elice',Elice (PE),IT,42.49048,13.995545,small_airport
 IT-0311,,Campo di Volo Bonsciano,Bonsciano (PG),IT,43.355854,12.193534,small_airport
 IT-0312,,San Terenziano Airfield,Gualdo Cattaneo (PG),IT,42.85723,12.473179,small_airport
 IT-0313,,Santa Maria Rossa Airfield,Santa Maria Rossa (PG),IT,43.024026,12.387359,small_airport
@@ -33273,7 +33273,7 @@ IT-0326,,Zagavia Airfield,Monzambano (MN),IT,45.359762,10.65676,closed
 IT-0327,,Mantova Nord Airfield,San Giorgio (MN),IT,45.172182,10.858224,small_airport
 IT-0328,,Că Mantovane Airfield,Că Mantovane (MN),IT,45.239484,10.889615,small_airport
 IT-0329,,Aviosuperficie Settefrati,Rivalta sul Mincio (MN),IT,45.201775,10.662813,closed
-IT-0330,,"Campo di Volo ""Condor Men""",Tolentino (MC),IT,43.224706,13.329554,small_airport
+IT-0330,,Campo di Volo 'Condor Men',Tolentino (MC),IT,43.224706,13.329554,small_airport
 IT-0331,,Aviosuperficie Santa Anna,Montecassiano (MC),IT,43.366053,13.457496,small_airport
 IT-0332,,Campo di Volo Ali del Chienti,Corridonia (MC),IT,43.260263,13.518618,small_airport
 IT-0333,,AliPuglia Airfield,Oria (BR),IT,40.474421,17.609926,small_airport
@@ -33300,7 +33300,7 @@ IT-0353,,Campo di Volo Campore,Salsomaggiore Terme (PR),IT,44.827864,10.010782,s
 IT-0354,,La Torretta Airfield,Busseto (PR),IT,44.993187,10.0599,small_airport
 IT-0355,,Aviosuperficie Vallesanta,Rieti (RI),IT,42.427317,12.805221,small_airport
 IT-0356,,Giardini di Corcolle Airfield,Roma,IT,41.900476,12.741902,small_airport
-IT-0357,,"Campo di Volo ""Air Ardara""",Ardara (SS),IT,40.625979,8.868129,small_airport
+IT-0357,,Campo di Volo 'Air Ardara',Ardara (SS),IT,40.625979,8.868129,small_airport
 IT-0358,,Cornegliano Airfield,Cornegliano Laudense (LO),IT,45.288819,9.491562,small_airport
 IT-0359,,Massalengo Airfield,Massalengo (LO),IT,45.275425,9.482934,small_airport
 IT-0360,,Mezzana Casati Airfield,San Tommaso (LO),IT,45.098258,9.735884,small_airport
@@ -33311,7 +33311,7 @@ IT-0364,,Aviosuperficie Aretusa Fly,Canicattini Bagni,IT,37.03741,15.09536,small
 IT-0365,,Aviosuperficie Chiusa-Zerfaliu,Zerfaliu,IT,39.989504,8.723266,small_airport
 IT-0366,,Bedizzole Airfield,Bedizzole (BS),IT,45.51851,10.449577,small_airport
 IT-0367,,Bosco di Mezzo Airfield (CTCAL),Caltagirone (CT),IT,37.1523,14.59928,small_airport
-IT-0368,,"Aviosuperficie ""Amici del Volo""",Alvito (FR),IT,41.676997,13.74285,small_airport
+IT-0368,,Aviosuperficie 'Amici del Volo',Alvito (FR),IT,41.676997,13.74285,small_airport
 IT-0369,,Volo Leggero Airfield,Casalino Isola Rizza (VR),IT,45.261776,11.192901,small_airport
 IT-0370,,Pica Airfield,Notaresco (TE),IT,42.696389,13.916985,small_airport
 IT-0371,,Ca' Quinta di Sarego Airfield,Sarego (VI),IT,45.432833,11.383333,small_airport
@@ -33332,7 +33332,7 @@ IT-0385,,Rains Airfield,Caiazzo (CE),IT,41.146,14.338803,small_airport
 IT-0386,,Volo Club Falchi Grigi,Vieste (FG),IT,41.9101,16.0993,closed
 IT-0387,,Aviosuperficie Delfina,Trevi (PG),IT,42.842934,12.734494,small_airport
 IT-0388,,Panicarola Airfield,Panicale (PG),IT,43.064444,12.100556,small_airport
-IT-0389,,"Aviosuperficie ""Bore di Chienti""",Corridonia (MC),IT,43.261156,13.563302,closed
+IT-0389,,Aviosuperficie 'Bore di Chienti',Corridonia (MC),IT,43.261156,13.563302,closed
 IT-0390,,Delta Top Pegaso Airfield,Tarquinia (VT),IT,42.224206,11.7948,small_airport
 IT-0391,,Tarquinia San Giorgio Airfield,Tarquinia (VT),IT,42.192687,11.724573,small_airport
 IT-0392,,Montemelino Airfield,Magione (PG),IT,43.102464,12.254116,small_airport
@@ -33352,12 +33352,12 @@ IT-0405,,Chiasiellis Airfield,Chiasiellis (UD),IT,45.944928,13.208403,small_airp
 IT-0406,,Fly Synthesis Airfield,Mortegliano (UD),IT,45.968667,13.23355,small_airport
 IT-0407,,Fly Evolution Flying Field,Pavia di Udine (UD),IT,45.981982,13.306923,small_airport
 IT-0408,,Pranovi Airfield,Fossò (VE),IT,45.371835,12.037153,small_airport
-IT-0409,,"Campo di Volo ""Maraclub Icamar""",Maracalagonis,IT,39.278216,9.25674,small_airport
+IT-0409,,Campo di Volo 'Maraclub Icamar',Maracalagonis,IT,39.278216,9.25674,small_airport
 IT-0410,,SCUV Aero Club Valdarno Airfield,Cavriglia (AR),IT,43.528658,11.474759,small_airport
 IT-0411,,Massimo Costa Airfield,San Vincenzo (LI),IT,43.092657,10.556215,small_airport
 IT-0412,,Condor Airfield,Piombino (LI),IT,42.969167,10.619722,closed
 IT-0413,,Aviosuperficie del Parteolla,Serdiana,IT,39.400471,9.139151,small_airport
-IT-0414,,"Aviosuperficie ""La Tana del Volo""",Siliqua (CA),IT,39.269133,8.771811,small_airport
+IT-0414,,Aviosuperficie 'La Tana del Volo',Siliqua (CA),IT,39.269133,8.771811,small_airport
 IT-0415,,Valeggio sul Mincio Airfield,Valeggio sul Mincio (VR),IT,45.317432,10.708423,small_airport
 IT-0416,,Arcadia Airfield,Pastrengo (VR),IT,45.500837,10.789056,small_airport
 IT-0417,,Aviosuperficie Coraine,Caprino Veronese (VR),IT,45.588562,10.755719,closed
@@ -33375,7 +33375,7 @@ IT-0428,,La Canonica Airfield,Cendon di Silea (TV),IT,45.635467,12.340599,small_
 IT-0429,,Albatros Airfield,Spresiano (TV),IT,45.770727,12.244068,small_airport
 IT-0430,,Dream Fly Airfield,Vittorio Veneto (TV),IT,45.930381,12.257512,small_airport
 IT-0431,,Butterfly 2 Airfield,Codognè (TV),IT,45.85255,12.45734,small_airport
-IT-0432,,"Aviosuperficie ""Val Vibrata 2""",Sant'Omero (TE),IT,42.80427,13.794678,closed
+IT-0432,,Aviosuperficie 'Val Vibrata 2',Sant'Omero (TE),IT,42.80427,13.794678,closed
 IT-0433,,Deltaland Airfield,San Possidonia (MO),IT,44.8714,10.9807,closed
 IT-0434,,L'Airone Airfield,Valle Lomellina (PV),IT,45.152733,8.655217,small_airport
 IT-0435,,Ali Fucecchio Airfield,Fucecchio (FI),IT,43.751529,10.8078,small_airport
@@ -33385,7 +33385,7 @@ IT-0438,,AliLafer Airfield,Piacenza (PC),IT,45.033682,9.791865,small_airport
 IT-0439,,Aviosuperficie Tucano,Fiano Romano (RM),IT,42.1324,12.6263,small_airport
 IT-0440,,Aviosuperficie Grecciano,Grecciano (LI),IT,43.628814,10.482438,small_airport
 IT-0441,,Campiglia Airfield,Venturina Terme (LI),IT,43.019437,10.594659,closed
-IT-0442,,"Campo di Volo ""Air Country""",Sant'Omero (TE),IT,42.806283,13.785007,small_airport
+IT-0442,,Campo di Volo 'Air Country',Sant'Omero (TE),IT,42.806283,13.785007,small_airport
 IT-0443,,Costa del Monte Flying Field,Mosciano Sant'Angelo (TE),IT,42.733207,13.891703,small_airport
 IT-0444,,Roma East Airfield,Roma,IT,41.914691,12.769538,small_airport
 IT-0445,,Santarcangelo Airfield,Santarcangelo di Romagna (RN),IT,44.030537,12.426701,small_airport
@@ -33393,7 +33393,7 @@ IT-0446,,Policoro Airfield,Policoro (MT),IT,40.170967,16.6628,closed
 IT-0447,,Policoro Saline Flying Field,Policoro (MT),IT,40.216161,16.731721,small_airport
 IT-0448,,Campo di Volo MedFly,Gela (CL),IT,37.1055,14.220061,small_airport
 IT-0449,,Campo di Volo Club Aeronautico Gela,Gela (CL),IT,37.11314,14.18929,small_airport
-IT-0450,,"Campo di Volo ""Palazzone di Narni""",Narni (TR),IT,42.536609,12.553635,small_airport
+IT-0450,,Campo di Volo 'Palazzone di Narni',Narni (TR),IT,42.536609,12.553635,small_airport
 IT-0451,,Campo di Volo Calledro,Narni (TR),IT,42.464848,12.428715,small_airport
 IT-0452,,ARMA Airfield,Nettuno (RM),IT,41.464419,12.746515,small_airport
 IT-0453,,Aviosuperficie Roma-Nord,Capena (RM),IT,42.119945,12.604453,small_airport
@@ -33441,7 +33441,7 @@ IT-0494,,Il Gruccione Airfield,Collesalvetti (LI),IT,43.605515,10.411837,small_a
 IT-0495,,Bigarello Private Airfield,Bigarello (MN),IT,45.170815,10.929061,small_airport
 IT-0496,,Campo di Volo Pellizzario,Castel Goffredo (MN),IT,45.2927778,10.4466667,small_airport
 IT-0497,,AvioSciacca Airfield,Sciacca (AG),IT,37.528809,13.003122,small_airport
-IT-0498,,"Campo di Volo ""Girasole Vola""",Ogliastra,IT,39.956667,9.645278,closed
+IT-0498,,Campo di Volo 'Girasole Vola',Ogliastra,IT,39.956667,9.645278,closed
 IT-0499,,Pietralata Flying Field,Andrano (LE),IT,39.970654,18.381006,small_airport
 IT-0500,,Aviosuperficie La Smeraldina,Olbia (OT),IT,41.05793,9.433446,small_airport
 IT-0501,,Selva Negra Airfield,Capalbio (GR),IT,42.406981,11.395237,small_airport
@@ -33454,7 +33454,7 @@ IT-0507,,Oasi del Volo Airfield,Serdiana (CA),IT,39.407537,9.174867,small_airpor
 IT-0508,,Gsiesertal / Valle di Casies,Monguelfo (BZ),IT,46.7657842,12.1556392,small_airport
 IT-0509,,Scortichino Airfield,Bondeno (FE),IT,44.859083,11.353583,small_airport
 IT-0510,,Amanti Volo Ultraleggero Airfield,Imola (BO),IT,44.326615,11.659263,closed
-IT-0511,,"Aviosuperficie privata ""La Ceriella""",Castello d'Agogna (PV),IT,45.220143,8.659543,small_airport
+IT-0511,,Aviosuperficie privata 'La Ceriella',Castello d'Agogna (PV),IT,45.220143,8.659543,small_airport
 IT-0512,,Aviosuperficie Maletto Fly,Maletto (CT),IT,37.845756,14.869846,small_airport
 IT-0513,,Le Prata Private Airfield,Le Maggiola Nord (PI),IT,43.745788,10.405136,small_airport
 IT-0514,,Vallecamonica Airfield,Artogne (BS),IT,45.855901,10.147571,small_airport
@@ -44020,7 +44020,7 @@ LGKJ,KZS,Kastelorizo Airport,Kastelorizo Island,GR,36.141701,29.576401,small_air
 LGKL,KLX,Kalamata Airport,Kalamata,GR,37.06829833984375,22.02549934387207,medium_airport
 LGKM,,Kavala Amygdaleon Lydia Airfield,Amygdaleonas,GR,40.972801,24.3414,small_airport
 LGKN,,Marathon Kotroni Navy Helicopter Base,Marathon,GR,38.137561,23.951726,heliport
-LGKO,KGS,"Kos International Airport ""Ippokratis""",Kos Island,GR,36.794523,27.09115,large_airport
+LGKO,KGS,Kos International Airport 'Ippokratis',Kos Island,GR,36.794523,27.09115,large_airport
 LGKP,AOK,Karpathos Airport,Karpathos Island,GR,35.421398,27.146,medium_airport
 LGKR,CFU,Corfu Ioannis Kapodistrias International Airport,Kerkyra (Corfu),GR,39.60145,19.912179,large_airport
 LGKS,KSJ,Kasos Airport,Kasos Island,GR,35.4213981628,26.909999847399998,small_airport
@@ -44040,7 +44040,7 @@ LGPA,PAS,Paros National Airport,Paros,GR,37.020495,25.113195,small_airport
 LGPL,JTY,Astypalaia Airport,Astypalaia Island,GR,36.5798988342,26.3757991791,small_airport
 LGPZ,PVK,Aktion National Airport,Preveza,GR,38.925499,20.765301,medium_airport
 LGRD,,Maritsa Air Base,Rhodes Island,GR,36.383099,28.1089,small_airport
-LGRP,RHO,"Rhodes International Airport ""Diagoras""",Rhodes,GR,36.405399,28.086201,large_airport
+LGRP,RHO,Rhodes International Airport 'Diagoras',Rhodes,GR,36.405399,28.086201,large_airport
 LGRS,,Logan Reserve Airport,,AU,-27.705986,153.109996,small_airport
 LGRX,GPA,Patras Araxos Agamemnon Airport,Patras,GR,38.1511,21.4256,medium_airport
 LGSA,CHQ,Chania International Airport,Souda,GR,35.531207,24.150673,large_airport
@@ -44119,7 +44119,7 @@ LHVE,,Veresegyház Airfield,Veresegyház,HU,47.638107,19.255007,small_airport
 LHZA,,Zalaegerszeg Andráshida Airfield,Zalaegerszeg,HU,46.884701,16.7889,small_airport
 LHZK,,Zalakaros Airfield,Zalakaros,HU,46.5539,17.15118,small_airport
 LI-0001,,Liechtenstein Hospital Helipad,Vaduz,LI,47.134773,9.522753,heliport
-LIAA,,"Aviosuperficie ""Alvaro Leonardi""",Terni,IT,42.573333,12.584444,small_airport
+LIAA,,Aviosuperficie 'Alvaro Leonardi',Terni,IT,42.573333,12.584444,small_airport
 LIAF,,Foligno Airfield,Foligno (PG),IT,42.9328,12.71237,small_airport
 LIAG,,Colacem Heliport,Gubbio (PG),IT,43.341513,12.576869,heliport
 LIAJ,,Macchiarella Heliport,Ostia Antica (RM),IT,41.782953,12.306502,heliport
@@ -44137,7 +44137,7 @@ LIBD,BRI,Bari Karol Wojtyła International Airport,Bari,IT,41.138901,16.760599,l
 LIBF,FOG,Foggia Gino Lisa Airport,Foggia (FG),IT,41.433596,15.534566,medium_airport
 LIBG,TAR,Taranto-Grottaglie Marcello Arlotta Airport,Grottaglie,IT,40.517502,17.4032,medium_airport
 LIBH,,Marina di Ginosa Heliport,Marina di Ginosa,IT,40.424131,16.887517,heliport
-LIBJ,,"Helicopter Base ""Luigi Razza""",Vibo Valentia,IT,38.640456,16.042989,heliport
+LIBJ,,Helicopter Base 'Luigi Razza',Vibo Valentia,IT,38.640456,16.042989,heliport
 LIBN,LCC,Lecce Galatina Air Base / Galatina Fortunato Cesari Airport,Galatina (LE),IT,40.239201,18.133301,medium_airport
 LIBP,PSR,Abruzzo Airport,Pescara,IT,42.431079,14.182981,large_airport
 LIBR,BDS,Brindisi Airport,Brindisi,IT,40.6576,17.947001,large_airport
@@ -45088,7 +45088,7 @@ LV-0050,,Pilsrundāle Rural Airstrip,Pilsrundāle,LV,56.42202,23.97632,small_air
 LV-0051,,Ošupe Airstrip,,LV,56.80478,26.77088,small_airport
 LV-0052,,Biržu lidlauks,Birži,LV,56.40475,25.79567,small_airport
 LV-0053,,Gātciema Airfield,,LV,56.9212,23.64144,small_airport
-LV-0054,,Lejasciems airfield,"""Jaunkalmes"", Lejasciema pag., LV4412",LV,57.290981,26.618413,small_airport
+LV-0054,,Lejasciems airfield,"'Jaunkalmes', Lejasciema pag., LV4412",LV,57.290981,26.618413,small_airport
 LV-1288,,Rumbula Air Base,Riga,LV,56.883301,24.2267,closed
 LV-7721,,Liepas Air Base,Valmiera,LV,57.3867,25.508301,closed
 LV-8037,,Penkule Airfield,,LV,56.474862,23.190107,closed
@@ -46229,7 +46229,7 @@ MP24,,Captain Krish E. Persaud Airport,Chame,PA,8.58846,-79.889702,small_airport
 MP26,,Punta Cocos Airport,Punta Cocos,PA,8.22485,-78.904404,small_airport
 MP27,,Deborah Airport,Guabito,PA,9.51614,-82.595497,small_airport
 MPAG,,El Aguila Airstrip,El Aguila,PA,8.37168,-80.351676,small_airport
-MPBO,BOC,"Bocas del Toro ""Isla Colón"" International Airport",Isla Colón,PA,9.34085,-82.250801,medium_airport
+MPBO,BOC,Bocas del Toro 'Isla Colón' International Airport,Isla Colón,PA,9.34085,-82.250801,medium_airport
 MPCE,CTD,Alonso Valderrama Airport,Chitré,PA,7.98784,-80.409837,medium_airport
 MPCH,CHX,Changuinola Captain Manuel Niño International Airport,Changuinola,PA,9.458962,-82.515062,medium_airport
 MPDA,DAV,Enrique Malek International Airport,David,PA,8.388983,-82.436425,medium_airport
@@ -46797,7 +46797,7 @@ MX-0058,,La Pichihuila Airstrip,Morelos,MX,26.3591,-107.8008,small_airport
 MX-0059,,Zarupa Airstrip,Morelos,MX,26.4642,-107.7969,small_airport
 MX-0060,,Macho Bayo Airstrip,Otáez,MX,24.7462,-106.2206,small_airport
 MX-0061,,Moralar Airstrip,San Juan Evangelista,MX,17.6321,-94.9098,small_airport
-MX-0062,,"Aeródromo del Rancho ""Medio Kilo""",San Francisco de los Romo,MX,21.9998,-102.2673,closed
+MX-0062,,Aeródromo del Rancho 'Medio Kilo',San Francisco de los Romo,MX,21.9998,-102.2673,closed
 MX-0063,,San Luis Airport,Mexicali,MX,32.4993,-115.146,small_airport
 MX-0064,,Vizcaino Airport,Mulegé,MX,27.464,-113.2892,small_airport
 MX-0065,,La Joya Airport,Torreón,MX,25.5353,-103.348,closed
@@ -47627,7 +47627,7 @@ MX-0888,,Helipuerto Magnocentro 26,Huixquilucan,MX,19.407061,-99.271753,heliport
 MX-0889,,Cahuisori Airport,Ocampo,MX,28.247351,-108.273105,small_airport
 MX-0890,,Transpais Heliport,Ciudad Victoria,MX,23.720194,-99.081667,heliport
 MX-0891,,El Centenario Airstrip,Anáhuac,MX,26.948111,-99.866389,small_airport
-MX-0892,,"Helipuerto ""El Encinal""",San Juan Bautista Tuxtepec,MX,18.034834,-96.156461,heliport
+MX-0892,,Helipuerto 'El Encinal',San Juan Bautista Tuxtepec,MX,18.034834,-96.156461,heliport
 MX-0893,,Car One Heliport,Monterrey,MX,25.633139,-100.30111,heliport
 MX-0894,,Helipuerto Hospital Regional de Alta Especialidad del Bajío,León,MX,21.062138,-101.577912,heliport
 MX-0895,,Agua Dulce Heliport,Ciudad Madero,MX,22.256361,-97.85936,heliport
@@ -47723,7 +47723,7 @@ MX-0984,,El Capitan Airport,Sinaloa de Leyva,MX,25.709678,-108.597702,small_airp
 MX-0985,,Helipuerto Grupo Tradeco,Benito Juárez,MX,19.362644,-99.183222,heliport
 MX-0986,,Destiladeras Cabo Este Heliport,Los Cabos,MX,23.163403,-109.491564,heliport
 MX-0987,,Helipuerto World Plaza,Cuajimalpa,MX,19.359685,-99.271258,heliport
-MX-0988,,"Helipuerto Municipal ""Bicentenario""",Aguascalientes,MX,21.837057,-102.286245,heliport
+MX-0988,,Helipuerto Municipal 'Bicentenario',Aguascalientes,MX,21.837057,-102.286245,heliport
 MX-0989,,Helipuerto Hotel Centro Histórico,Cuauhtémoc,MX,19.434589,-99.146434,heliport
 MX-0990,,San José de Los Leones Airport,Soto La Marina,MX,24.272572,-97.79021,small_airport
 MX-0991,,San Pedro Airport,Antiguo Morelos,MX,22.649481,-99.175271,closed
@@ -48333,7 +48333,7 @@ MX-1594,,Cruz Verde Heliport,Zapopan,MX,20.72869,-103.383587,heliport
 MX-1595,,Helipuerto Sistema de Urgencias del Estado de Guanajuato -Pénjamo,Pénjamo,MX,20.417407,-101.728618,heliport
 MX-1596,,Helipuerto Fundación Azteca,Miguel Hidalgo,MX,19.428802,-99.205962,heliport
 MX-1597,,Helipuerto Torre Esmeralda III,Miguel Hidalgo,MX,19.4288,-99.204963,heliport
-MX-1598,,"Helipuerto Hospital ""Miguel Hidalgo"" Centenario",Aguascalientes,MX,21.895859,-102.282751,heliport
+MX-1598,,Helipuerto Hospital 'Miguel Hidalgo' Centenario,Aguascalientes,MX,21.895859,-102.282751,heliport
 MX-1599,,Helipuerto Hospital General del IMSS Aguascalientes,Aguascalientes,MX,21.87649,-102.254646,heliport
 MX-1600,,Helipuerto Guardia Nacional -Cuartel Aguascalientes,Aguascalientes,MX,21.875568,-102.252276,heliport
 MX-1601,,Helipuerto Departamento de Bomberos de Aguascalientes,Aguascalientes,MX,21.875291,-102.254925,heliport
@@ -48709,7 +48709,7 @@ MX-1970,,Rio Usumacinta Airstrip,Ocosingo,MX,16.813384,-90.871729,closed
 MX-1971,,Agua Azul Mohogani Airstrip,Ocosingo,MX,16.762141,-90.795822,closed
 MX-1972,,Aeródromo del Fraccionamento Vergel de la Sierra,San Felipe,MX,21.40111,-101.65491,small_airport
 MX-1973,,Aeródromo El Tepozán,San Ángel,MX,20.895802,-101.925986,small_airport
-MX-1974,,"Aeródromo de ""Ganadería Valparaíso""",Sain Alto,MX,23.48372,-103.08849,closed
+MX-1974,,Aeródromo de 'Ganadería Valparaíso',Sain Alto,MX,23.48372,-103.08849,closed
 MX-1975,,Aeródromo San Francisco de Órganos,San Francisco de Organos,MX,23.75413,-103.76388,closed
 MX-1976,,Laguna El Llano Airport,Durango,MX,24.24164,-104.43269,closed
 MX-1977,,San Juan del Río del Centauro del Norte Airport,San Juan del Río del Centauro del Norte,MX,24.77499,-104.48187,small_airport
@@ -52444,7 +52444,7 @@ PAAL,PML,Port Moller Airport,Cold Bay,US,56.006001,-160.561005,small_airport
 PAAM,,Driftwood Bay Air Force Station Airport,Dutch Harbor,US,53.9729499817,-166.858459473,small_airport
 PAAN,,Gold King Creek Airport,Fairbanks,US,64.198328,-147.929492,small_airport
 PAAP,PTD,Port Alexander Seaplane Base,Port Alexander,US,56.246799,-134.647995,seaplane_base
-PAAQ,PAQ,"Warren ""Bud"" Woods Palmer Municipal Airport",Palmer,US,61.594898,-149.08901,medium_airport
+PAAQ,PAQ,Warren 'Bud' Woods Palmer Municipal Airport,Palmer,US,61.594898,-149.08901,medium_airport
 PAAT,ATU,Casco Cove Coast Guard Station,Attu,US,52.829797,173.173796,small_airport
 PABA,BTI,Barter Island Long Range Radar Station Airport,Barter Island,US,70.134003,-143.582001,medium_airport
 PABE,BET,Bethel Airport,Bethel,US,60.77980042,-161.8379974,medium_airport
@@ -54491,7 +54491,7 @@ PY-0039,,Aeródromo de la Estancia Buena Vista,Estancia Buena Vista,PY,-26.56375
 PY-0040,,Aeródromo de San Miguel,San Miguel,PY,-26.546805,-57.101111,small_airport
 PY-0041,,Aeródromo de Santa María Misiones,Santa Maria,PY,-26.781323,-56.952095,small_airport
 PY-0042,,Aeródromo de Cabaña La Escondida,Cabaña La Escondida,PY,-26.753208,-57.05256,small_airport
-PY-0043,,"Base de la Fuerza Aérea Paraguaya ""Mayor Infante Rivarola""",Mayor Infante Rivarola,PY,-21.680442,-62.3964,medium_airport
+PY-0043,,Base de la Fuerza Aérea Paraguaya 'Mayor Infante Rivarola',Mayor Infante Rivarola,PY,-21.680442,-62.3964,medium_airport
 PY-0044,,Helipuerto del Palacio Legislativo,Palacio Legislativo,PY,-25.278782,-57.635699,heliport
 PY-0045,,Helipuerto N°1 del Palacio de López,Palacio de López (Palacio Presidencial),PY,-25.276628,-57.636954,heliport
 PY-0046,,Helipuerto N°2 del Palacio de López,Palacio de López (Palacio Presidencial),PY,-25.276652,-57.636761,heliport
@@ -54503,7 +54503,7 @@ PY-0051,,Helipuerto Grupo Aéreo de Helicópteros N°2,Cuartel General de la Fue
 PY-0052,,Helipuerto Escuela de Formación de Suboficiales,Cuartel General de la Fuerza Aérea Paraguaya,PY,-25.275842,-57.529129,heliport
 PY-0053,,Helipuerto Hangar Latitude,Aeropuerto Internacional Silvio Pettirossi,PY,-25.24768,-57.514554,heliport
 PY-0054,,Helipuerto Aeromont S.R.L.,Aeropuerto Internacional Silvio Pettirossi,PY,-25.250857,-57.514908,heliport
-PY-0055,,"Helipuerto Academia Militar ""Mcal. Francisco Solano López""","Academia Militar ""Mcal. Francisco Solano López""",PY,-25.360112,-57.429582,heliport
+PY-0055,,Helipuerto Academia Militar 'Mcal. Francisco Solano López',Academia Militar 'Mcal. Francisco Solano López',PY,-25.360112,-57.429582,heliport
 PY-0056,,Helipuerto Hospital Militar Central,Hospital Militar Central,PY,-25.279175,-57.646605,heliport
 PY-0057,,Helipuerto Gran Cuartel General de las Fuerzas Militares,Gran Cuartel General de las Fuerzas Militares,PY,-25.294347,-57.612133,heliport
 PY-0058,,Helipuerto Hospital Regional del IPS,Hospital Regional del IPS,PY,-25.512459,-54.624292,heliport
@@ -54524,18 +54524,18 @@ PY-0072,,Helipuerto Comando de Operaciones de Defensa Interna de las Fuerzas de 
 PY-0073,,Helipuerto Comando de Operaciones de Defensa Interna de las Fuerzas de Tarea Conjunta N°2,Comando de Operaciones de Defensa Interna,PY,-23.164312,-56.755232,heliport
 PY-0074,,Helipuerto Comando de Operaciones de Defensa Interna de las Fuerzas de Tarea Conjunta N°3,Comando de Operaciones de Defensa Interna,PY,-23.164785,-56.755264,heliport
 PY-0075,,Helipuerto del Comando de Comunicaciones,Comando de Comunicaciones,PY,-25.304949,-57.65706,heliport
-PY-0076,,"Base de la Fuerza Aérea Paraguaya ""Nueva Asunción""",,PY,-20.517909,-62.142795,small_airport
-PY-0077,,"[Duplicate] Base de la Fuerza Aérea Paraguaya ""Dr. Luis María Argaña""",,PY,-22.029324,-60.61899,small_airport
-PY-0078,,"Base de la Fuerza Aérea Paraguaya ""General Adrián Jara""",,PY,-19.540817,-59.495138,small_airport
-PY-0079,,"Base de la Fuerza Aérea Paraguaya ""Dr. Augusto Roberto Fuster""",,PY,-22.642344,-55.832704,heliport
-PY-0080,,"Base de la Fuerza Aérea Paraguaya ""Guaraní""",,PY,-25.452952,-54.835693,small_airport
-PY-0081,,"Base de la Fuerza Aérea Paraguaya ""Yacyretá""",,PY,-27.435916,-56.837483,small_airport
-PY-0082,,"Base de la Fuerza Aérea Paraguaya ""Ayolas""",,PY,-27.378664,-56.857024,small_airport
-PY-0083,,"Base de la Fuerza Aérea Paraguaya ""Teniente Amín Ayub González""",,PY,-27.220503,-55.83299,small_airport
-PY-0084,,"Base de la Fuerza Aérea Paraguaya ""Aviadores del Chaco""",,PY,-26.564336,-55.394003,small_airport
-PY-0085,,"Base de la Fuerza Aérea Paraguaya ""Silvio Pettirossi""",,PY,-25.257017,-57.518595,small_airport
-PY-0086,,"Base de la Fuerza Aérea Paraguaya ""Ñu Guasú""",,PY,-25.274209,-57.529676,small_airport
-PY-0087,,"Base de la Fuerza Aérea Paraguaya ""Mariscal Francisco Solano López""",,PY,-23.439302,-57.430772,small_airport
+PY-0076,,Base de la Fuerza Aérea Paraguaya 'Nueva Asunción',,PY,-20.517909,-62.142795,small_airport
+PY-0077,,[Duplicate] Base de la Fuerza Aérea Paraguaya 'Dr. Luis María Argaña',,PY,-22.029324,-60.61899,small_airport
+PY-0078,,Base de la Fuerza Aérea Paraguaya 'General Adrián Jara',,PY,-19.540817,-59.495138,small_airport
+PY-0079,,Base de la Fuerza Aérea Paraguaya 'Dr. Augusto Roberto Fuster',,PY,-22.642344,-55.832704,heliport
+PY-0080,,Base de la Fuerza Aérea Paraguaya 'Guaraní',,PY,-25.452952,-54.835693,small_airport
+PY-0081,,Base de la Fuerza Aérea Paraguaya 'Yacyretá',,PY,-27.435916,-56.837483,small_airport
+PY-0082,,Base de la Fuerza Aérea Paraguaya 'Ayolas',,PY,-27.378664,-56.857024,small_airport
+PY-0083,,Base de la Fuerza Aérea Paraguaya 'Teniente Amín Ayub González',,PY,-27.220503,-55.83299,small_airport
+PY-0084,,Base de la Fuerza Aérea Paraguaya 'Aviadores del Chaco',,PY,-26.564336,-55.394003,small_airport
+PY-0085,,Base de la Fuerza Aérea Paraguaya 'Silvio Pettirossi',,PY,-25.257017,-57.518595,small_airport
+PY-0086,,Base de la Fuerza Aérea Paraguaya 'Ñu Guasú',,PY,-25.274209,-57.529676,small_airport
+PY-0087,,Base de la Fuerza Aérea Paraguaya 'Mariscal Francisco Solano López',,PY,-23.439302,-57.430772,small_airport
 PY-0088,,Asunción Jockey Club Heliport,La Recoleta,PY,-25.317999,-57.585011,heliport
 PY-0089,,Aeródromo de Villa Hayes,Villa Hayes,PY,-25.154666,-57.560495,closed
 PY-0090,,Aeródromo del Aeroclub Altona,Dr. Juan Eulogio Estigarribia (Campo 9),PY,-25.375874,-55.653325,small_airport
@@ -55190,7 +55190,7 @@ RO-0132,,Mamaia Villa Helipad,,RO,44.230537,28.624513,heliport
 RO-0133,,Petromar Naval Helipad,,RO,44.22053,28.623247,heliport
 RO-0134,,Petromidia Refinery Emergency Helipad,,RO,44.343863,28.642366,heliport
 RO-0135,,Ploiesti Aero Taxi Heliport,Ploiești,RO,44.964956,25.901118,heliport
-RO-0136,,"Emergency Clinical Hospital for Children ""Maria Skłodowska Curie"" Helipad",,RO,44.389904,26.109164,heliport
+RO-0136,,Emergency Clinical Hospital for Children 'Maria Skłodowska Curie' Helipad,,RO,44.389904,26.109164,heliport
 RO-0137,,Timișești Airfield,Timișești,RO,47.221111,26.451111,small_airport
 RO-0138,,Aerodrom Baia Mare,Baia Mare,RO,47.659081,23.474513,small_airport
 RO-0139,,Sarata Airfield,,RO,46.531054,26.892739,small_airport
@@ -55228,7 +55228,7 @@ RO-0170,,Customs Office Alexandria Helipad,Alexandria,RO,43.980981,25.313498,hel
 RO-0171,,Emergency County Hospital Craiova Helipad,Craiova,RO,44.304848,23.793694,heliport
 RO-0172,,Teiu Former Agricultural Airstrip,Teiu,RO,44.656818,25.079598,closed
 RO-0173,,Siret Heliport,Siret,RO,47.948075,26.066893,heliport
-RO-0174,,"Suceava ""St. John the New"" Emergency Hospital Heliport",Suceava,RO,47.638939,26.239724,heliport
+RO-0174,,Suceava 'St. John the New' Emergency Hospital Heliport,Suceava,RO,47.638939,26.239724,heliport
 RO-0175,,Ruck Ventilatoare private airstrip,Târnăveni,RO,46.324995,24.308566,small_airport
 RO-0176,,Becicherecu Mic Airfield,,RO,45.844681,21.029849,small_airport
 RO-0178,,Chitila Airfield,Chitila,RO,44.505011,25.959589,small_airport
@@ -59178,7 +59178,7 @@ SGME,ESG,Dr. Luis María Argaña International Airport,Mariscal Estigarribia,PY,
 SGMZ,,Aeródromo José María Argaña,,PY,-26.839758,-55.328915,small_airport
 SGOL,OLK,Aeródromo de Fuerte,Fuerte Olimpo,PY,-21.045724,-57.882935,small_airport
 SGPC,,Aeropuerto de Pozo Colorado,Pozo Colorado,PY,-23.495565,-58.788464,small_airport
-SGPG,,"Base de la Fuerza Aérea Paraguaya ""Teniente Pelayo Prats Gill""",,PY,-22.559962,-61.611972,small_airport
+SGPG,,Base de la Fuerza Aérea Paraguaya 'Teniente Pelayo Prats Gill',,PY,-22.559962,-61.611972,small_airport
 SGPI,PIL,Aeródromo Don Carlos Miguel Gimenez,Pilar,PY,-26.881981,-58.319067,medium_airport
 SGPJ,PJC,Aeropuerto Nacional Dr. Augusto Roberto Fuster,Pedro Juan Caballero,PY,-22.641427,-55.829993,medium_airport
 SGPO,,Aeródromo de Puerto Pinasco,Pinasco,PY,-22.629856,-57.838469,small_airport
@@ -65354,7 +65354,7 @@ TR-0110,,Federal Border Guard No. 4 Helipad,Sugediği,TR,36.791192,36.640264,hel
 TR-0111,,Federal Border Guard No. 1 Helipad,Çınarbaşı,TR,36.825974,36.662691,heliport
 TR-0112,,Deliosman Border Post Helipad,Deliosman,TR,36.825341,36.735336,heliport
 TR-0113,,Bulamaçlı Border Post Helipad,Bulamaçlı,TR,36.796234,36.810451,heliport
-TR-0114,,"Aybastı ""Border Eagles"" Border Post Helipad",Aybastı,TR,36.761004,37.000944,heliport
+TR-0114,,Aybastı 'Border Eagles' Border Post Helipad,Aybastı,TR,36.761004,37.000944,heliport
 TR-0115,,Çalkaya Border Post Helipad,Çalkaya,TR,36.793147,36.834655,heliport
 TR-0116,,Öncüpınar Border Crossing Helipads,Öncüpınar,TR,36.64263,37.087863,heliport
 TR-0117,,Öncüpınar Border Post Helipad,Akçabağlar,TR,36.643055,37.090787,heliport
@@ -66283,7 +66283,7 @@ UA-9884,,Yuzhne Heliport,Yuzhne,UA,45.095652,35.733882,heliport
 UA-9885,,Botiyevska Wind Power Heliport,Primorskiy Posad,UA,46.6273,35.736362,heliport
 UA-9886,,Davydkovtsy Heliport,Davydkovtsy,UA,49.42165,27.149767,heliport
 UA-9887,,Kiev - Gora Heliport,Gora,UA,50.365525,30.838816,heliport
-UA-9888,,"VPP ""Grishino"" Airfield",Pokrovsk,UA,48.302987,37.097583,closed
+UA-9888,,VPP 'Grishino' Airfield,Pokrovsk,UA,48.302987,37.097583,closed
 UA-9889,,Volnovakha Forest Park Heliport,Volnovakha,UA,47.664945,37.435319,heliport
 UA-9890,,Rovenky Airfield,Rovenky,UA,48.084484,39.44265,closed
 UA30,,Batken Airport,Batken,KG,40.042899,70.83784,medium_airport
@@ -70716,7 +70716,7 @@ US-12661,,Naval Support Facility Thurmont (Camp David),Thurmont,US,39.646089,-77
 US-12662,,Fremont Ridge Private Airstrip,Beaver,US,38.11547,-112.51962,small_airport
 US-12663,,TSJ Heliport,Houston,US,29.96661,-95.40737,heliport
 US-12664,,J Ranch Airport,Cherokee,US,30.97529,-98.63909,small_airport
-US-12665,,Crosby Heliport,"31°34'25.8""",US,31.573796,-97.313628,heliport
+US-12665,,Crosby Heliport,31°34'25.8',US,31.573796,-97.313628,heliport
 US-12666,,Goff Ranch Airport,Dime Box,US,30.29086,-96.85005,small_airport
 US-12667,,Atoka County Medical Center Heliport,Atoka,US,34.39203,-96.15217,heliport
 US-12668,,Graber Farms Airport,Brooksville,US,33.26748,-88.57017,small_airport
@@ -70795,7 +70795,7 @@ US-12734,,AdventHealth Parker Medical Center Heliport,Parker,US,39.547222,-104.7
 US-12735,,Billings Limited Army Air Support Facility Heliport,Billings,US,45.809003,-108.577019,heliport
 US-12736,,Blu Skyz Airport,Minot,US,48.136942,-101.157566,small_airport
 US-12737,,III Corps HQ Heliport,Fort Hood,US,31.13506,-97.772328,heliport
-US-12738,,"E.W. ""Cottton"" Woods Memorial Airport",Columbia,US,39.003992,-92.296379,closed
+US-12738,,E.W. 'Cottton' Woods Memorial Airport,Columbia,US,39.003992,-92.296379,closed
 US-12739,,Umatilla AAF,Hermiston,US,45.803394,-119.395912,closed
 US-1274,,Ottertail Lake Airport,Three Forks,US,45.818929,-111.695886,small_airport
 US-12740,,BAKER'S ACRES AIRSTRIP,,US,42.496299,-89.601788,small_airport
@@ -82517,7 +82517,7 @@ XA11,,Baylor Scott & White Medical Center - Lake Pointe Heliport,Rowlett,US,32.9
 XA12,,McFarlin Ranch Airport,Bertram,US,30.6947,-98.032799,small_airport
 XA13,,Landry's Seafood House Heliport,Houston,US,29.752522,-95.456614,heliport
 XA14,,CHI Saint Luke’s Health Memorial Lufkin Ground Heliport,Lufkin,US,31.336456,-94.744095,heliport
-XA15,,"Holict ""Private"" Airport",Riesel,US,31.426900863599997,-96.9796981812,small_airport
+XA15,,Holict 'Private' Airport,Riesel,US,31.426900863599997,-96.9796981812,small_airport
 XA16,,Tightwaad Air Ranch Airport,Rosston,US,33.49420166015625,-97.4655990600586,small_airport
 XA17,,Chuckster Airport,Tira,US,33.32170104980469,-95.5635986328125,small_airport
 XA18,,Baylor All Saints Medical Center Heliport,Fort Worth,US,32.73109817504883,-97.3467025756836,heliport
