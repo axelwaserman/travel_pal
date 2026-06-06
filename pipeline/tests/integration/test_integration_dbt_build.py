@@ -33,6 +33,7 @@ from pyiceberg.exceptions import (
 
 from tests.integration._docker import DOCKER_AVAILABLE
 from tests.integration._iceberg import (
+    BTS_ON_TIME_SCHEMA,
     RAW_FLIGHTS_SCHEMA,
     InfraEndpoints,
     make_catalog,
@@ -52,6 +53,8 @@ _TRANSFORMS_DIR: Path = _REPO_ROOT / "pipeline" / "transforms"
 _NAMESPACE: str = "flights"
 _TABLE_NAME: str = "raw_flights"
 _TABLE_ID: str = f"{_NAMESPACE}.{_TABLE_NAME}"
+_BTS_TABLE_NAME: str = "bts_on_time"
+_BTS_TABLE_ID: str = f"{_NAMESPACE}.{_BTS_TABLE_NAME}"
 
 # Mart output keys mirror the +location config in agg_*_timeliness.sql.
 _RAW_BUCKET: str = "raw-flights"
@@ -95,6 +98,10 @@ def _reset_namespace(catalog: RestCatalog) -> None:
     """
     try:
         catalog.drop_table(_TABLE_ID)
+    except NoSuchTableError:
+        pass
+    try:
+        catalog.drop_table(_BTS_TABLE_ID)
     except NoSuchTableError:
         pass
     try:
@@ -173,6 +180,10 @@ def test_dbt_build_against_iceberg_fixture(
             pass
         table = catalog.create_table(_TABLE_ID, schema=RAW_FLIGHTS_SCHEMA)
         table.append(_SAMPLE_ROWS)
+        # Empty BTS table is sufficient — stg_bts_on_time + cancellation marts
+        # only need the table to exist for dbt build to compile/run; the
+        # success criteria below only assert on agg_*_timeliness parquets.
+        catalog.create_table(_BTS_TABLE_ID, schema=BTS_ON_TIME_SCHEMA)
 
         # 2. Run dbt build with a tmp-scoped DuckDB so runs don't share state.
         #    tmp_path is already unique per pytest invocation.

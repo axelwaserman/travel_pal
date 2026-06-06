@@ -15,6 +15,7 @@ from pipeline.assets.bts_on_time import bts_on_time
 from pipeline.config import PipelineConfig
 from pipeline.resources.bts import BTSResource
 from pipeline.resources.nessie import NessieResource
+from pipeline.resources.seaweedfs import SeaweedFSResource
 from tests.integration._docker import DOCKER_AVAILABLE
 from tests.integration._iceberg import InfraEndpoints, make_catalog
 
@@ -62,6 +63,11 @@ def test_bts_on_time_round_trip(
         endpoint="https://transtats.bts.gov/PREZIP",
         fixture_file=str(FIXTURE),
     )
+    seaweedfs_resource = SeaweedFSResource(
+        endpoint=infra_endpoints["s3_endpoint"],
+        access_key=infra_endpoints["s3_access_key"],
+        secret_key=infra_endpoints["s3_secret_key"],
+    )
 
     ctx = build_asset_context(
         partition_key="2024-01-01",
@@ -69,6 +75,7 @@ def test_bts_on_time_round_trip(
             "pipeline_config": config,
             "bts": bts,
             "nessie": nessie_resource,
+            "seaweedfs": seaweedfs_resource,
         },
     )
     bts_on_time(ctx)

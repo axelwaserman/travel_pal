@@ -13,7 +13,7 @@ from typing import TypedDict
 
 from pyiceberg.catalog.rest import RestCatalog
 from pyiceberg.schema import Schema
-from pyiceberg.types import LongType, NestedField, StringType
+from pyiceberg.types import BooleanType, DateType, LongType, NestedField, StringType
 
 
 class InfraEndpoints(TypedDict):
@@ -40,6 +40,24 @@ RAW_FLIGHTS_SCHEMA: Schema = Schema(
     NestedField(4, "last_seen", LongType(), required=False),
     NestedField(5, "est_departure_airport", StringType(), required=False),
     NestedField(6, "est_arrival_airport", StringType(), required=False),
+)
+
+
+# Mirrors ``flights.bts_on_time`` declared in
+# ``pipeline/pipeline/assets/bts_on_time.py``. Field IDs and types must stay
+# in lock-step with the asset.
+BTS_ON_TIME_SCHEMA: Schema = Schema(
+    NestedField(1, "flight_date", DateType(), required=False),
+    NestedField(2, "carrier_iata", StringType(), required=False),
+    NestedField(3, "tail_number", StringType(), required=False),
+    NestedField(4, "flight_number", StringType(), required=False),
+    NestedField(5, "origin_iata", StringType(), required=False),
+    NestedField(6, "destination_iata", StringType(), required=False),
+    NestedField(7, "crs_dep_time", StringType(), required=False),
+    NestedField(8, "cancelled", BooleanType(), required=False),
+    NestedField(9, "cancellation_code", StringType(), required=False),
+    NestedField(10, "diverted", BooleanType(), required=False),
+    NestedField(11, "year_month", StringType(), required=False),
 )
 
 
