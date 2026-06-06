@@ -4,8 +4,7 @@ models:
   - name: stg_flights
     description: >
       Cleaned and cast OpenSky flight records read directly from Iceberg
-      parquet data files on S3. Replaces the former DuckDB source reference
-      which was never populated by any asset.
+      parquet data files on S3.
     columns:
       - name: icao24
         description: 24-bit ICAO aircraft address (hex string)
@@ -25,3 +24,25 @@ models:
         description: Estimated departure airport ICAO code
       - name: destination_icao
         description: Estimated arrival airport ICAO code
+
+  - name: stg_bts_on_time
+    description: >
+      BTS On-Time Performance flights with IATA codes translated to ICAO via
+      dim_airport and dim_carrier. Inner joins drop unmappable rows; coverage
+      monitored via the not-null tests below.
+    columns:
+      - name: flight_date
+        tests:
+          - not_null
+      - name: origin_icao
+        tests:
+          - not_null
+      - name: destination_icao
+        tests:
+          - not_null
+      - name: carrier_icao
+        tests:
+          - not_null
+      - name: cancelled
+        tests:
+          - not_null

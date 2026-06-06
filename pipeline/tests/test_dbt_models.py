@@ -235,3 +235,40 @@ def test_dbt_seeds_present() -> None:
         assert first_line.split(",")[0] == "icao", (
             f"{seed} first column must be 'icao' (canonical PK across the warehouse)"
         )
+
+
+@pytest.mark.unit
+def test_stg_bts_on_time_inner_joins_dim_airport_and_dim_carrier() -> None:
+    """stg_bts_on_time.sql must inner-join dim_airport (origin + dest) and dim_carrier."""
+    sql = (STAGING_DIR / "stg_bts_on_time.sql").read_text()
+    assert "INNER JOIN {{ ref('dim_airport') }}" in sql
+    assert sql.count("INNER JOIN {{ ref('dim_airport') }}") == 2, (
+        "stg_bts_on_time must INNER JOIN dim_airport twice (origin + dest)"
+    )
+    assert "INNER JOIN {{ ref('dim_carrier') }}" in sql
+
+
+@pytest.mark.unit
+def test_stg_bts_on_time_filters_empty_iata_codes() -> None:
+    """stg_bts_on_time must filter rows with empty IATA codes via NULLIF."""
+    sql = (STAGING_DIR / "stg_bts_on_time.sql").read_text()
+    for col in ("origin_iata", "destination_iata", "carrier_iata"):
+        assert f"NULLIF(b.{col}, '') IS NOT NULL" in sql, (
+            f"stg_bts_on_time must filter empty {col} via NULLIF"
+        )
+
+
+@pytest.mark.unit
+def test_stg_bts_on_time_carries_carrier_name_through() -> None:
+    """stg_bts_on_time aliases dim_carrier.name as carrier_name so marts don't re-join."""
+    sql = (STAGING_DIR / "stg_bts_on_time.sql").read_text()
+    assert "c.name" in sql and "AS carrier_name" in sql
+
+
+@pytest.mark.unit
+def test_stg_bts_coverage_test_exists() -> None:
+    """A dbt singular test guarding the IATA→ICAO mapping coverage must exist."""
+    sql = (TRANSFORMS_DIR / "tests" / "stg_bts_coverage.sql").read_text()
+    assert "stg_bts_on_time" in sql
+    assert "0.99" in sql
+    assert "severity='warn'" in sql
