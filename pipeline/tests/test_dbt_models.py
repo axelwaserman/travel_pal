@@ -204,3 +204,34 @@ def test_setup_iceberg_macro_installs_extensions_creates_secret_and_attaches_cat
         "macro must disable vended credentials — Nessie does not return "
         "access keys for self-hosted SeaweedFS"
     )
+
+
+@pytest.mark.unit
+def test_dbt_project_configures_seeds() -> None:
+    """dbt_project.yml must declare a seeds: block with quote_columns disabled.
+
+    OurAirports + OpenFlights seeds carry numeric (lat/lon) columns; if
+    +quote_columns were left at the dbt default of true, dbt-duckdb would
+    materialise everything as VARCHAR and the staging joins would coerce
+    awkwardly.
+    """
+    dbt_project = yaml.safe_load((TRANSFORMS_DIR / "dbt_project.yml").read_text())
+    seeds = dbt_project.get("seeds", {})
+    travel_pal_seeds = seeds.get("travel_pal", {})
+    assert travel_pal_seeds.get("+quote_columns") is False, (
+        "seeds.travel_pal.+quote_columns must be false so DuckDB infers "
+        "numeric types from dim_airport.lat/lon"
+    )
+
+
+@pytest.mark.unit
+def test_dbt_seeds_present() -> None:
+    """The dim_airport and dim_carrier seeds must exist with ICAO as the first column."""
+    seeds_dir = TRANSFORMS_DIR / "seeds"
+    for seed in ("dim_airport.csv", "dim_carrier.csv"):
+        path = seeds_dir / seed
+        assert path.exists(), f"transforms/seeds/{seed} must exist"
+        first_line = path.read_text().splitlines()[0]
+        assert first_line.split(",")[0] == "icao", (
+            f"{seed} first column must be 'icao' (canonical PK across the warehouse)"
+        )
