@@ -12,3 +12,25 @@ pipeline/.telemetry/
 pipeline/transforms/logs/
 pipeline/transforms/.user.yml
 *.egg-info/
+
+# Editor / IDE
+.idea/
+.vscode/
+
+# Python build / coverage artifacts
+.coverage
+coverage.xml
+.nux/
+build/
+
+# Frontend caches + Playwright artifacts
+.vite/
+playwright-report/
+test-results/
+
+# Per-session scratch
+SESSION_STATUS.md
+
+# Claude Code per-project state (settings, sessions); not source of truth
+.claude/
+.claudeignore
