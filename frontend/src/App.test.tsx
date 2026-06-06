@@ -4,6 +4,8 @@ import { describe, it, expect, vi } from 'vitest'
 vi.mock('./db/queries', () => ({
   queryFlightLookup: vi.fn().mockResolvedValue([]),
   queryDailyTimeliness: vi.fn().mockResolvedValue([]),
+  queryCarrierCancellations: vi.fn().mockResolvedValue([]),
+  queryRouteCancellations: vi.fn().mockResolvedValue([]),
 }))
 vi.mock('./db/client', () => ({
   getDb: vi.fn(),

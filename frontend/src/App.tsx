@@ -1,6 +1,7 @@
 import { Component, ReactNode } from 'react'
 import FlightLookup from './components/FlightLookup/FlightLookup'
 import TimelinessDashboard from './components/TimelinessDashboard/TimelinessDashboard'
+import CancellationSection from './components/CancellationSection/CancellationSection'
 
 interface ErrorBoundaryState {
   error: Error | null
@@ -40,6 +41,7 @@ export default function App() {
         </header>
         <TimelinessDashboard airportIcao={AIRPORT_ICAO} />
         <FlightLookup airportIcao={AIRPORT_ICAO} />
+        <CancellationSection airportIcao={AIRPORT_ICAO} />
       </main>
     </ErrorBoundary>
   )
