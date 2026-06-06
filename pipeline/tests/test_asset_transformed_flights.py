@@ -49,6 +49,16 @@ AGG_DAILY_TABLE = pa.table(
 )
 
 
+def test_transformed_flights_depends_on_bts_on_time():
+    """transformed_flights must declare an AssetIn for bts_on_time so dbt build
+    waits for the BTS partition to land before executing.
+    """
+    from pipeline.assets.transformed_flights import transformed_flights as asset_fn
+
+    deps = {ak.to_user_string() for ak in asset_fn.dependency_keys}
+    assert "bts_on_time" in deps, f"transformed_flights deps missing bts_on_time; have {deps}"
+
+
 def test_transformed_flights_runs_dbt():
     mock_seaweedfs = MagicMock()
     with patch("pipeline.assets.transformed_flights.subprocess.run") as mock_run:
@@ -58,22 +68,39 @@ def test_transformed_flights_runs_dbt():
             raw_flights=pa.table({"icao24": ["x"]}),
             seaweedfs=mock_seaweedfs,
         )
-    mock_run.assert_called_once()
-    cmd = mock_run.call_args.args[0]
+    assert mock_run.call_count == 2
+    seed_call, run_call = mock_run.call_args_list
+    assert seed_call.args[0][1] == "seed"
+    assert run_call.args[0][1] == "run"
+    cmd = run_call.args[0]
     assert "dbt" in cmd
     assert "--project-dir" in cmd
     project_dir_idx = cmd.index("--project-dir") + 1
     assert cmd[project_dir_idx].endswith("/transforms")
     assert Path(cmd[project_dir_idx]).is_absolute()
     # no cwd kwarg — path is absolute so cwd is not needed
-    assert "cwd" not in (mock_run.call_args.kwargs or {})
+    assert "cwd" not in (run_call.kwargs or {})
 
 
-def test_transformed_flights_raises_on_dbt_failure():
+@pytest.mark.parametrize(
+    "failing_step,expected_msg",
+    [
+        ("seed", "dbt seed failed"),
+        ("run", "dbt run failed"),
+    ],
+)
+def test_transformed_flights_raises_when_dbt_step_fails(
+    failing_step: str, expected_msg: str
+) -> None:
     mock_seaweedfs = MagicMock()
-    with patch("pipeline.assets.transformed_flights.subprocess.run") as mock_run:
-        mock_run.return_value = MagicMock(returncode=1, stdout="", stderr="dbt error")
-        with pytest.raises(RuntimeError, match="dbt run failed"):
+
+    def fake_run(cmd: list[str], **kwargs: object) -> MagicMock:
+        if cmd[1] == failing_step:
+            return MagicMock(returncode=1, stdout="", stderr="boom")
+        return MagicMock(returncode=0)
+
+    with patch("pipeline.assets.transformed_flights.subprocess.run", side_effect=fake_run):
+        with pytest.raises(RuntimeError, match=expected_msg):
             transformed_flights(
                 pipeline_config=CONFIG,
                 raw_flights=pa.table({"icao24": ["x"]}),
