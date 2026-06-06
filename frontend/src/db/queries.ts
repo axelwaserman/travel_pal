@@ -88,3 +88,56 @@ export async function queryDailyTimeliness(
     await conn.close()
   }
 }
+
+export interface CarrierCancellation {
+  origin_icao: string
+  carrier_icao: string
+  carrier_name: string
+  total_scheduled: number
+  cancelled: number
+  cancellation_rate: number
+  period_start: number | string | Date
+  period_end: number | string | Date
+}
+
+export interface RouteCancellation {
+  origin_icao: string
+  destination_icao: string
+  total_scheduled: number
+  cancelled: number
+  cancellation_rate: number
+  period_start: number | string | Date
+  period_end: number | string | Date
+}
+
+export async function queryCarrierCancellations(
+  airportIcao: string
+): Promise<CarrierCancellation[]> {
+  const db = await getDb()
+  const conn = await db.connect()
+  try {
+    const url = `${SEAWEEDFS_PUBLIC_BASE}/${airportIcao}/carrier_cancellations.parquet`
+    const result = await conn.query(
+      `SELECT * FROM read_parquet('${url}') ORDER BY cancellation_rate DESC`
+    )
+    return result.toArray().map((r) => r.toJSON() as CarrierCancellation)
+  } finally {
+    await conn.close()
+  }
+}
+
+export async function queryRouteCancellations(
+  airportIcao: string
+): Promise<RouteCancellation[]> {
+  const db = await getDb()
+  const conn = await db.connect()
+  try {
+    const url = `${SEAWEEDFS_PUBLIC_BASE}/${airportIcao}/route_cancellations.parquet`
+    const result = await conn.query(
+      `SELECT * FROM read_parquet('${url}') ORDER BY cancellation_rate DESC`
+    )
+    return result.toArray().map((r) => r.toJSON() as RouteCancellation)
+  } finally {
+    await conn.close()
+  }
+}
