@@ -55,7 +55,7 @@ def test_bts_on_time_creates_table_and_appends_for_partition(tmp_path):
     seaweedfs_mock.get_object.side_effect = FileNotFoundError("no cache")
 
     ctx = build_asset_context(
-        partition_key="2024-01",
+        partition_key="2024-01-01",
         resources={
             "pipeline_config": config,
             "bts": bts_resource,
@@ -100,7 +100,7 @@ def test_bts_on_time_no_op_on_zero_rows(tmp_path):
     seaweedfs_mock.get_object.side_effect = FileNotFoundError("no cache")
 
     ctx = build_asset_context(
-        partition_key="2024-01",
+        partition_key="2024-01-01",
         resources={
             "pipeline_config": config,
             "bts": bts_resource,
@@ -130,7 +130,7 @@ def test_bts_on_time_does_not_recreate_existing_table(tmp_path):
     seaweedfs_mock.get_object.side_effect = FileNotFoundError("no cache")
 
     ctx = build_asset_context(
-        partition_key="2024-01",
+        partition_key="2024-01-01",
         resources={
             "pipeline_config": config,
             "bts": bts_resource,
@@ -167,7 +167,7 @@ def test_bts_on_time_calls_update_schema_before_append(tmp_path):
     seaweedfs_mock.get_object.side_effect = FileNotFoundError("no cache")
 
     ctx = build_asset_context(
-        partition_key="2024-01",
+        partition_key="2024-01-01",
         resources={
             "pipeline_config": config,
             "bts": bts_resource,
@@ -199,7 +199,7 @@ def test_bts_on_time_uses_seaweedfs_cache_when_present(tmp_path):
     nessie.catalog.table_exists.return_value = True
 
     ctx = build_asset_context(
-        partition_key="2024-01",
+        partition_key="2024-01-01",
         resources={
             "pipeline_config": config,
             "bts": bts_resource,
@@ -230,7 +230,7 @@ def test_bts_on_time_writes_to_cache_after_download(tmp_path):
     nessie.catalog.table_exists.return_value = True
 
     ctx = build_asset_context(
-        partition_key="2024-01",
+        partition_key="2024-01-01",
         resources={
             "pipeline_config": config,
             "bts": bts_resource,

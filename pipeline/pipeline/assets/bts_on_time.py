@@ -66,18 +66,21 @@ def bts_on_time(
     nessie: ResourceParam[NessieResource],
     seaweedfs: ResourceParam[SeaweedFSResource],
 ) -> None:
-    year_str, month_str = context.partition_key.split("-")
+    # MonthlyPartitionsDefinition emits ISO date strings (YYYY-MM-DD) anchored
+    # at the first of the month — split into 3 parts and take year/month.
+    year_str, month_str, _day = context.partition_key.split("-")
     year = int(year_str)
     month = int(month_str)
+    partition_label = f"{year_str}-{month_str}"
 
-    cache_key = f"{context.partition_key}.zip"
+    cache_key = f"{partition_label}.zip"
     try:
         zip_bytes = seaweedfs.get_object(
             bucket=pipeline_config.bts_cache_bucket,
             key=cache_key,
         )
         context.log.info(
-            f"BTS partition {context.partition_key} loaded from cache "
+            f"BTS partition {partition_label} loaded from cache "
             f"s3://{pipeline_config.bts_cache_bucket}/{cache_key}"
         )
     except FileNotFoundError:
@@ -88,7 +91,7 @@ def bts_on_time(
             body=zip_bytes,
         )
         context.log.info(
-            f"BTS partition {context.partition_key} downloaded and cached "
+            f"BTS partition {partition_label} downloaded and cached "
             f"to s3://{pipeline_config.bts_cache_bucket}/{cache_key}"
         )
 
@@ -99,7 +102,7 @@ def bts_on_time(
 
     if table.num_rows == 0:
         context.log.info(
-            f"BTS partition {context.partition_key} produced 0 rows for "
+            f"BTS partition {partition_label} produced 0 rows for "
             f"airport {pipeline_config.airport_icao}; skipping append"
         )
         return
@@ -135,5 +138,5 @@ def bts_on_time(
     iceberg_table.append(table)
 
     context.log.info(
-        f"Appended {table.num_rows} BTS rows for {context.partition_key} to {_TABLE_IDENTIFIER}"
+        f"Appended {table.num_rows} BTS rows for {partition_label} to {_TABLE_IDENTIFIER}"
     )

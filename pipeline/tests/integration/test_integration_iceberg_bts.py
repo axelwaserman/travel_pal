@@ -64,7 +64,7 @@ def test_bts_on_time_round_trip(
     )
 
     ctx = build_asset_context(
-        partition_key="2024-01",
+        partition_key="2024-01-01",
         resources={
             "pipeline_config": config,
             "bts": bts,
