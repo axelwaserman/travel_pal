@@ -129,6 +129,9 @@ services:
       AIRPORT_ICAO: ${AIRPORT_ICAO:-KJFK}
       INGEST_START_DATE: ${INGEST_START_DATE:-2024-01-01}
       INGEST_END_DATE: ${INGEST_END_DATE:-2024-12-31}
+      # Set BTS_FIXTURE_FILE on the host to /opt/dagster/app/tests/fixtures/bts_kjfk_2024_01.csv.zip
+      # (or any path inside the container) to bypass the live BTS download.
+      BTS_FIXTURE_FILE: ${BTS_FIXTURE_FILE:-}
     depends_on:
       postgres:
         condition: service_healthy
@@ -160,6 +163,7 @@ services:
       AIRPORT_ICAO: ${AIRPORT_ICAO:-KJFK}
       INGEST_START_DATE: ${INGEST_START_DATE:-2024-01-01}
       INGEST_END_DATE: ${INGEST_END_DATE:-2024-12-31}
+      BTS_FIXTURE_FILE: ${BTS_FIXTURE_FILE:-}
     depends_on:
       postgres:
         condition: service_healthy
