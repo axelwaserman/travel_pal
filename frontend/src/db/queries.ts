@@ -1,27 +1,41 @@
+import { z } from 'zod'
 import { getDb, SEAWEEDFS_PUBLIC_BASE } from './client'
+import {
+  CarrierCancellationSchema,
+  DailyTimelinessSchema,
+  RouteCancellationSchema,
+  RouteTimelinessSchema,
+  type CarrierCancellation,
+  type DailyTimeliness,
+  type RouteCancellation,
+  type RouteTimeliness,
+} from './schemas'
 
-// total_flights is COUNT(*) in the dbt marts and therefore non-null.
-// The aggregate columns (avg_delay_minutes, delay_volatility, on_time_ratio) can be null:
-// STDDEV over a single-row group is null; NULLIF(...) on a zero denominator is null.
-export interface RouteTimeliness {
-  origin_icao: string
-  destination_icao: string
-  total_flights: number
-  avg_delay_minutes: number | null
-  delay_volatility: number | null
-  on_time_ratio: number | null
+export type {
+  CarrierCancellation,
+  DailyTimeliness,
+  RouteCancellation,
+  RouteTimeliness,
 }
 
-// flight_date arrives from Arrow as either an epoch-ms number, a days-since-epoch
-// number, or an ISO string depending on the duckdb-wasm Arrow build — keep it loose
-// here and let format.fmtDate normalise.
-export interface DailyTimeliness {
-  flight_date: number | string | Date
-  origin_icao: string
-  total_flights: number
-  avg_delay_minutes: number | null
-  delay_volatility: number | null
-  on_time_ratio: number | null
+const MAX_LOGGED_ISSUES = 5
+
+export function parsePartial<T extends z.ZodType<object>>(
+  schema: T,
+  rows: unknown[],
+  label: string
+): z.infer<T>[] {
+  const parsed = rows.map(r => schema.safeParse(r))
+  const invalid = parsed.filter(p => !p.success)
+  if (invalid.length > 0) {
+    console.warn(
+      `[queries:${label}] dropped ${invalid.length}/${rows.length} invalid rows`,
+      invalid.slice(0, MAX_LOGGED_ISSUES).map(p => (!p.success ? p.error.issues : []))
+    )
+  }
+  return parsed
+    .filter((p): p is { success: true; data: z.infer<T> } => p.success)
+    .map(p => p.data)
 }
 
 export async function queryRouteTimeliness(
@@ -35,7 +49,8 @@ export async function queryRouteTimeliness(
     const result = await conn.query(
       `SELECT * FROM read_parquet('${url}') ORDER BY total_flights DESC`
     )
-    return result.toArray().map((r) => r.toJSON() as RouteTimeliness)
+    const rows = result.toArray().map(r => r.toJSON())
+    return parsePartial(RouteTimelinessSchema, rows, 'queryRouteTimeliness')
   } finally {
     await conn.close()
   }
@@ -63,7 +78,8 @@ export async function queryFlightLookup(
     )
     try {
       const result = await stmt.query(term)
-      return result.toArray().map((r) => r.toJSON() as RouteTimeliness)
+      const rows = result.toArray().map(r => r.toJSON())
+      return parsePartial(RouteTimelinessSchema, rows, 'queryFlightLookup')
     } finally {
       await stmt.close()
     }
@@ -83,31 +99,11 @@ export async function queryDailyTimeliness(
     const result = await conn.query(
       `SELECT * FROM read_parquet('${url}') ORDER BY flight_date`
     )
-    return result.toArray().map((r) => r.toJSON() as DailyTimeliness)
+    const rows = result.toArray().map(r => r.toJSON())
+    return parsePartial(DailyTimelinessSchema, rows, 'queryDailyTimeliness')
   } finally {
     await conn.close()
   }
-}
-
-export interface CarrierCancellation {
-  origin_icao: string
-  carrier_icao: string
-  carrier_name: string
-  total_scheduled: number
-  cancelled: number
-  cancellation_rate: number
-  period_start: number | string | Date
-  period_end: number | string | Date
-}
-
-export interface RouteCancellation {
-  origin_icao: string
-  destination_icao: string
-  total_scheduled: number
-  cancelled: number
-  cancellation_rate: number
-  period_start: number | string | Date
-  period_end: number | string | Date
 }
 
 export async function queryCarrierCancellations(
@@ -120,7 +116,8 @@ export async function queryCarrierCancellations(
     const result = await conn.query(
       `SELECT * FROM read_parquet('${url}') ORDER BY cancellation_rate DESC`
     )
-    return result.toArray().map((r) => r.toJSON() as CarrierCancellation)
+    const rows = result.toArray().map(r => r.toJSON())
+    return parsePartial(CarrierCancellationSchema, rows, 'queryCarrierCancellations')
   } finally {
     await conn.close()
   }
@@ -136,7 +133,8 @@ export async function queryRouteCancellations(
     const result = await conn.query(
       `SELECT * FROM read_parquet('${url}') ORDER BY cancellation_rate DESC`
     )
-    return result.toArray().map((r) => r.toJSON() as RouteCancellation)
+    const rows = result.toArray().map(r => r.toJSON())
+    return parsePartial(RouteCancellationSchema, rows, 'queryRouteCancellations')
   } finally {
     await conn.close()
   }

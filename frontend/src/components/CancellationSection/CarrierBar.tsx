@@ -2,14 +2,17 @@ import Highcharts from 'highcharts'
 import HighchartsReact from 'highcharts-react-official'
 import { CarrierCancellation } from '../../db/queries'
 
+type CarrierWithRate = CarrierCancellation & { cancellation_rate: number }
+
 interface Props {
   airportIcao: string
   carriers: readonly CarrierCancellation[]
 }
 
-export default function CarrierBar({ airportIcao, carriers }: Props) {
+export function CarrierBar({ airportIcao, carriers }: Props) {
   const data = carriers
     .slice()
+    .filter((c): c is CarrierWithRate => c.cancellation_rate !== null)
     .sort((a, b) => b.cancellation_rate - a.cancellation_rate)
     .slice(0, 10)
     .map(c => ({

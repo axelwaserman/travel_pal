@@ -2,14 +2,17 @@ import Highcharts from 'highcharts'
 import HighchartsReact from 'highcharts-react-official'
 import { RouteCancellation } from '../../db/queries'
 
+type RouteWithRate = RouteCancellation & { cancellation_rate: number }
+
 interface Props {
   airportIcao: string
   routes: readonly RouteCancellation[]
 }
 
-export default function RouteBar({ airportIcao, routes }: Props) {
+export function RouteBar({ airportIcao, routes }: Props) {
   const data = routes
     .slice()
+    .filter((r): r is RouteWithRate => r.cancellation_rate !== null)
     .sort((a, b) => b.cancellation_rate - a.cancellation_rate)
     .slice(0, 10)
     .map(r => ({
