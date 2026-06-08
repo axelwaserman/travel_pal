@@ -10,11 +10,12 @@ interface Props {
 export function RouteBar({ airportIcao, routes }: Props) {
   const data = routes
     .slice()
-    .sort((a, b) => b.cancellation_rate - a.cancellation_rate)
+    .filter(r => r.cancellation_rate !== null)
+    .sort((a, b) => (b.cancellation_rate ?? 0) - (a.cancellation_rate ?? 0))
     .slice(0, 10)
     .map(r => ({
       name: `${r.origin_icao} → ${r.destination_icao}`,
-      y: r.cancellation_rate * 100,
+      y: (r.cancellation_rate ?? 0) * 100,
       total: r.total_scheduled,
       cancelled: r.cancelled,
     }))

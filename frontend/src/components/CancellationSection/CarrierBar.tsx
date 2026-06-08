@@ -10,11 +10,12 @@ interface Props {
 export function CarrierBar({ airportIcao, carriers }: Props) {
   const data = carriers
     .slice()
-    .sort((a, b) => b.cancellation_rate - a.cancellation_rate)
+    .filter(c => c.cancellation_rate !== null)
+    .sort((a, b) => (b.cancellation_rate ?? 0) - (a.cancellation_rate ?? 0))
     .slice(0, 10)
     .map(c => ({
       name: c.carrier_name,
-      y: c.cancellation_rate * 100,
+      y: (c.cancellation_rate ?? 0) * 100,
       total: c.total_scheduled,
       cancelled: c.cancelled,
     }))
