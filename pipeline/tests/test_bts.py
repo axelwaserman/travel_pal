@@ -99,7 +99,7 @@ def test_bts_resource_post_payload_when_no_fixture():
 
     fake_response = MagicMock()
     fake_response.status = 200
-    fake_response.read = AsyncMock(return_value=b"PK\x03\x04fake")
+    fake_response.bytes = AsyncMock(return_value=b"PK\x03\x04fake")
     fake_builder = MagicMock()
     fake_builder.build.return_value.send = AsyncMock(return_value=fake_response)
     fake_client = MagicMock()
@@ -125,7 +125,7 @@ def test_bts_resource_raises_on_404():
 
     fake_response = MagicMock()
     fake_response.status = 404
-    fake_response.read = AsyncMock(return_value=b"")
+    fake_response.bytes = AsyncMock(return_value=b"")
     fake_builder = MagicMock()
     fake_builder.build.return_value.send = AsyncMock(return_value=fake_response)
     fake_client = MagicMock()
