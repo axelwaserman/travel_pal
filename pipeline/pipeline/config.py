@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -23,6 +23,17 @@ class PipelineConfig(BaseSettings):
     bts_cache_bucket: str = "bts-raw"
 
     model_config = SettingsConfigDict(frozen=True, case_sensitive=False)
+
+    @field_validator("bts_fixture_file", mode="before")
+    @classmethod
+    def _empty_str_is_none(cls, v: object) -> object:
+        # docker compose interpolates ${BTS_FIXTURE_FILE:-} to an empty string
+        # when the host var is unset. Pydantic would then coerce "" to Path("."),
+        # which silently activates fixture mode pointing at the working dir.
+        # Treat empty/whitespace as "not set".
+        if isinstance(v, str) and not v.strip():
+            return None
+        return v
 
     @classmethod
     def from_env(cls) -> "PipelineConfig":
