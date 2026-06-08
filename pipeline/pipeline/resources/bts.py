@@ -72,10 +72,13 @@ class BTSResource(ConfigurableResource):
 
     @cached_property
     def _client(self) -> Client:
+        # BTS PREZIP serves ~50MB monthly ZIPs over a slow link; 600s gives
+        # comfortable headroom for the body read on any single month. The
+        # connect timeout stays tight so we fail fast on DNS / TLS issues.
         return (
             ClientBuilder()
             .connect_timeout(timedelta(seconds=10))
-            .timeout(timedelta(seconds=120))
+            .timeout(timedelta(seconds=600))
             .build()
         )
 
@@ -96,7 +99,10 @@ class BTSResource(ConfigurableResource):
             raise BTSDownloadError(
                 f"BTS download for {year}-{month:02d} failed with status {response.status}"
             )
-        payload: bytes = await response.read()  # ty: ignore[unresolved-attribute]  # pyreqwest stubs incomplete
+        # pyreqwest returns its own Bytes wrapper (PyO3-bound), not Python's
+        # built-in bytes. Coerce so downstream callers (zipfile, .startswith)
+        # see a plain bytes object.
+        payload = bytes(await response.bytes())
         if not payload.startswith(b"PK"):
             raise BTSDownloadError(
                 f"BTS response for {year}-{month:02d} is not a ZIP "
