@@ -89,3 +89,24 @@ def test_pipeline_config_bts_fixture_file_overrides(monkeypatch, tmp_path):
     cfg = PipelineConfig.from_env()
 
     assert cfg.bts_fixture_file == fixture
+
+
+def test_pipeline_config_bts_fixture_file_empty_string_is_none(monkeypatch):
+    """Empty BTS_FIXTURE_FILE (docker compose ${VAR:-} fallback) → None.
+
+    Without this, an unset host var becomes "" inside the container, Pydantic
+    coerces "" to Path("."), and BTSResource silently treats the working
+    directory as the fixture ZIP — masking real-mode failures.
+    """
+    monkeypatch.setenv("AIRPORT_ICAO", "KJFK")
+    monkeypatch.setenv("INGEST_START_DATE", "2024-01-01")
+    monkeypatch.setenv("INGEST_END_DATE", "2024-01-08")
+    monkeypatch.setenv("SEAWEEDFS_S3_ENDPOINT", "http://localhost:8333")
+    monkeypatch.setenv("SEAWEEDFS_ACCESS_KEY", "admin")
+    monkeypatch.setenv("SEAWEEDFS_SECRET_KEY", "admin")
+    monkeypatch.setenv("NESSIE_ENDPOINT", "http://localhost:19120/iceberg/")
+    monkeypatch.setenv("BTS_FIXTURE_FILE", "")
+
+    cfg = PipelineConfig.from_env()
+
+    assert cfg.bts_fixture_file is None
