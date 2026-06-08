@@ -7,7 +7,7 @@ interface Props {
   carriers: readonly CarrierCancellation[]
 }
 
-export default function CarrierBar({ airportIcao, carriers }: Props) {
+export function CarrierBar({ airportIcao, carriers }: Props) {
   const data = carriers
     .slice()
     .sort((a, b) => b.cancellation_rate - a.cancellation_rate)

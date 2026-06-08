@@ -7,7 +7,7 @@ interface Props {
   routes: readonly RouteCancellation[]
 }
 
-export default function RouteBar({ airportIcao, routes }: Props) {
+export function RouteBar({ airportIcao, routes }: Props) {
   const data = routes
     .slice()
     .sort((a, b) => b.cancellation_rate - a.cancellation_rate)

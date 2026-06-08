@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import {
   CarrierCancellation,
   RouteCancellation,
@@ -6,9 +6,15 @@ import {
   queryRouteCancellations,
 } from '../../db/queries'
 import { fmtDate } from '../../db/format'
-import CarrierBar from './CarrierBar'
-import RouteBar from './RouteBar'
+import { ChartSpinner } from './ChartSpinner'
 import './CancellationSection.css'
+
+const CarrierBar = lazy(() =>
+  import('./CarrierBar').then(m => ({ default: m.CarrierBar }))
+)
+const RouteBar = lazy(() =>
+  import('./RouteBar').then(m => ({ default: m.RouteBar }))
+)
 
 interface Props {
   airportIcao: string
@@ -80,10 +86,14 @@ export default function CancellationSection({ airportIcao }: Props) {
       {periodCaption && <p className="period-caption">{periodCaption}</p>}
       <div className="cancellation-grid">
         <div className="chart-wrap">
-          <CarrierBar airportIcao={airportIcao} carriers={data.carriers} />
+          <Suspense fallback={<ChartSpinner label="Loading carrier chart…" />}>
+            <CarrierBar airportIcao={airportIcao} carriers={data.carriers} />
+          </Suspense>
         </div>
         <div className="chart-wrap">
-          <RouteBar airportIcao={airportIcao} routes={data.routes} />
+          <Suspense fallback={<ChartSpinner label="Loading route chart…" />}>
+            <RouteBar airportIcao={airportIcao} routes={data.routes} />
+          </Suspense>
         </div>
       </div>
     </section>
