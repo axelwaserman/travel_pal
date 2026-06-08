@@ -8,17 +8,14 @@ describe('ChartSpinner', () => {
     expect(screen.getByRole('status')).toBeInTheDocument()
   })
 
-  it('uses default aria-label when no label prop given', () => {
+  it('shows the default label text when no label prop given', () => {
     render(<ChartSpinner />)
-    expect(screen.getByRole('status')).toHaveAttribute('aria-label', 'Loading chart…')
+    expect(screen.getByRole('status')).toHaveTextContent('Loading chart…')
   })
 
-  it('forwards custom label to aria-label', () => {
+  it('shows custom label text when label prop is provided', () => {
     render(<ChartSpinner label="Loading carrier chart…" />)
-    expect(screen.getByRole('status')).toHaveAttribute(
-      'aria-label',
-      'Loading carrier chart…'
-    )
+    expect(screen.getByRole('status')).toHaveTextContent('Loading carrier chart…')
   })
 
   it('renders visible label text', () => {
