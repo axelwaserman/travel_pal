@@ -102,9 +102,7 @@ class BTSResource(ConfigurableResource):
         # pyreqwest returns its own Bytes wrapper (PyO3-bound), not Python's
         # built-in bytes. Coerce so downstream callers (zipfile, .startswith)
         # see a plain bytes object.
-        payload = bytes(
-            await response.bytes()
-        )
+        payload = bytes(await response.bytes())
         if not payload.startswith(b"PK"):
             raise BTSDownloadError(
                 f"BTS response for {year}-{month:02d} is not a ZIP "
