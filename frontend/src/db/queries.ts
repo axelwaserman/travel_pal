@@ -18,7 +18,9 @@ export type {
   RouteTimeliness,
 }
 
-export function parsePartial<T extends z.ZodType>(
+const MAX_LOGGED_ISSUES = 5
+
+export function parsePartial<T extends z.ZodType<object>>(
   schema: T,
   rows: unknown[],
   label: string
@@ -28,7 +30,7 @@ export function parsePartial<T extends z.ZodType>(
   if (invalid.length > 0) {
     console.warn(
       `[queries:${label}] dropped ${invalid.length}/${rows.length} invalid rows`,
-      invalid.slice(0, 5).map(p => (!p.success ? p.error.issues : []))
+      invalid.slice(0, MAX_LOGGED_ISSUES).map(p => (!p.success ? p.error.issues : []))
     )
   }
   return parsed
