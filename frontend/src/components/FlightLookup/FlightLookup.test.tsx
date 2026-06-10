@@ -20,6 +20,13 @@ vi.mock('./ResultsBar', () => ({
   ResultsBar: () => <div data-testid="results-bar" />,
 }))
 
+// Mock RoutePanel to isolate FlightLookup rendering logic
+vi.mock('./RoutePanel', () => ({
+  RoutePanel: ({ origin, destination }: { origin: string; destination: string }) => (
+    <div data-testid="route-panel">{origin} → {destination}</div>
+  ),
+}))
+
 const mockAirportSearch = vi.mocked(queries.queryAirportSearch)
 const mockCarrierSearch = vi.mocked(queries.queryCarrierSearch)
 
@@ -337,6 +344,22 @@ describe('FlightLookup', () => {
       expect(options).toHaveLength(2)
       expect(options.map(o => (o as HTMLOptionElement).value)).toEqual(['volume_desc', 'volume_asc'])
     })
+  })
+
+  // ── Fix 4 regression: malformed route param ──────────────────────────────
+
+  it('Fix4: ?route=invalid does not render the RoutePanel', () => {
+    window.history.replaceState({}, '', '/?route=invalid')
+    window.dispatchEvent(new PopStateEvent('popstate'))
+    render(<FlightLookup airportIcao="KJFK" />)
+    expect(screen.queryByTestId('route-panel')).not.toBeInTheDocument()
+  })
+
+  it('Fix4: valid ?route=KJFK-KLAX renders the RoutePanel', () => {
+    window.history.replaceState({}, '', '/?route=KJFK-KLAX')
+    window.dispatchEvent(new PopStateEvent('popstate'))
+    render(<FlightLookup airportIcao="KJFK" />)
+    expect(screen.getByTestId('route-panel')).toBeInTheDocument()
   })
 
   // ── Carrier tab card rendering ────────────────────────────────────────────

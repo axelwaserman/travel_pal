@@ -312,12 +312,14 @@ export default function FlightLookup({ airportIcao }: Props) {
         }
       </div>
 
-      {params.route && (() => {
-        const [origin, destination] = params.route.split('-')
+      {(() => {
+        const routeParts = params.route ? params.route.split(/-(.+)/).slice(0, 2) : null
+        const validRoute = routeParts && routeParts[0]?.length >= 3 && routeParts[1]?.length >= 3
+        if (!validRoute) return null
         return (
           <RoutePanel
-            origin={origin}
-            destination={destination}
+            origin={routeParts[0]}
+            destination={routeParts[1]}
             onClose={() => setParams({ route: null })}
           />
         )

@@ -38,10 +38,6 @@ interface PanelState {
 export function RoutePanel({ origin, destination, onClose }: Props) {
   const panelRef = useRef<HTMLElement>(null)
   const closeBtnRef = useRef<HTMLButtonElement>(null)
-  // Capture the element that triggered the panel before we steal focus
-  const triggerRef = useRef<HTMLElement | null>(
-    document.activeElement instanceof HTMLElement ? document.activeElement : null
-  )
 
   const [state, setState] = useState<PanelState>({
     daily: [],
@@ -54,18 +50,44 @@ export function RoutePanel({ origin, destination, onClose }: Props) {
   useClickOutside(panelRef, onClose)
 
   // Focus management: steal focus on mount, restore on unmount.
-  // Capture the trigger element in a local variable so the cleanup closure
-  // holds a stable reference even after the ref is updated.
+  // Capture trigger inside the effect so concurrent renders don't snapshot
+  // stale focus state.
   useEffect(() => {
-    const trigger = triggerRef.current
+    const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null
     closeBtnRef.current?.focus()
     return () => {
       trigger?.focus()
     }
   }, [])
 
+  // Focus trap: Tab / Shift-Tab cycle stays inside the panel (WCAG 2.1.2).
+  useEffect(() => {
+    const node = panelRef.current
+    if (!node) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return
+      const focusables = node.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), [href], input, [tabindex]:not([tabindex="-1"])'
+      )
+      if (focusables.length === 0) return
+      const first = focusables[0]
+      const last = focusables[focusables.length - 1]
+      const active = document.activeElement
+      if (e.shiftKey && active === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+    node.addEventListener('keydown', onKey)
+    return () => node.removeEventListener('keydown', onKey)
+  }, [])
+
   // Load all 3 queries in parallel; one failure doesn't block the others
   useEffect(() => {
+    setState(s => ({ ...s, loading: true }))
     let cancelled = false
     Promise.allSettled([
       queryRouteDaily(origin, destination),

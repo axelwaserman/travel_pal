@@ -145,6 +145,23 @@ describe('RoutePanel', () => {
     })
   })
 
+  it('Tab from the close button wraps focus back to the close button (only focusable element)', async () => {
+    await act(async () => {
+      render(<RoutePanel origin="KJFK" destination="KLAX" onClose={onClose} />)
+    })
+    const closeBtn = screen.getByRole('button', { name: /close panel/i })
+    closeBtn.focus()
+    expect(document.activeElement).toBe(closeBtn)
+
+    // Tab when only one focusable element: focus must stay on the close button
+    fireEvent.keyDown(closeBtn, { key: 'Tab', shiftKey: false })
+    expect(document.activeElement).toBe(closeBtn)
+
+    // Shift-Tab must also stay on the close button
+    fireEvent.keyDown(closeBtn, { key: 'Tab', shiftKey: true })
+    expect(document.activeElement).toBe(closeBtn)
+  })
+
   it('has aria-modal=true and aria-labelledby pointing at the route heading', async () => {
     await act(async () => {
       render(<RoutePanel origin="KJFK" destination="KLAX" onClose={onClose} />)
