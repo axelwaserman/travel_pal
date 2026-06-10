@@ -4,9 +4,17 @@ import { Suspense } from 'react'
 import type { RouteTimeliness } from '../../db/schemas'
 
 vi.mock('highcharts-react-official', () => ({
-  default: ({ options }: { options: Highcharts.Options }) => (
+  default: ({
+    options,
+    containerProps,
+  }: {
+    options: Highcharts.Options
+    containerProps?: Record<string, string>
+  }) => (
     <div
       data-testid={`hc-${(options.title?.text ?? 'untitled').toLowerCase().replace(/\s+/g, '-')}`}
+      aria-label={containerProps?.['aria-label']}
+      role={containerProps?.['role']}
     >
       {JSON.stringify(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -87,5 +95,32 @@ describe('ResultsBar', () => {
   it('renders nothing (no chart element) when results is empty', () => {
     renderWithSuspense(<ResultsBar results={[]} airportIcao="KJFK" />)
     expect(screen.queryByTestId(/hc-results-/)).not.toBeInTheDocument()
+  })
+
+  it('chart container has aria-label with airport ICAO and role=img', () => {
+    const results = [makeRoute('EGLL', 'LFPG', 0.78)]
+    renderWithSuspense(<ResultsBar results={results} airportIcao="EGLL" />)
+    const el = screen.getByTestId(/hc-results-/)
+    expect(el).toHaveAttribute('aria-label', 'On-time ratio by route — EGLL')
+    expect(el).toHaveAttribute('role', 'img')
+  })
+
+  it('sorts by on_time_ratio desc before slicing to top 30', () => {
+    // 32 rows in shuffled order — worst routes first, best last
+    const results = Array.from({ length: 32 }, (_, i) =>
+      makeRoute('KSEA', `KY${i.toString().padStart(2, '0')}`, i / 100)
+    )
+    renderWithSuspense(<ResultsBar results={results} airportIcao="KSEA" />)
+    const el = screen.getByTestId(/hc-results-/)
+    const data = JSON.parse(el.textContent ?? '[]') as Array<{ y: number }>
+    expect(data).toHaveLength(30)
+    // Top entry should be the highest on_time_ratio (index 31 → 31%)
+    expect(data[0].y).toBeCloseTo(31, 1)
+    // Second entry should be index 30 → 30%
+    expect(data[1].y).toBeCloseTo(30, 1)
+    // Values should be strictly non-increasing
+    for (let i = 1; i < data.length; i++) {
+      expect(data[i].y).toBeLessThanOrEqual(data[i - 1].y)
+    }
   })
 })

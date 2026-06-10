@@ -22,6 +22,7 @@ export function ResultsBar({ results, airportIcao }: Props) {
   const data = results
     .slice()
     .filter((r): r is RouteWithRatio => r.on_time_ratio !== null)
+    .sort((a, b) => b.on_time_ratio - a.on_time_ratio)
     .slice(0, 30)
     .map(r => ({
       name: `${r.origin_icao} → ${r.destination_icao}`,
@@ -60,5 +61,14 @@ export function ResultsBar({ results, airportIcao }: Props) {
     ],
   }
 
-  return <HighchartsReact highcharts={Highcharts} options={options} />
+  return (
+    <HighchartsReact
+      highcharts={Highcharts}
+      options={options}
+      containerProps={{
+        'aria-label': `On-time ratio by route — ${airportIcao}`,
+        role: 'img',
+      }}
+    />
+  )
 }
