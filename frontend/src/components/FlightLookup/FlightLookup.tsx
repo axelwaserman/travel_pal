@@ -1,7 +1,12 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { queryFlightLookup, RouteTimeliness } from '../../db/queries'
 import { pct, fmt, NULL_PLACEHOLDER } from '../../db/format'
+import { ChartSpinner } from '../CancellationSection/ChartSpinner'
 import './FlightLookup.css'
+
+const ResultsBar = lazy(() =>
+  import('./ResultsBar').then(m => ({ default: m.ResultsBar }))
+)
 
 interface Props {
   airportIcao: string
@@ -44,6 +49,11 @@ export default function FlightLookup({ airportIcao }: Props) {
         </button>
       </div>
       {error && <p className="lookup-error" role="alert">{error}</p>}
+      {results.length > 0 && (
+        <Suspense fallback={<ChartSpinner label="Loading results chart…" />}>
+          <ResultsBar results={results} airportIcao={airportIcao} />
+        </Suspense>
+      )}
       <div className="results-grid">
         {results.map(r => (
           <article key={`${r.origin_icao}-${r.destination_icao}`} className="result-card">
