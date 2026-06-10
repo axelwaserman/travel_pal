@@ -96,3 +96,91 @@
   text-align: right;
   color: var(--color-ink);
 }
+
+/* ── SearchTabs ─────────────────────────────────────────────────────── */
+
+.search-tabs {
+  display: flex;
+  gap: 0;
+  border: var(--rule);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  width: fit-content;
+  margin-block-end: var(--space-md);
+}
+
+.search-tab {
+  padding: var(--space-xs) var(--space-md);
+  font-family: var(--font-body);
+  font-size: var(--text-meta);
+  font-weight: 500;
+  background: var(--color-bg-raised);
+  color: var(--color-ink-muted);
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out-expo),
+              color var(--duration-fast) var(--ease-out-expo);
+}
+
+.search-tab + .search-tab {
+  border-inline-start: var(--rule);
+}
+
+.search-tab--active {
+  background: var(--color-accent);
+  color: var(--color-bg);
+}
+
+.search-tab:hover:not(.search-tab--active) {
+  background: var(--color-accent-soft);
+  color: var(--color-ink);
+}
+
+.search-tab:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+  z-index: 1;
+  position: relative;
+}
+
+/* ── SortBar ────────────────────────────────────────────────────────── */
+
+.sort-bar {
+  appearance: auto;
+  font-family: var(--font-body);
+  font-size: var(--text-meta);
+  color: var(--color-ink);
+  background: var(--color-bg-raised);
+  border: var(--rule);
+  border-radius: var(--radius-sm);
+  padding: var(--space-xs) var(--space-sm);
+  cursor: pointer;
+}
+
+.sort-bar:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* ── MinFlightsSlider ───────────────────────────────────────────────── */
+
+.min-flights-slider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.min-flights-slider__input {
+  accent-color: var(--color-accent);
+  cursor: pointer;
+  width: 160px;
+}
+
+.min-flights-slider__value {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-muted);
+  white-space: nowrap;
+}
