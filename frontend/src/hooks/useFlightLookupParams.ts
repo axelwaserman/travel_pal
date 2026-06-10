@@ -8,6 +8,19 @@ export type FlightLookupParams = {
   route: string | null
 }
 
+const SORT_VALUES = [
+  'on_time_desc', 'on_time_asc',
+  'delay_asc', 'delay_desc',
+  'volume_desc', 'volume_asc',
+  'volatility_asc',
+] as const
+
+function parseSort(raw: string | null): FlightLookupParams['sort'] {
+  return SORT_VALUES.includes(raw as typeof SORT_VALUES[number])
+    ? (raw as FlightLookupParams['sort'])
+    : 'on_time_desc'
+}
+
 const DEFAULT: FlightLookupParams = {
   tab: 'airports',
   q: '',
@@ -21,7 +34,7 @@ function read(): FlightLookupParams {
   return {
     tab: (sp.get('tab') === 'carriers' ? 'carriers' : 'airports'),
     q: sp.get('q') ?? '',
-    sort: (sp.get('sort') ?? 'on_time_desc') as FlightLookupParams['sort'],
+    sort: parseSort(sp.get('sort')),
     min: Math.max(1, Math.min(1000, Number(sp.get('min') ?? 1))),
     route: sp.get('route'),
   }
