@@ -10,6 +10,11 @@ let dbPromise: Promise<duckdb.AsyncDuckDB> | null = null
 const SEAWEEDFS_PUBLIC_BASE =
   import.meta.env.VITE_SEAWEEDFS_PUBLIC_BASE ?? 'http://localhost:8333/frontend-exports'
 
+// Airport-agnostic parquets (dim_airport, dim_carrier) live at the bucket root,
+// not under /{AIRPORT_ICAO}/. This env var points directly at the bucket root.
+const SEAWEEDFS_PUBLIC_BASE_ROOT =
+  import.meta.env.VITE_SEAWEEDFS_PUBLIC_BASE_ROOT ?? 'http://localhost:8333/frontend-exports'
+
 async function instantiate(): Promise<duckdb.AsyncDuckDB> {
   const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles()
   const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES)
@@ -39,4 +44,4 @@ export function getDb(): Promise<duckdb.AsyncDuckDB> {
   return dbPromise
 }
 
-export { SEAWEEDFS_PUBLIC_BASE }
+export { SEAWEEDFS_PUBLIC_BASE, SEAWEEDFS_PUBLIC_BASE_ROOT }

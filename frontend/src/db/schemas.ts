@@ -6,6 +6,11 @@ import { z } from 'zod'
 const NUMERIC_FIELD = z.coerce.number()
 const NULLABLE_NUMERIC = z.coerce.number().nullable()
 
+// Arrow Date32 surfaces as number | string | Date | BigInt depending on
+// duckdb-wasm Arrow build; keep loose, fmtDate normalises downstream.
+// Extracted from inline unions in P2.2 quality review (DRY violation fix).
+const DATE_FIELD = z.union([z.coerce.number(), z.string(), z.date()])
+
 export const RouteTimelinessSchema = z.object({
   origin_icao: z.string(),
   destination_icao: z.string(),
@@ -17,9 +22,7 @@ export const RouteTimelinessSchema = z.object({
 export type RouteTimeliness = z.infer<typeof RouteTimelinessSchema>
 
 export const DailyTimelinessSchema = z.object({
-  // Arrow Date32 surfaces as number | string | Date | BigInt depending on
-  // duckdb-wasm Arrow build; keep loose, fmtDate normalises downstream.
-  flight_date: z.union([z.coerce.number(), z.string(), z.date()]),
+  flight_date: DATE_FIELD,
   origin_icao: z.string(),
   total_flights: NUMERIC_FIELD,
   avg_delay_minutes: NULLABLE_NUMERIC,
@@ -35,8 +38,8 @@ export const CarrierCancellationSchema = z.object({
   total_scheduled: NUMERIC_FIELD,
   cancelled: NUMERIC_FIELD,
   cancellation_rate: NULLABLE_NUMERIC,
-  period_start: z.union([z.coerce.number(), z.string(), z.date()]),
-  period_end: z.union([z.coerce.number(), z.string(), z.date()]),
+  period_start: DATE_FIELD,
+  period_end: DATE_FIELD,
 })
 export type CarrierCancellation = z.infer<typeof CarrierCancellationSchema>
 
@@ -46,7 +49,44 @@ export const RouteCancellationSchema = z.object({
   total_scheduled: NUMERIC_FIELD,
   cancelled: NUMERIC_FIELD,
   cancellation_rate: NULLABLE_NUMERIC,
-  period_start: z.union([z.coerce.number(), z.string(), z.date()]),
-  period_end: z.union([z.coerce.number(), z.string(), z.date()]),
+  period_start: DATE_FIELD,
+  period_end: DATE_FIELD,
 })
 export type RouteCancellation = z.infer<typeof RouteCancellationSchema>
+
+// ---------------------------------------------------------------------------
+// P2.3 — new schemas for search + drill-down
+// ---------------------------------------------------------------------------
+
+export const RouteTimelinessWithAirportNameSchema = RouteTimelinessSchema.extend({
+  origin_name: z.string(),
+  destination_name: z.string(),
+})
+export type RouteTimelinessWithAirportName = z.infer<typeof RouteTimelinessWithAirportNameSchema>
+
+// Alias kept for parallel naming with airport version; carrier_name already
+// present in CarrierCancellationSchema.
+export const CarrierCancellationWithNameSchema = CarrierCancellationSchema
+export type CarrierCancellationWithName = z.infer<typeof CarrierCancellationWithNameSchema>
+
+export const CarrierRouteCancellationSchema = z.object({
+  origin_icao: z.string(),
+  destination_icao: z.string(),
+  carrier_icao: z.string(),
+  carrier_name: z.string(),
+  total_scheduled: NUMERIC_FIELD,
+  cancelled: NUMERIC_FIELD,
+  cancellation_rate: NULLABLE_NUMERIC,
+  period_start: DATE_FIELD,
+  period_end: DATE_FIELD,
+})
+export type CarrierRouteCancellation = z.infer<typeof CarrierRouteCancellationSchema>
+
+export const RouteCancellationReasonSchema = z.object({
+  origin_icao: z.string(),
+  destination_icao: z.string(),
+  reason: z.enum(['Air Carrier', 'Weather', 'National Air System', 'Security', 'Other / Unknown']),
+  cancelled_count: NUMERIC_FIELD,
+  reason_share: NULLABLE_NUMERIC,
+})
+export type RouteCancellationReason = z.infer<typeof RouteCancellationReasonSchema>
