@@ -67,6 +67,12 @@ _MART_AIRPORT_PREDICATE: dict[str, str | None] = {
     "dim_carrier": None,  # full table, no airport scope
 }
 
+_MART_NAMES = set(_MARTS)
+assert _MART_NAMES == set(_MART_SOURCES) == set(_EXPORT_KEYS) == set(_MART_AIRPORT_PREDICATE), (
+    "frontend_exports: _MARTS / _MART_SOURCES / _EXPORT_KEYS / _MART_AIRPORT_PREDICATE "
+    "must all share the same keys; mismatch indicates a forgotten dict entry"
+)
+
 # Sentinel prefix that signals a key should be written at the bucket root
 # rather than under {airport_icao}/. Never used literally as an S3 key segment.
 _ROOT_KEY_PREFIX = "../"
@@ -88,9 +94,10 @@ def _is_dbt_table_source(source: str) -> bool:
     return "." in source
 
 
-def _read_dbt_table(table_ref: str) -> pa.Table:
+def _read_dbt_table(dbt_path: str, table_ref: str) -> pa.Table:
     """Open the dbt DuckDB file and read a table by its schema-qualified name."""
-    dbt_path = os.environ.get("DBT_DUCKDB_PATH", "/tmp/travel_pal.duckdb")
+    if table_ref not in _MART_SOURCES.values():
+        raise ValueError(f"refusing to read unknown table {table_ref!r}; not in _MART_SOURCES")
     with duckdb.connect(dbt_path) as con:
         return con.execute(f"SELECT * FROM {table_ref}").to_arrow_table()  # noqa: S608
 
@@ -111,6 +118,7 @@ def frontend_exports(
     pipeline_config: ResourceParam[PipelineConfig],
     seaweedfs: ResourceParam[SeaweedFSResource],
 ) -> None:
+    dbt_path = os.environ.get("DBT_DUCKDB_PATH", "/tmp/travel_pal.duckdb")
     with duckdb.connect(":memory:") as con:
         _configure_s3(con, pipeline_config)
         for mart in _MARTS:
@@ -121,7 +129,7 @@ def frontend_exports(
             if _is_dbt_table_source(source):
                 # Dim seeds live in the dbt DuckDB file, not S3.
                 # predicate is always None for these; no airport filtering.
-                arrow_table = _read_dbt_table(source)
+                arrow_table = _read_dbt_table(dbt_path, source)
             else:
                 s3_uri = f"s3://{pipeline_config.raw_bucket}/warehouse/marts/{source}.parquet"
                 if predicate is not None:

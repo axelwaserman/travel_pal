@@ -253,7 +253,7 @@ def _patch_dims() -> "patch":
     """Patch _read_dbt_table to return stub dim tables without touching disk."""
     return patch(
         "pipeline.assets.frontend_exports._read_dbt_table",
-        side_effect=lambda ref: {
+        side_effect=lambda _dbt_path, ref: {
             "main_ref.dim_airport": DIM_AIRPORT,
             "main_ref.dim_carrier": DIM_CARRIER,
         }[ref],
