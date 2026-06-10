@@ -64,11 +64,6 @@ export const RouteTimelinessWithAirportNameSchema = RouteTimelinessSchema.extend
 })
 export type RouteTimelinessWithAirportName = z.infer<typeof RouteTimelinessWithAirportNameSchema>
 
-// Alias kept for parallel naming with airport version; carrier_name already
-// present in CarrierCancellationSchema.
-export const CarrierCancellationWithNameSchema = CarrierCancellationSchema
-export type CarrierCancellationWithName = z.infer<typeof CarrierCancellationWithNameSchema>
-
 export const CarrierRouteCancellationSchema = z.object({
   origin_icao: z.string(),
   destination_icao: z.string(),

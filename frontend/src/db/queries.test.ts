@@ -165,7 +165,7 @@ describe('queryCarrierSearch', () => {
     vi.restoreAllMocks()
   })
 
-  it('returns CarrierCancellationWithName rows from the stub connection', async () => {
+  it('returns CarrierCancellation rows from the stub connection', async () => {
     const row = {
       origin_icao: 'KJFK',
       carrier_icao: 'DAL',

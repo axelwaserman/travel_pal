@@ -2,7 +2,6 @@ import { z } from 'zod'
 import { getDb, SEAWEEDFS_PUBLIC_BASE, SEAWEEDFS_PUBLIC_BASE_ROOT } from './client'
 import {
   CarrierCancellationSchema,
-  CarrierCancellationWithNameSchema,
   CarrierRouteCancellationSchema,
   DailyTimelinessSchema,
   RouteCancellationReasonSchema,
@@ -10,7 +9,6 @@ import {
   RouteTimelinessSchema,
   RouteTimelinessWithAirportNameSchema,
   type CarrierCancellation,
-  type CarrierCancellationWithName,
   type CarrierRouteCancellation,
   type DailyTimeliness,
   type RouteCancellation,
@@ -21,7 +19,6 @@ import {
 
 export type {
   CarrierCancellation,
-  CarrierCancellationWithName,
   CarrierRouteCancellation,
   DailyTimeliness,
   RouteCancellation,
@@ -206,7 +203,7 @@ export async function queryAirportSearch(
 export async function queryCarrierSearch(
   airportIcao: string,
   term: string
-): Promise<CarrierCancellationWithName[]> {
+): Promise<CarrierCancellation[]> {
   const db = await getDb()
   const conn = await db.connect()
   try {
@@ -228,7 +225,7 @@ export async function queryCarrierSearch(
     try {
       const result = await stmt.query(like)
       const rows = result.toArray().map(r => r.toJSON())
-      return parsePartial(CarrierCancellationWithNameSchema, rows, 'queryCarrierSearch')
+      return parsePartial(CarrierCancellationSchema, rows, 'queryCarrierSearch')
     } finally {
       await stmt.close()
     }
