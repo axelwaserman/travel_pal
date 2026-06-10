@@ -244,6 +244,101 @@ describe('FlightLookup', () => {
     expect(mockAirportSearch.mock.calls.length).toBe(callsBefore)
   })
 
+  // ── Fix 1 regression: query race condition ────────────────────────────────
+
+  it('Fix1: stale query resolving after a newer one does not overwrite newer results', async () => {
+    // Query A: slow — resolves last with KLAX result
+    let resolveA!: (data: typeof AIRPORT_ROW[]) => void
+    const promiseA = new Promise<typeof AIRPORT_ROW[]>(r => { resolveA = r })
+    // Query B: fast — resolves first with KORD result
+    let resolveB!: (data: typeof AIRPORT_ROW_B[]) => void
+    const promiseB = new Promise<typeof AIRPORT_ROW_B[]>(r => { resolveB = r })
+
+    // First call → A (stale), second call → B (fresh)
+    mockAirportSearch
+      .mockReturnValueOnce(promiseA as never)
+      .mockReturnValueOnce(promiseB as never)
+
+    render(<FlightLookup airportIcao="KJFK" />)
+
+    // Dispatch query A by setting params.q = 'KLAX' via URL + popstate
+    act(() => {
+      window.history.replaceState({}, '', '/?q=KLAX')
+      window.dispatchEvent(new PopStateEvent('popstate'))
+    })
+
+    // Dispatch query B before A resolves — changes params.q, triggering effect
+    // cleanup on A (sets ignored=true for A's promise handlers)
+    act(() => {
+      window.history.replaceState({}, '', '/?q=KORD')
+      window.dispatchEvent(new PopStateEvent('popstate'))
+    })
+
+    // Resolve B first (newer, faster)
+    await act(async () => { resolveB([AIRPORT_ROW_B]) })
+    await waitFor(() => expect(screen.getByText('KJFK → KORD')).toBeInTheDocument())
+
+    // Now resolve A (stale, slower) — must NOT overwrite B's results
+    await act(async () => { resolveA([AIRPORT_ROW]) })
+
+    // Give a tick for any erroneous state flush to happen
+    await new Promise(r => setTimeout(r, 0))
+
+    // State should still reflect B's results, not A's
+    expect(screen.queryByText('KJFK → KLAX')).not.toBeInTheDocument()
+    expect(screen.getByText('KJFK → KORD')).toBeInTheDocument()
+  })
+
+  // ── Fix 3 regression: error clears when input is cleared ─────────────────
+
+  it('Fix3: error alert disappears after params.q is reset to empty', async () => {
+    mockAirportSearch.mockRejectedValue(new Error('boom'))
+
+    render(<FlightLookup airportIcao="KJFK" />)
+
+    // Trigger a failing search by setting params.q = 'KLAX'
+    act(() => {
+      window.history.replaceState({}, '', '/?q=KLAX')
+      window.dispatchEvent(new PopStateEvent('popstate'))
+    })
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toBeInTheDocument()
+    )
+
+    // Simulate navigating back (browser back / programmatic reset) — clears q
+    act(() => {
+      window.history.replaceState({}, '', '/')
+      window.dispatchEvent(new PopStateEvent('popstate'))
+    })
+
+    // After params.q becomes '', setError(null) runs before the early-return —
+    // the stale error alert must be gone.
+    await waitFor(() =>
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    )
+  })
+
+  // ── Fix 2 regression: carrier tab restricts sort dropdown ─────────────────
+
+  it('Fix2: switching to carriers tab limits the sort dropdown to volume options only', async () => {
+    mockCarrierSearch.mockResolvedValue([])
+    render(<FlightLookup airportIcao="KJFK" />)
+
+    // Verify airports tab shows all 7 options
+    const sortSelect = screen.getByRole('combobox', { name: /sort results/i })
+    expect(sortSelect.querySelectorAll('option')).toHaveLength(7)
+
+    // Switch to carriers
+    fireEvent.click(screen.getByRole('tab', { name: 'Carriers' }))
+
+    // Carriers tab should show only volume_desc and volume_asc
+    await waitFor(() => {
+      const options = Array.from(sortSelect.querySelectorAll('option'))
+      expect(options).toHaveLength(2)
+      expect(options.map(o => (o as HTMLOptionElement).value)).toEqual(['volume_desc', 'volume_asc'])
+    })
+  })
+
   // ── Carrier tab card rendering ────────────────────────────────────────────
 
   it('renders carrier cards with carrier_name, carrier_icao, and cancellation_rate', async () => {

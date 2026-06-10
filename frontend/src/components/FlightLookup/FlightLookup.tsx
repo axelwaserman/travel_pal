@@ -16,6 +16,10 @@ import SortBar from './SortBar'
 import MinFlightsSlider from './MinFlightsSlider'
 import './FlightLookup.css'
 
+// Sort values available when the Carriers tab is active.
+// delay/volatility fields don't exist on CarrierCancellation rows.
+const CARRIER_SORT_VALUES = ['volume_desc', 'volume_asc'] as const
+
 const ResultsBar = lazy(() =>
   import('./ResultsBar').then(m => ({ default: m.ResultsBar }))
 )
@@ -99,28 +103,41 @@ export default function FlightLookup({ airportIcao }: Props) {
   // Query effect: fires when tab or search term changes
   // --------------------------------------------------------------------------
   useEffect(() => {
+    // Fix 3: always clear a stale error even when the query is empty.
+    setError(null)
+
     if (!params.q.trim()) {
       setAirportResults([])
       setCarrierResults([])
       return
     }
 
+    // Fix 1: cancellation guard — if this effect's cleanup fires (because a
+    // newer query superseded this one), none of the state setters below will run.
+    let ignored = false
+
     setLoading(true)
-    setError(null)
 
-    const q = params.q.trim()
+    const promise = params.tab === 'airports'
+      ? queryAirportSearch(airportIcao, params.q.trim())
+      : queryCarrierSearch(airportIcao, params.q.trim())
 
-    if (params.tab === 'airports') {
-      queryAirportSearch(airportIcao, q)
-        .then(data => setAirportResults(data))
-        .catch(() => setError('Failed to load flight data. Check that the pipeline has run.'))
-        .finally(() => setLoading(false))
-    } else {
-      queryCarrierSearch(airportIcao, q)
-        .then(data => setCarrierResults(data))
-        .catch(() => setError('Failed to load flight data. Check that the pipeline has run.'))
-        .finally(() => setLoading(false))
-    }
+    promise
+      .then(data => {
+        if (ignored) return
+        if (params.tab === 'airports') setAirportResults(data as RouteTimelinessWithAirportName[])
+        else setCarrierResults(data as CarrierCancellation[])
+      })
+      .catch(() => {
+        if (ignored) return
+        setError('Failed to load. Run the pipeline (just run-pipeline).')
+      })
+      .finally(() => {
+        if (ignored) return
+        setLoading(false)
+      })
+
+    return () => { ignored = true }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.tab, params.q])
 
@@ -149,10 +166,16 @@ export default function FlightLookup({ airportIcao }: Props) {
   }
 
   function handleTabChange(tab: 'airports' | 'carriers') {
-    // Clear results and reset min when switching tabs — volume scales differ
+    // Clear results and reset min when switching tabs — volume scales differ.
+    // When switching to carriers, also reset sort to volume_desc because the
+    // carrier sort subset doesn't include delay/volatility/on-time options.
     setAirportResults([])
     setCarrierResults([])
-    setParams({ tab, min: 1 })
+    if (tab === 'carriers') {
+      setParams({ tab, min: 1, sort: 'volume_desc' })
+    } else {
+      setParams({ tab, min: 1 })
+    }
   }
 
   // --------------------------------------------------------------------------
@@ -249,7 +272,11 @@ export default function FlightLookup({ airportIcao }: Props) {
       </div>
 
       <div className="lookup-controls-row">
-        <SortBar value={params.sort} onChange={sort => setParams({ sort })} />
+        <SortBar
+          value={params.sort}
+          onChange={sort => setParams({ sort })}
+          availableValues={params.tab === 'carriers' ? CARRIER_SORT_VALUES : undefined}
+        />
         <MinFlightsSlider
           value={params.min}
           onChange={min => setParams({ min })}

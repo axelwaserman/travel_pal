@@ -18,9 +18,14 @@ const SORT_LABELS: Record<SortValue, string> = {
 interface Props {
   value: SortValue
   onChange: (v: SortValue) => void
+  /** When supplied, only options whose value appears in this list are rendered.
+   *  Defaults to all SORT_VALUES. */
+  availableValues?: readonly SortValue[]
 }
 
-export default function SortBar({ value, onChange }: Props) {
+export default function SortBar({ value, onChange, availableValues }: Props) {
+  const visibleValues = availableValues ?? SORT_VALUES
+
   return (
     <select
       className="sort-bar"
@@ -32,7 +37,7 @@ export default function SortBar({ value, onChange }: Props) {
         onChange(v as SortValue)
       }}
     >
-      {SORT_VALUES.map(v => (
+      {SORT_VALUES.filter(v => visibleValues.includes(v)).map(v => (
         <option key={v} value={v}>
           {SORT_LABELS[v]}
         </option>

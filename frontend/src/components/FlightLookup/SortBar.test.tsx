@@ -87,4 +87,33 @@ describe('SortBar', () => {
     const options = screen.getAllByRole('option')
     expect(options).toHaveLength(SORT_VALUES.length)
   })
+
+  it('availableValues: renders only the supplied subset of options', () => {
+    render(
+      <SortBar
+        value="volume_desc"
+        onChange={vi.fn()}
+        availableValues={['volume_desc', 'volume_asc']}
+      />
+    )
+    const options = screen.getAllByRole('option')
+    expect(options).toHaveLength(2)
+    const values = options.map(o => (o as HTMLOptionElement).value)
+    expect(values).toEqual(['volume_desc', 'volume_asc'])
+  })
+
+  it('availableValues: preserves original SORT_VALUES order within the subset', () => {
+    // on_time_asc comes before volume_desc in SORT_VALUES
+    render(
+      <SortBar
+        value="on_time_asc"
+        onChange={vi.fn()}
+        availableValues={['volume_desc', 'on_time_asc']}
+      />
+    )
+    const values = Array.from(
+      screen.getByRole('combobox').querySelectorAll('option')
+    ).map(o => (o as HTMLOptionElement).value)
+    expect(values).toEqual(['on_time_asc', 'volume_desc'])
+  })
 })
