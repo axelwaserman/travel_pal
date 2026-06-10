@@ -1,21 +1,19 @@
+import { SORT_VALUES } from '../../hooks/useFlightLookupParams'
 import type { FlightLookupParams } from '../../hooks/useFlightLookupParams'
 
 type SortValue = FlightLookupParams['sort']
 
-interface SortOption {
-  value: SortValue
-  label: string
+// Exhaustive map — TypeScript will error if a new sort value is added to
+// SORT_VALUES without a corresponding label entry here.
+const SORT_LABELS: Record<SortValue, string> = {
+  on_time_desc: 'On-time ↓',
+  on_time_asc: 'On-time ↑',
+  delay_asc: 'Avg delay ↑',
+  delay_desc: 'Avg delay ↓',
+  volume_desc: 'Flights ↓',
+  volume_asc: 'Flights ↑',
+  volatility_asc: 'Volatility ↑',
 }
-
-const SORT_OPTIONS: SortOption[] = [
-  { value: 'on_time_desc', label: 'On-time ↓' },
-  { value: 'on_time_asc', label: 'On-time ↑' },
-  { value: 'delay_asc', label: 'Avg delay ↑' },
-  { value: 'delay_desc', label: 'Avg delay ↓' },
-  { value: 'volume_desc', label: 'Flights ↓' },
-  { value: 'volume_asc', label: 'Flights ↑' },
-  { value: 'volatility_asc', label: 'Volatility ↑' },
-]
 
 interface Props {
   value: SortValue
@@ -28,11 +26,15 @@ export default function SortBar({ value, onChange }: Props) {
       className="sort-bar"
       value={value}
       aria-label="Sort results"
-      onChange={e => onChange(e.target.value as SortValue)}
+      onChange={e => {
+        const v = e.target.value
+        if (!SORT_VALUES.includes(v as SortValue)) return
+        onChange(v as SortValue)
+      }}
     >
-      {SORT_OPTIONS.map(opt => (
-        <option key={opt.value} value={opt.value}>
-          {opt.label}
+      {SORT_VALUES.map(v => (
+        <option key={v} value={v}>
+          {SORT_LABELS[v]}
         </option>
       ))}
     </select>

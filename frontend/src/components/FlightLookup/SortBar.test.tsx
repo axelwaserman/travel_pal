@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import SortBar from './SortBar'
+import { SORT_VALUES } from '../../hooks/useFlightLookupParams'
 import type { FlightLookupParams } from '../../hooks/useFlightLookupParams'
 
 describe('SortBar', () => {
@@ -71,5 +72,19 @@ describe('SortBar', () => {
     render(<SortBar value={DEFAULT_SORT} onChange={onChange} />)
     fireEvent.change(screen.getByRole('combobox'), { target: { value: 'volatility_asc' } })
     expect(onChange).toHaveBeenCalledWith('volatility_asc')
+  })
+
+  it('does not call onChange when the select value is not in the SORT_VALUES allowlist', () => {
+    // Regression: guard against arbitrary/injected values reaching onChange.
+    const onChange = vi.fn()
+    render(<SortBar value={DEFAULT_SORT} onChange={onChange} />)
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: '__evil__' } })
+    expect(onChange).not.toHaveBeenCalled()
+  })
+
+  it('derives options from SORT_VALUES — renders exactly as many options as SORT_VALUES entries', () => {
+    render(<SortBar value={DEFAULT_SORT} onChange={vi.fn()} />)
+    const options = screen.getAllByRole('option')
+    expect(options).toHaveLength(SORT_VALUES.length)
   })
 })

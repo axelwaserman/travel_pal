@@ -8,7 +8,7 @@ export type FlightLookupParams = {
   route: string | null
 }
 
-const SORT_VALUES = [
+export const SORT_VALUES = [
   'on_time_desc', 'on_time_asc',
   'delay_asc', 'delay_desc',
   'volume_desc', 'volume_asc',

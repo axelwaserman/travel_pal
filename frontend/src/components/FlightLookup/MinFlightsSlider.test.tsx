@@ -100,4 +100,23 @@ describe('MinFlightsSlider', () => {
     expect(onChange).toHaveBeenCalledWith(42)
     expect(typeof onChange.mock.calls[0][0]).toBe('number')
   })
+
+  it('cancels pending debounce when parent resets value externally', () => {
+    // Regression: stale timer must not fire after parent resets value prop.
+    const onChange = vi.fn()
+    const { rerender } = render(<MinFlightsSlider value={500} onChange={onChange} />)
+    const slider = screen.getByRole('slider')
+
+    // User drags to 700 — starts a 300ms debounce
+    fireEvent.change(slider, { target: { value: '700' } })
+
+    // Parent immediately resets to 1 (e.g. URL reset) before debounce fires
+    rerender(<MinFlightsSlider value={1} onChange={onChange} />)
+
+    // Advance past the original debounce window
+    act(() => { vi.advanceTimersByTime(300) })
+
+    // The stale timer should have been cancelled; onChange must not be called
+    expect(onChange).not.toHaveBeenCalled()
+  })
 })

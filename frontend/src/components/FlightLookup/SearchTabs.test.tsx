@@ -79,4 +79,34 @@ describe('SearchTabs', () => {
     fireEvent.keyDown(carriers, { key: 'ArrowRight' })
     expect(document.activeElement).toBe(airports)
   })
+
+  it('Enter on a focused-but-not-selected Carriers tab fires onChange with "carriers"', () => {
+    const onChange = vi.fn()
+    render(<SearchTabs value="airports" onChange={onChange} />)
+    const [, carriers] = screen.getAllByRole('tab')
+    carriers.focus()
+    fireEvent.keyDown(carriers, { key: 'Enter' })
+    expect(onChange).toHaveBeenCalledOnce()
+    expect(onChange).toHaveBeenCalledWith('carriers')
+  })
+
+  it('Space on a focused-but-not-selected Carriers tab fires onChange with "carriers"', () => {
+    const onChange = vi.fn()
+    render(<SearchTabs value="airports" onChange={onChange} />)
+    const [, carriers] = screen.getAllByRole('tab')
+    carriers.focus()
+    fireEvent.keyDown(carriers, { key: ' ' })
+    expect(onChange).toHaveBeenCalledOnce()
+    expect(onChange).toHaveBeenCalledWith('carriers')
+  })
+
+  it('Enter on the already-active Airports tab still fires onChange', () => {
+    const onChange = vi.fn()
+    render(<SearchTabs value="airports" onChange={onChange} />)
+    const [airports] = screen.getAllByRole('tab')
+    airports.focus()
+    fireEvent.keyDown(airports, { key: 'Enter' })
+    expect(onChange).toHaveBeenCalledOnce()
+    expect(onChange).toHaveBeenCalledWith('airports')
+  })
 })

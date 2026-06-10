@@ -22,6 +22,9 @@ export default function SearchTabs({ value, onChange }: Props) {
     } else if (e.key === 'ArrowLeft') {
       const prev = (index - 1 + TABS.length) % TABS.length
       tabRefs.current[prev]?.focus()
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      onChange(TABS[index].value)
     }
   }
 

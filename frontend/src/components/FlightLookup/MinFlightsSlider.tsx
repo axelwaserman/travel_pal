@@ -18,9 +18,15 @@ export default function MinFlightsSlider({
   const [localValue, setLocalValue] = useState(value)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Keep local value in sync when parent value changes externally
+  // Keep local value in sync when parent value changes externally.
+  // Also clear any pending debounce to prevent the stale timer from
+  // clobbering the parent's reset with the pre-reset value.
   useEffect(() => {
     setLocalValue(value)
+    if (timerRef.current) {
+      clearTimeout(timerRef.current)
+      timerRef.current = null
+    }
   }, [value])
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
