@@ -61,6 +61,15 @@
   border-color: var(--color-accent);
 }
 
+.result-card--clickable {
+  cursor: pointer;
+}
+
+.result-card--clickable:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
 .result-card h3 {
   font-family: var(--font-mono);
   font-weight: 500;

@@ -14,6 +14,7 @@ import {
 import SearchTabs from './SearchTabs'
 import SortBar from './SortBar'
 import MinFlightsSlider from './MinFlightsSlider'
+import { RoutePanel } from './RoutePanel'
 import './FlightLookup.css'
 
 // Sort values available when the Carriers tab is active.
@@ -217,7 +218,18 @@ export default function FlightLookup({ airportIcao }: Props) {
 
   function renderAirportCard(r: AirportResult) {
     return (
-      <article key={`${r.origin_icao}-${r.destination_icao}`} className="result-card">
+      <article
+        key={`${r.origin_icao}-${r.destination_icao}`}
+        className="result-card result-card--clickable"
+        onClick={() => setParams({ route: `${r.origin_icao}-${r.destination_icao}` })}
+        tabIndex={0}
+        onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            setParams({ route: `${r.origin_icao}-${r.destination_icao}` })
+          }
+        }}
+      >
         <h3>{r.origin_icao} → {r.destination_icao}</h3>
         <dl>
           <dt>On-time ratio</dt>
@@ -299,6 +311,17 @@ export default function FlightLookup({ airportIcao }: Props) {
           : visibleCarrierResults.map(r => renderCarrierCard(r))
         }
       </div>
+
+      {params.route && (() => {
+        const [origin, destination] = params.route.split('-')
+        return (
+          <RoutePanel
+            origin={origin}
+            destination={destination}
+            onClose={() => setParams({ route: null })}
+          />
+        )
+      })()}
     </section>
   )
 }
