@@ -20,6 +20,7 @@ _MARTS: tuple[str, ...] = (
     "agg_route_cancellations",
     "agg_carrier_route_cancellations",
     "agg_route_cancellation_reasons",
+    "agg_daily_route_cancellations",
     "dim_airport",
     "dim_carrier",
 )
@@ -31,6 +32,7 @@ _MART_SOURCES: dict[str, str] = {
     "agg_route_cancellations": "agg_route_cancellations",
     "agg_carrier_route_cancellations": "agg_carrier_route_cancellations",
     "agg_route_cancellation_reasons": "agg_route_cancellation_reasons",
+    "agg_daily_route_cancellations": "agg_daily_route_cancellations",
     # dbt seeds — schema-qualified table names (dot = dbt DuckDB file source)
     "dim_airport": "main_ref.dim_airport",
     "dim_carrier": "main_ref.dim_carrier",
@@ -43,6 +45,7 @@ _EXPORT_KEYS: dict[str, str] = {
     "agg_route_cancellations": "route_cancellations.parquet",
     "agg_carrier_route_cancellations": "carrier_route_cancellations.parquet",
     "agg_route_cancellation_reasons": "route_cancellation_reasons.parquet",
+    "agg_daily_route_cancellations": "daily_route_cancellations.parquet",
     # "../" prefix is a sentinel meaning "write to bucket root, not per-airport"
     "dim_airport": "../dim_airport.parquet",
     "dim_carrier": "../dim_carrier.parquet",
@@ -63,6 +66,7 @@ _MART_AIRPORT_PREDICATE: dict[str, str | None] = {
     "agg_route_cancellations": "origin_icao = $airport OR destination_icao = $airport",
     "agg_carrier_route_cancellations": "origin_icao = $airport OR destination_icao = $airport",
     "agg_route_cancellation_reasons": "origin_icao = $airport OR destination_icao = $airport",
+    "agg_daily_route_cancellations": "origin_icao = $airport OR destination_icao = $airport",
     "dim_airport": None,  # full table, no airport scope
     "dim_carrier": None,  # full table, no airport scope
 }

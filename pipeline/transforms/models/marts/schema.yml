@@ -39,3 +39,19 @@ models:
                 - 'Other / Unknown'
       - name: cancelled_count
         tests: [not_null]
+
+  - name: agg_daily_route_cancellations
+    description: >
+      Per (date, origin, destination) total flights + cancellations from BTS.
+      Drives the P2.3 drill-down daily sparkline (cancellation_rate over time).
+    columns:
+      - name: flight_date
+        tests: [not_null]
+      - name: origin_icao
+        tests: [not_null]
+      - name: destination_icao
+        tests: [not_null]
+      - name: total_scheduled
+        tests: [not_null]
+      - name: cancelled
+        tests: [not_null]

@@ -15,10 +15,10 @@ describe('RoutePanelDailySparkline', () => {
       {
         flight_date: '2024-01-01',
         origin_icao: 'KJFK',
-        total_flights: 10,
-        avg_delay_minutes: 5,
-        delay_volatility: 2,
-        on_time_ratio: 0.8,
+        destination_icao: 'KLAX',
+        total_scheduled: 10,
+        cancelled: 1,
+        cancellation_rate: 0.1,
       },
     ]
     render(<RoutePanelDailySparkline data={data} />)

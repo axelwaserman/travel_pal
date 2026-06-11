@@ -5,7 +5,7 @@ import {
   queryRouteDaily,
   queryRouteCarriers,
   queryRouteReasons,
-  type DailyTimeliness,
+  type DailyRouteCancellation,
   type CarrierRouteCancellation,
   type RouteCancellationReason,
 } from '../../db/queries'
@@ -23,19 +23,20 @@ const RoutePanelReasonMix = lazy(() =>
 )
 
 interface Props {
+  airportIcao: string
   origin: string
   destination: string
   onClose: () => void
 }
 
 interface PanelState {
-  daily: DailyTimeliness[] | { error: string }
+  daily: DailyRouteCancellation[] | { error: string }
   carriers: CarrierRouteCancellation[] | { error: string }
   reasons: RouteCancellationReason[] | { error: string }
   loading: boolean
 }
 
-export function RoutePanel({ origin, destination, onClose }: Props) {
+export function RoutePanel({ airportIcao, origin, destination, onClose }: Props) {
   const panelRef = useRef<HTMLElement>(null)
   const closeBtnRef = useRef<HTMLButtonElement>(null)
 
@@ -90,9 +91,9 @@ export function RoutePanel({ origin, destination, onClose }: Props) {
     setState(s => ({ ...s, loading: true }))
     let cancelled = false
     Promise.allSettled([
-      queryRouteDaily(origin, destination),
-      queryRouteCarriers(origin, destination),
-      queryRouteReasons(origin, destination),
+      queryRouteDaily(airportIcao, origin, destination),
+      queryRouteCarriers(airportIcao, origin, destination),
+      queryRouteReasons(airportIcao, origin, destination),
     ]).then(([dailyResult, carriersResult, reasonsResult]) => {
       if (cancelled) return
       setState({
@@ -109,7 +110,7 @@ export function RoutePanel({ origin, destination, onClose }: Props) {
       })
     })
     return () => { cancelled = true }
-  }, [origin, destination])
+  }, [airportIcao, origin, destination])
 
   return (
     <div className="route-panel-backdrop">

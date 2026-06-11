@@ -3,6 +3,7 @@ import { getDb, SEAWEEDFS_PUBLIC_BASE, SEAWEEDFS_PUBLIC_BASE_ROOT } from './clie
 import {
   CarrierCancellationSchema,
   CarrierRouteCancellationSchema,
+  DailyRouteCancellationSchema,
   DailyTimelinessSchema,
   RouteCancellationReasonSchema,
   RouteCancellationSchema,
@@ -10,6 +11,7 @@ import {
   RouteTimelinessWithAirportNameSchema,
   type CarrierCancellation,
   type CarrierRouteCancellation,
+  type DailyRouteCancellation,
   type DailyTimeliness,
   type RouteCancellation,
   type RouteCancellationReason,
@@ -20,6 +22,7 @@ import {
 export type {
   CarrierCancellation,
   CarrierRouteCancellation,
+  DailyRouteCancellation,
   DailyTimeliness,
   RouteCancellation,
   RouteCancellationReason,
@@ -239,16 +242,20 @@ export async function queryCarrierSearch(
  * Reads the per-airport daily_timeliness parquet and filters by both ICAOs.
  */
 export async function queryRouteDaily(
+  airportIcao: string,
   originIcao: string,
   destinationIcao: string
-): Promise<DailyTimeliness[]> {
+): Promise<DailyRouteCancellation[]> {
   const db = await getDb()
   const conn = await db.connect()
   try {
-    // originIcao / destinationIcao come from a URL param that was itself
-    // produced by clicking a result row; values are always ICAO codes
-    // (A-Z0-9) — string interpolation in the table URL is safe.
-    const url = `${SEAWEEDFS_PUBLIC_BASE}/${originIcao}/daily_timeliness.parquet`
+    // Drill-down parquets live under the configured airport prefix
+    // (frontend-exports/{airportIcao}/...); the route's origin can differ
+    // from the configured airport (e.g. KCVG → KJFK when airport = KJFK).
+    // daily_route_cancellations.parquet is BTS-derived (per date × origin ×
+    // destination); the legacy daily_timeliness mart only had origin so it
+    // couldn't filter by route.
+    const url = `${SEAWEEDFS_PUBLIC_BASE}/${airportIcao}/daily_route_cancellations.parquet`
     const stmt = await conn.prepare(
       `SELECT * FROM read_parquet('${url}')
        WHERE origin_icao = $1
@@ -258,7 +265,7 @@ export async function queryRouteDaily(
     try {
       const result = await stmt.query(originIcao, destinationIcao)
       const rows = result.toArray().map(r => r.toJSON())
-      return parsePartial(DailyTimelinessSchema, rows, 'queryRouteDaily')
+      return parsePartial(DailyRouteCancellationSchema, rows, 'queryRouteDaily')
     } finally {
       await stmt.close()
     }
@@ -272,13 +279,14 @@ export async function queryRouteDaily(
  * Reads the per-airport carrier_route_cancellations parquet and filters by both ICAOs.
  */
 export async function queryRouteCarriers(
+  airportIcao: string,
   originIcao: string,
   destinationIcao: string
 ): Promise<CarrierRouteCancellation[]> {
   const db = await getDb()
   const conn = await db.connect()
   try {
-    const url = `${SEAWEEDFS_PUBLIC_BASE}/${originIcao}/carrier_route_cancellations.parquet`
+    const url = `${SEAWEEDFS_PUBLIC_BASE}/${airportIcao}/carrier_route_cancellations.parquet`
     const stmt = await conn.prepare(
       `SELECT * FROM read_parquet('${url}')
        WHERE origin_icao = $1
@@ -302,13 +310,14 @@ export async function queryRouteCarriers(
  * Reads the per-airport route_cancellation_reasons parquet and filters by both ICAOs.
  */
 export async function queryRouteReasons(
+  airportIcao: string,
   originIcao: string,
   destinationIcao: string
 ): Promise<RouteCancellationReason[]> {
   const db = await getDb()
   const conn = await db.connect()
   try {
-    const url = `${SEAWEEDFS_PUBLIC_BASE}/${originIcao}/route_cancellation_reasons.parquet`
+    const url = `${SEAWEEDFS_PUBLIC_BASE}/${airportIcao}/route_cancellation_reasons.parquet`
     const stmt = await conn.prepare(
       `SELECT * FROM read_parquet('${url}')
        WHERE origin_icao = $1

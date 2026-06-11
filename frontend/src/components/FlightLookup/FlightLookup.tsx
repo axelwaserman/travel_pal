@@ -318,6 +318,7 @@ export default function FlightLookup({ airportIcao }: Props) {
         if (!validRoute) return null
         return (
           <RoutePanel
+            airportIcao={airportIcao}
             origin={routeParts[0]}
             destination={routeParts[1]}
             onClose={() => setParams({ route: null })}

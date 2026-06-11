@@ -1,16 +1,16 @@
 import Highcharts from 'highcharts'
 import HighchartsReact from 'highcharts-react-official'
-import { type DailyTimeliness } from '../../db/queries'
+import { type DailyRouteCancellation } from '../../db/queries'
 
 interface Props {
-  data: DailyTimeliness[] | { error: string }
+  data: DailyRouteCancellation[] | { error: string }
 }
 
 export function RoutePanelDailySparkline({ data }: Props) {
   if (!Array.isArray(data)) {
     return (
       <div className="route-panel-section">
-        <h4>Daily Timeliness</h4>
+        <h4>Daily Cancellations</h4>
         <p className="route-panel-error" role="alert">{data.error}</p>
       </div>
     )
@@ -19,21 +19,21 @@ export function RoutePanelDailySparkline({ data }: Props) {
   if (data.length === 0) {
     return (
       <div className="route-panel-section">
-        <h4>Daily Timeliness</h4>
+        <h4>Daily Cancellations</h4>
         <p className="route-panel-empty">No data for this route.</p>
       </div>
     )
   }
 
   const chartData = data
-    .filter(d => d.on_time_ratio !== null)
+    .filter(d => d.cancellation_rate !== null)
     .map(d => ({
       x: typeof d.flight_date === 'string'
         ? new Date(d.flight_date).getTime()
         : typeof d.flight_date === 'number'
           ? d.flight_date
           : (d.flight_date as Date).getTime(),
-      y: (d.on_time_ratio as number) * 100,
+      y: (d.cancellation_rate as number) * 100,
     }))
 
   const options: Highcharts.Options = {
@@ -55,17 +55,16 @@ export function RoutePanelDailySparkline({ data }: Props) {
         format: '{value}%',
       },
       min: 0,
-      max: 100,
     },
     legend: { enabled: false },
     credits: { enabled: false },
-    tooltip: { pointFormat: '<b>{point.y:.1f}%</b> on-time' },
+    tooltip: { pointFormat: '<b>{point.y:.1f}%</b> cancelled' },
     series: [
       {
         type: 'spline',
-        name: 'On-time ratio',
+        name: 'Cancellation rate',
         data: chartData,
-        color: 'oklch(56% 0.19 145)',
+        color: 'oklch(56% 0.19 25)',
         lineWidth: 2,
         marker: { radius: 2 },
       },
@@ -74,7 +73,7 @@ export function RoutePanelDailySparkline({ data }: Props) {
 
   return (
     <div className="route-panel-section">
-      <h4>Daily Timeliness</h4>
+      <h4>Daily Cancellations</h4>
       <HighchartsReact highcharts={Highcharts} options={options} />
     </div>
   )

@@ -225,14 +225,14 @@ describe('queryRouteDaily', () => {
     vi.restoreAllMocks()
   })
 
-  it('returns DailyTimeliness rows filtered by origin + destination', async () => {
+  it('returns DailyRouteCancellation rows filtered by origin + destination', async () => {
     const row = {
       flight_date: '2024-01-15',
       origin_icao: 'KJFK',
-      total_flights: 8,
-      avg_delay_minutes: 3.0,
-      delay_volatility: 0.5,
-      on_time_ratio: 0.875,
+      destination_icao: 'KLAX',
+      total_scheduled: 8,
+      cancelled: 1,
+      cancellation_rate: 0.125,
     }
     const { db } = makeDb([fakeRow(row)])
     vi.doMock('./client', () => ({
@@ -241,7 +241,7 @@ describe('queryRouteDaily', () => {
       SEAWEEDFS_PUBLIC_BASE_ROOT: 'http://mock',
     }))
     const { queryRouteDaily } = await import('./queries')
-    const result = await queryRouteDaily('KJFK', 'KLAX')
+    const result = await queryRouteDaily('KJFK', 'KJFK', 'KLAX')
     expect(result).toHaveLength(1)
     expect(result[0].origin_icao).toBe('KJFK')
   })
@@ -278,7 +278,7 @@ describe('queryRouteCarriers', () => {
       SEAWEEDFS_PUBLIC_BASE_ROOT: 'http://mock',
     }))
     const { queryRouteCarriers } = await import('./queries')
-    const result = await queryRouteCarriers('KJFK', 'KLAX')
+    const result = await queryRouteCarriers('KJFK', 'KJFK', 'KLAX')
     expect(result).toHaveLength(1)
     expect(result[0].carrier_icao).toBe('DAL')
   })
@@ -311,7 +311,7 @@ describe('queryRouteReasons', () => {
       SEAWEEDFS_PUBLIC_BASE_ROOT: 'http://mock',
     }))
     const { queryRouteReasons } = await import('./queries')
-    const result = await queryRouteReasons('KJFK', 'KLAX')
+    const result = await queryRouteReasons('KJFK', 'KJFK', 'KLAX')
     expect(result).toHaveLength(1)
     expect(result[0].reason).toBe('Weather')
   })
@@ -332,7 +332,7 @@ describe('queryRouteReasons', () => {
       SEAWEEDFS_PUBLIC_BASE_ROOT: 'http://mock',
     }))
     const { queryRouteReasons } = await import('./queries')
-    const result = await queryRouteReasons('KJFK', 'KLAX')
+    const result = await queryRouteReasons('KJFK', 'KJFK', 'KLAX')
     expect(result).toHaveLength(0)
     expect(warn).toHaveBeenCalledOnce()
     warn.mockRestore()

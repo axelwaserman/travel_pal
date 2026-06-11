@@ -97,6 +97,17 @@ AGG_ROUTE_CANC_REASONS = pa.table(
     }
 )
 
+AGG_DAILY_ROUTE_CANC = pa.table(
+    {
+        "flight_date": pa.array([date(2024, 1, 1)], type=pa.date32()),
+        "origin_icao": ["KJFK"],
+        "destination_icao": ["KLAX"],
+        "total_scheduled": [10],
+        "cancelled": [1],
+        "cancellation_rate": [0.1],
+    }
+)
+
 DIM_AIRPORT = pa.table(
     {
         "icao": ["KJFK", "KLAX"],
@@ -227,8 +238,8 @@ def test_frontend_exports_reads_marts_from_s3():
     assert "WHERE origin_icao = $airport OR destination_icao = $airport" in route_call.args[0]
     assert route_call.args[1] == {"airport": "KJFK"}
 
-    # Validate uploads — 6 per-airport + 2 root dims = 8 total
-    assert mock_seaweedfs.upload_parquet.call_count == 8
+    # Validate uploads — 7 per-airport + 2 root dims = 9 total
+    assert mock_seaweedfs.upload_parquet.call_count == 9
     upload_calls = mock_seaweedfs.upload_parquet.call_args_list
     keys = [c.kwargs["key"] for c in upload_calls]
     assert "KJFK/route_timeliness.parquet" in keys
@@ -237,6 +248,7 @@ def test_frontend_exports_reads_marts_from_s3():
     assert "KJFK/route_cancellations.parquet" in keys
     assert "KJFK/carrier_route_cancellations.parquet" in keys
     assert "KJFK/route_cancellation_reasons.parquet" in keys
+    assert "KJFK/daily_route_cancellations.parquet" in keys
     assert "dim_airport.parquet" in keys
     assert "dim_carrier.parquet" in keys
     buckets = {c.kwargs["bucket"] for c in upload_calls}
@@ -261,7 +273,7 @@ def _patch_dims() -> "patch":
 
 
 def _mart_execute_side_effects() -> list[MagicMock]:
-    """7 setup calls + 6 mart read_parquet calls for the :memory: connection."""
+    """7 setup calls + 7 mart read_parquet calls for the :memory: connection."""
     return [MagicMock() for _ in range(7)] + [
         MagicMock(to_arrow_table=lambda: AGG_ROUTE_TABLE),
         MagicMock(to_arrow_table=lambda: AGG_DAILY_TABLE),
@@ -269,6 +281,7 @@ def _mart_execute_side_effects() -> list[MagicMock]:
         MagicMock(to_arrow_table=lambda: AGG_ROUTE_CANC),
         MagicMock(to_arrow_table=lambda: AGG_CARRIER_ROUTE_CANC),
         MagicMock(to_arrow_table=lambda: AGG_ROUTE_CANC_REASONS),
+        MagicMock(to_arrow_table=lambda: AGG_DAILY_ROUTE_CANC),
     ]
 
 
@@ -327,9 +340,9 @@ def test_frontend_exports_includes_cancellation_marts():
     assert route_canc_call.args[1] == {"airport": "KJFK"}
 
 
-def test_frontend_exports_emits_6_per_airport_parquets_and_2_dim_parquets_at_root():
+def test_frontend_exports_emits_7_per_airport_parquets_and_2_dim_parquets_at_root():
     """frontend_exports must:
-    - Upload 6 parquets under KJFK/ (4 existing + 2 new P2.3 marts)
+    - Upload 7 parquets under KJFK/ (4 existing + 3 P2.3 marts)
     - Upload 2 dim parquets at the bucket root (no KJFK/ prefix)
     - Dim queries must have no WHERE clause (full table export)
     - New P2.3 mart queries must filter by origin OR destination
@@ -355,6 +368,7 @@ def test_frontend_exports_emits_6_per_airport_parquets_and_2_dim_parquets_at_roo
         MagicMock(to_arrow_table=lambda: AGG_ROUTE_CANC),
         MagicMock(to_arrow_table=lambda: AGG_CARRIER_ROUTE_CANC),
         MagicMock(to_arrow_table=lambda: AGG_ROUTE_CANC_REASONS),
+        MagicMock(to_arrow_table=lambda: AGG_DAILY_ROUTE_CANC),
     ]
 
     # ---- dbt DuckDB connection (dim reads) ----
@@ -377,19 +391,20 @@ def test_frontend_exports_emits_6_per_airport_parquets_and_2_dim_parquets_at_roo
     ):
         frontend_exports(pipeline_config=config, seaweedfs=mock_seaweedfs)
 
-    # --- 8 total uploads: 6 per-airport + 2 root dims ---
-    assert mock_seaweedfs.upload_parquet.call_count == 8
+    # --- 9 total uploads: 7 per-airport + 2 root dims ---
+    assert mock_seaweedfs.upload_parquet.call_count == 9
 
     upload_calls = mock_seaweedfs.upload_parquet.call_args_list
     keys = [c.kwargs["key"] for c in upload_calls]
 
-    # Per-airport parquets (6)
+    # Per-airport parquets (7)
     assert "KJFK/route_timeliness.parquet" in keys
     assert "KJFK/daily_timeliness.parquet" in keys
     assert "KJFK/carrier_cancellations.parquet" in keys
     assert "KJFK/route_cancellations.parquet" in keys
     assert "KJFK/carrier_route_cancellations.parquet" in keys
     assert "KJFK/route_cancellation_reasons.parquet" in keys
+    assert "KJFK/daily_route_cancellations.parquet" in keys
 
     # Dim parquets at ROOT (no airport prefix)
     assert "dim_airport.parquet" in keys

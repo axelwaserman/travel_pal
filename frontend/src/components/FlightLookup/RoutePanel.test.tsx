@@ -47,18 +47,18 @@ describe('RoutePanel', () => {
 
   it('mounts and runs 3 queries via Promise.allSettled when route is provided', async () => {
     await act(async () => {
-      render(<RoutePanel origin="KJFK" destination="KLAX" onClose={onClose} />)
+      render(<RoutePanel airportIcao="KJFK" origin="KJFK" destination="KLAX" onClose={onClose} />)
     })
     await waitFor(() => {
-      expect(mockQueryRouteDaily).toHaveBeenCalledWith('KJFK', 'KLAX')
-      expect(mockQueryRouteCarriers).toHaveBeenCalledWith('KJFK', 'KLAX')
-      expect(mockQueryRouteReasons).toHaveBeenCalledWith('KJFK', 'KLAX')
+      expect(mockQueryRouteDaily).toHaveBeenCalledWith('KJFK', 'KJFK', 'KLAX')
+      expect(mockQueryRouteCarriers).toHaveBeenCalledWith('KJFK', 'KJFK', 'KLAX')
+      expect(mockQueryRouteReasons).toHaveBeenCalledWith('KJFK', 'KJFK', 'KLAX')
     })
   })
 
   it('renders the route heading and dialog role', async () => {
     await act(async () => {
-      render(<RoutePanel origin="KJFK" destination="KLAX" onClose={onClose} />)
+      render(<RoutePanel airportIcao="KJFK" origin="KJFK" destination="KLAX" onClose={onClose} />)
     })
     expect(screen.getByRole('dialog')).toBeInTheDocument()
     expect(screen.getByText('KJFK → KLAX')).toBeInTheDocument()
@@ -66,7 +66,7 @@ describe('RoutePanel', () => {
 
   it('renders all 3 sub-charts once data loads', async () => {
     await act(async () => {
-      render(<RoutePanel origin="KJFK" destination="KLAX" onClose={onClose} />)
+      render(<RoutePanel airportIcao="KJFK" origin="KJFK" destination="KLAX" onClose={onClose} />)
     })
     await waitFor(() => {
       expect(screen.getByTestId('daily-sparkline')).toBeInTheDocument()
@@ -77,7 +77,7 @@ describe('RoutePanel', () => {
 
   it('Escape key calls onClose', async () => {
     await act(async () => {
-      render(<RoutePanel origin="KJFK" destination="KLAX" onClose={onClose} />)
+      render(<RoutePanel airportIcao="KJFK" origin="KJFK" destination="KLAX" onClose={onClose} />)
     })
     fireEvent.keyDown(document, { key: 'Escape' })
     expect(onClose).toHaveBeenCalledTimes(1)
@@ -87,7 +87,7 @@ describe('RoutePanel', () => {
     await act(async () => {
       render(
         <div>
-          <RoutePanel origin="KJFK" destination="KLAX" onClose={onClose} />
+          <RoutePanel airportIcao="KJFK" origin="KJFK" destination="KLAX" onClose={onClose} />
           <button data-testid="outside">outside</button>
         </div>
       )
@@ -98,7 +98,7 @@ describe('RoutePanel', () => {
 
   it('clicking the X button calls onClose', async () => {
     await act(async () => {
-      render(<RoutePanel origin="KJFK" destination="KLAX" onClose={onClose} />)
+      render(<RoutePanel airportIcao="KJFK" origin="KJFK" destination="KLAX" onClose={onClose} />)
     })
     fireEvent.click(screen.getByRole('button', { name: /close panel/i }))
     expect(onClose).toHaveBeenCalledTimes(1)
@@ -106,7 +106,7 @@ describe('RoutePanel', () => {
 
   it('focus moves to close button on mount', async () => {
     await act(async () => {
-      render(<RoutePanel origin="KJFK" destination="KLAX" onClose={onClose} />)
+      render(<RoutePanel airportIcao="KJFK" origin="KJFK" destination="KLAX" onClose={onClose} />)
     })
     const closeBtn = screen.getByRole('button', { name: /close panel/i })
     expect(document.activeElement).toBe(closeBtn)
@@ -120,7 +120,7 @@ describe('RoutePanel', () => {
 
     let unmount!: () => void
     await act(async () => {
-      const result = render(<RoutePanel origin="KJFK" destination="KLAX" onClose={onClose} />)
+      const result = render(<RoutePanel airportIcao="KJFK" origin="KJFK" destination="KLAX" onClose={onClose} />)
       unmount = result.unmount
     })
 
@@ -136,7 +136,7 @@ describe('RoutePanel', () => {
     mockQueryRouteReasons.mockResolvedValue([])
 
     await act(async () => {
-      render(<RoutePanel origin="KJFK" destination="KLAX" onClose={onClose} />)
+      render(<RoutePanel airportIcao="KJFK" origin="KJFK" destination="KLAX" onClose={onClose} />)
     })
     await waitFor(() => {
       expect(screen.getByTestId('daily-sparkline-error')).toBeInTheDocument()
@@ -147,7 +147,7 @@ describe('RoutePanel', () => {
 
   it('Tab from the close button wraps focus back to the close button (only focusable element)', async () => {
     await act(async () => {
-      render(<RoutePanel origin="KJFK" destination="KLAX" onClose={onClose} />)
+      render(<RoutePanel airportIcao="KJFK" origin="KJFK" destination="KLAX" onClose={onClose} />)
     })
     const closeBtn = screen.getByRole('button', { name: /close panel/i })
     closeBtn.focus()
@@ -164,7 +164,7 @@ describe('RoutePanel', () => {
 
   it('has aria-modal=true and aria-labelledby pointing at the route heading', async () => {
     await act(async () => {
-      render(<RoutePanel origin="KJFK" destination="KLAX" onClose={onClose} />)
+      render(<RoutePanel airportIcao="KJFK" origin="KJFK" destination="KLAX" onClose={onClose} />)
     })
     const dialog = screen.getByRole('dialog')
     expect(dialog).toHaveAttribute('aria-modal', 'true')

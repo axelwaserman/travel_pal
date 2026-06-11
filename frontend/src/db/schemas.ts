@@ -77,6 +77,16 @@ export const CarrierRouteCancellationSchema = z.object({
 })
 export type CarrierRouteCancellation = z.infer<typeof CarrierRouteCancellationSchema>
 
+export const DailyRouteCancellationSchema = z.object({
+  flight_date: DATE_FIELD,
+  origin_icao: z.string(),
+  destination_icao: z.string(),
+  total_scheduled: NUMERIC_FIELD,
+  cancelled: NUMERIC_FIELD,
+  cancellation_rate: NULLABLE_NUMERIC,
+})
+export type DailyRouteCancellation = z.infer<typeof DailyRouteCancellationSchema>
+
 export const RouteCancellationReasonSchema = z.object({
   origin_icao: z.string(),
   destination_icao: z.string(),
