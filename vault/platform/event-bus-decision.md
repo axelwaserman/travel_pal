@@ -3,7 +3,7 @@ type: platform
 title: Event Bus — Needed or Not?
 tags: [platform, event-bus, streaming, dagster, redis, architecture-decision]
 status: draft
-updated: 2026-08-08
+updated: 2026-08-10
 ---
 
 # Event Bus — Decision
@@ -32,7 +32,7 @@ Every source is a **pull** on a timer against a public HTTP endpoint. There is n
 
 1. **Decoupling / backpressure (shock absorber).** The legacy design (`tech_product_Architecture.txt` §3.1, "Redis Ingestion Buffer") framed Redis as an async buffer decoupling inbound network events from the Parquet write engine — a design for a **high-throughput event-ingestion analytics product**. The predictive pivot is **not** that product: we poll a handful of low-volume gov feeds on a timer. There is no inbound event firehose to absorb. **Redis stays — but as a serve-time hot cache ([[serving-service]]), not as an ingestion bus.**
 2. **Fan-out to multiple consumers.** We have one consumer per signal (the cache writer) and one reader (the serving service). No multi-subscriber fan-out.
-3. **Durable replay / event sourcing.** Historical replay is served by the **Iceberg time-travel snapshots** (Nessie) and the daily METAR roll-up table ([[ingestion-backfill]] §2) — that *is* our durable log, at batch grain, for free. A Kafka-style retained log would duplicate it.
+3. **Durable replay / event sourcing.** Historical replay is served by **Iceberg's native per-table snapshot history** (time-travel, catalog-agnostic — provided by R2 Data Catalog now that Nessie is dropped, [[orchestration-storage]]) and the daily METAR roll-up table ([[ingestion-backfill]] §2) — that *is* our durable log, at batch grain, for free. A Kafka-style retained log would duplicate it. (Note: we keep Iceberg *snapshots* for recovery; we dropped Nessie *branching* / data-versioning — neither requires a bus.)
 
 ## What would change the verdict (revisit triggers)
 
@@ -40,7 +40,7 @@ Add a bus **only** if one of these becomes a real, signed requirement — not sp
 
 - [ ] **Push alerts at scale** — if day-of alert delivery needs high-fanout, per-user, at-least-once semantics to push/webhook/email for thousands of watched flights, a lightweight queue (see below) becomes justified. Until then, a Dagster-scheduled alert-evaluation job writing to a delivery table is enough. `#task/platform 🔽 ⛓ [[serving-service]]`
 - [ ] **A paid live-status feed** ([[ingestion-backfill]] open Q) that *pushes* (webhook/stream) rather than exposes a poll endpoint — then a thin ingress queue to absorb the push is reasonable.
-- [ ] **B2B portfolio scoring** ([[serving-service]] `/v1/predict/batch`) growing into a long-running async job pattern where clients submit and poll — a task queue (not a full event bus) fits.
+- [ ] ~~**B2B portfolio scoring** (`/v1/predict/batch`) growing into a long-running async job pattern~~ — **dropped: product is now B2C only.** No portfolio/batch surface → this trigger is moot.
 
 ## If a queue is ever needed, start smallest
 

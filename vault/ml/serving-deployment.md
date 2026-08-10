@@ -3,7 +3,7 @@ type: ml
 title: Serving & Deployment — Artifact, Load Contract, Batch vs Online
 tags: [ml, serving, deployment, artifact, batch, online, rollback]
 status: draft
-updated: 2026-08-08
+updated: 2026-08-11
 ---
 
 # Serving & Deployment
@@ -14,7 +14,7 @@ updated: 2026-08-08
 
 - **Format:** LightGBM native booster (`model.txt`) + `calibration.json` (conformal residual quantiles + isotonic/Venn-Abers maps) + `feature_spec.json` (ordered feature names, categorical indices, null sentinels, training means for imputation).
 - **Why native over ONNX:** the serving path is **in-process Python** ([[serving-service]] "loaded once at boot, in-proc") with a `<30 ms` inference budget a CPU tree meets easily. ONNX buys portable/edge inference we **don't need** — the edge tier is pure descriptive Parquet, never model inference ([[frontend-backend-split]]). Keep footprint small ([[AGENTS]] rule 3). **ONNX revisited only** if inference ever moves to a non-Python host.
-- **Load from** SeaweedFS `models/{model_name}/{version}/` (keys from [[training-orchestration]] registry).
+- **Load from** R2 `models/{region}/{model_name}/{version}/` (keys from [[training-orchestration]] registry).
 
 ## Load contract with [[serving-service]]
 
@@ -55,7 +55,7 @@ Rebuilt after each spine top-up + retrain; keyed like `frontend_exports` (`{ICAO
 ## Handoff
 
 - → [[staff-product-engineer]]: `predict()` signature, artifact/calibration/feature-spec key scheme, champion-pointer resolution, two-model base/day-of split — confirm this matches [[serving-service]]'s request flow.
-- → [[staff-platform-engineer]]: artifacts in SeaweedFS (no model server to host); serving loads in-proc; Redis warm cache for batch scores.
+- → [[staff-platform-engineer]]: artifacts in R2 (no model server to host); serving loads in-proc; base-rate predictions from an in-process Arrow/DuckDB table over R2 Parquet, small Redis only for rate-limit counters + day-of fresh-signal TTL ([[training-orchestration]]).
 - ⛓ [[sales]]: the base/day-of split *is* the Free (Class A, $0) vs LP (metered) boundary — confirm against [[tier-matrix]].
 
 ## Sources

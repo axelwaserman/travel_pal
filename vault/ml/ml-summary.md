@@ -24,7 +24,7 @@ Two native-booster artifacts loaded **in-proc** by [[serving-service]]: **`base_
 
 ## Training & registry ([[training-orchestration]])
 
-Dagster assets `training_dataset → {train_cancel, train_delay_quantiles} → calibrate_model → evaluate_model(gate) → register_model → batch_score`, over the Iceberg spine, pinned to a **Nessie snapshot per run** for reproducible data→model→deployment lineage. **Weekly** retrain (BTS lags ≤3mo; fresh signals fused at serve time, not by retraining) + a **drift sensor** (Brier/coverage/PSI) for off-cadence retrain. Registry = **lightweight `ml.model_registry` Iceberg table + SeaweedFS artifacts** (MLflow optional, deferred — keep footprint small); champion status gates what serving loads.
+Dagster assets `training_dataset → {train_cancel, train_delay_quantiles} → calibrate_model → evaluate_model(gate) → register_model → batch_score`, over the Iceberg spine, pinned to a **source-Parquet content fingerprint + immutable timestamp partition per run** for reproducible data→model→deployment lineage (no Nessie/data-versioning layer — dropped team-wide). **Weekly** retrain (BTS lags ≤3mo; fresh signals fused at serve time, not by retraining) + a **drift sensor** (Brier/coverage/PSI) for off-cadence retrain. Registry = **lightweight `ml.model_registry` table (Iceberg/DuckDB) + R2 artifacts** (MLflow optional, deferred — keep footprint small); champion status gates what serving loads.
 
 ## Evaluation gate ([[evaluation]])
 

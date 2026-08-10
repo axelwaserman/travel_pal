@@ -1,9 +1,9 @@
 ---
 type: engineering
 title: Data Acquisition Scan — Feeds + Storage under €50/mo
-tags: [engineering, data, weather, atc, storage, cost, backfill]
+tags: [engineering, data, weather, atc, storage, cost, backfill, r2]
 status: draft
-updated: 2026-08-09
+updated: 2026-08-10
 ---
 
 # Data Acquisition Scan — Feeds + Storage ≤ €50/mo
@@ -69,12 +69,12 @@ updated: 2026-08-09
 - **Total storage ≈ €1/mo; total data stack (feeds + storage) ≈ €1–6/mo** ✅ — vast headroom under €50.
 
 ### Sync with [[staff-platform-engineer]]
-- Current store is **self-hosted SeaweedFS** (`docker-compose.yml`). If we stay self-hosted, marginal storage cost ≈ **€0** (rides the existing VPS) but **durability/backup** is the risk → replicate the **cold raw** copy to Glacier/R2-IA off-box. If going cloud-native, **R2** (zero egress) beats S3-Standard for training reads. **Host decision is [[staff-platform-engineer]]'s** — this note gives them the storage-tier + volume numbers for the cost-model.
+- **Store = Cloudflare R2** (locked, PR #13 — replaces the current self-hosted SeaweedFS in `docker-compose.yml`; catalog = R2 Data Catalog, [[iceberg-duckdb]]). R2's **zero egress** is decisive for iterative training reads. Cold raw archive → **R2 Infrequent Access** (or Glacier off-R2). **[[staff-platform-engineer]]** owns provisioning + cost-model; this note supplies the storage-tier + volume numbers.
 
 ## Open questions
 - [ ] Confirm IEM/Meteostat per-station commercial provenance (some NC segments). `#task/eng 🔼`
 - [ ] Widen BTS column projection to emit delay label + cause codes (cheap, unblocks ML). `#task/eng 🔺 ⛓ [[feature-contract]]`
-- [ ] Self-hosted SeaweedFS vs cloud R2 for warm tier — decide with [[staff-platform-engineer]]. `#task/eng`
+- [ ] Confirm R2 bucket layout — warm Standard vs Infrequent-Access split — with [[staff-platform-engineer]]. `#task/eng`
 
 ## Sources
 - [Iowa IEM ASOS/METAR download](https://mesonet.agron.iastate.edu/request/download.phtml) · [IEM metar dataset](https://mesonet.agron.iastate.edu/info/datasets/metar.html) — accessed 2026-08-09

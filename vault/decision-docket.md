@@ -34,6 +34,8 @@ Two data spikes and the human's calls have resolved several of the forks below. 
 
 **Decision:** Accept that v1 is a **cancellation-rate + base-rate product** (no "how long will it be delayed"), OR spend the ingest/backfill work to make the *predict-how-long* and *on-time route-shopping* value props real before launch.
 
+> **→ Human directive (2026-08-10):** Yes — **backfill US now** (delay columns already in the BTS ZIPs, just widen the projection) **while EU accrues forward via daily ingestion**. The two run in parallel: US gets real depth immediately; EU builds a dataset from day-1 forward-looking pulls. See Resolutions (top) + [[data-acquisition-scan]].
+
 **Why it's forced (ground-truthed, not taken on faith):**
 - The BTS spine carries **no delay field**. `pipeline/pipeline/assets/bts_on_time.py` `_SCHEMA` and `stg_bts_on_time.sql` contain only `flight_date, carrier, tail, flight_number, origin, dest, crs_dep_time(string), cancelled, cancellation_code, diverted, year_month`. There is **no `DepDelay`/`ArrDelay`/elapsed-time**. ML flagged this correctly and bluntly in [[features]] gap #1 and [[problem-framing]] — **CONFIRMED**.
 - The **only** delay signal in the repo, `fct_flight_performance.delay_minutes` / `is_on_time`, is an **OpenSky block-time-vs-route-median proxy** (`fct_flight_performance.sql` reads `stg_flights` = OpenSky `icao24/callsign`). OpenSky is **non-commercial** ([[ingestion-backfill]], [[architecture-summary]] dec. 2). CONFIRMED.
@@ -43,7 +45,7 @@ Two data spikes and the human's calls have resolved several of the forks below. 
 
 **Options:**
 - **A. Honest v1 = cancellation + base-rate only.** Ship what BTS legally supports today: cancellation rates by route/carrier + booking-time base rates. Kills the "predict how long / on-time route-shopping" story until the BTS On-Time *delay* columns are ingested. This is exactly the fallback ML and [[research-summary]] already name. Cheapest, most honest; guts the marketing headline.
-- **B. Extend BTS ingest to the full On-Time Performance delay fields + historical METAR backfill, then launch.** Makes the real product possible. Cost: real ingest/backfill/point-in-time-weather work (ML gaps #1–#3), and it gates everything downstream (training, calibration, the B2B feed, the methodology page). Weeks, not days.
+- **B. Extend BTS ingest to the full On-Time Performance delay fields + historical METAR backfill, then launch.** Makes the real product possible. Cost: real ingest/backfill/point-in-time-weather work (ML gaps #1–#3), and it gates everything downstream (training, calibration, the B2B feed, the methodology page). Weeks, not days. **→ Human directive (2026-08-10): backfill the delay column FIRST — it's the highest-leverage first step and unblocks the model.**
 - **C. Buy a commercial feed** (Cirium/AeroAPI/commercial OpenSky) for delay+freshness. Solves data but **blows the $0 cost-structure wedge** that is the entire differentiation thesis (see D5).
 
 **Reviewer's read:** Do **B** (extend BTS On-Time delay ingest — it's public-domain and already the spine source) and rebuild the on-time marts off BTS *before* any commercial launch, but **ship A's cancellation-only surface first** as the honest free wedge. Do **not** let marketing publish "know which flight to trust / on-time" copy until the BTS-derived on-time marts exist. **Confidence: high** on the diagnosis (verified in-repo); medium on B-then-A sequencing. Changed by: evidence the BTS On-Time prezip actually exposes the delay columns at the projection step (very likely — it does in the real BTS dataset; the current asset simply doesn't select them).
@@ -58,7 +60,7 @@ Two data spikes and the human's calls have resolved several of the forks below. 
 
 **Options:**
 - **A. US launch.** Data-aligned. Weaker monetization (no EU261; US has refunds, not fixed payouts). Marketing's insurance/affiliate angle mostly evaporates.
-- **B. EU launch.** Requires a **paid global/EU feed** (see D5) on day one — kills the $0 wedge and adds COGS not in any model.
+- **B. EU launch.** Requires a **paid global/EU feed** (see D5) on day one — kills the $0 wedge and adds COGS not in any model. **→ Human directive (2026-08-10): launch EU only once forward-looking daily ingestion (start ASAP) has accrued a big-enough dataset — not gated on a paid feed, gated on the accrual clock. Start the AeroDataBox EU accrual immediately so that clock is already running.**
 - **C. US free wedge now, EU as a funded Phase 2** once a paid feed is budgeted.
 
 **Reviewer's read:** **C.** The honest free US cancellation wedge (D1-A) is the only thing shippable at $0, and it's US-data-native. Treat EU as gated on a paid feed + a signed insurer. **Confidence: high** the contradiction is real; medium on sequencing.
@@ -81,6 +83,8 @@ Two data spikes and the human's calls have resolved several of the forks below. 
 - **C. Build B2B on spec.** Highest risk; contradicts the team's own "validate before over-investing."
 
 **Reviewer's read:** **A.** The team itself flags this as the validation gate; honor it. A single design partner also resolves the calibration-bar unknown and the pricing guesswork at once. **Confidence: high.** Changed by: an inbound buyer signal, which none of the notes present.
+
+> **→ Human directive (2026-08-10): forget B2B for now — focus B2C.** This whole decision (D3) is moot for the MVP. B2B is docked; see Resolutions (top). Revisit only if an inbound buyer appears.
 
 ---
 

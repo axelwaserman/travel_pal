@@ -3,7 +3,7 @@ type: platform
 title: Platform Summary — Primary Recommendation & Handoff
 tags: [platform, summary, moc, recommendation, handoff]
 status: draft
-updated: 2026-08-08
+updated: 2026-08-11
 ---
 
 # Platform Summary
@@ -42,11 +42,11 @@ Run the system on **two platforms — Cloudflare (frontend + object storage + Ic
 
 **Runner-up rationale:** swap Fly→Render if the team wants zero DevOps and will pay ~$14–20/mo more for the most hands-off experience (no fly.toml, no machine sizing, guaranteed no cold starts on paid). Both keep the Cloudflare + Neon + Upstash spine identical.
 
-**Rejected:** Vercel/Netlify for Parquet (metered egress → unbounded bills); AWS Lambda for inference (cold-start trap + high lock-in); AWS Fargate/App Runner (pricier, more ops, AWS lock-in); self-host SeaweedFS/Nessie (7 containers of solo-team ops); ClickHouse as Dagster backend (legacy `tech_product_Architecture.txt` §3.6 — **overkill**; Postgres/Neon is the low-ops fit, and the repo's `docker-compose.yml` already uses Postgres, so ClickHouse was never actually adopted).
+**Rejected:** Vercel/Netlify for Parquet (metered egress → unbounded bills); AWS Lambda for inference (cold-start trap + high lock-in); AWS Fargate/App Runner (pricier, more ops, AWS lock-in); self-host SeaweedFS/Nessie (7 containers of solo-team ops — and Nessie's data-versioning is not needed, [[orchestration-storage]]); ClickHouse as Dagster backend (legacy `tech_product_Architecture.txt` §3.6 — **overkill**; Postgres/Neon is the low-ops fit, and the repo's `docker-compose.yml` already uses Postgres, so ClickHouse was never actually adopted).
 
 ## Cost headline
 
-**Fixed infra ≈ $17/mo (MVP) → ~$40–50/mo (moderate).** Dominated by Fly always-on compute; storage + egress ≈ $0 via R2 zero-egress. **~5–15 Plus subs ($39/yr) or one B2B contract covers all fixed infra** — closes the fixed-infra unknown [[unit-economics]] flagged. Platform per-LP marginal ≈ $0, so it does **not** threaten the **$0.002/LP ceiling** (that's weather-API COGS, tracked in [[unit-economics]]). Math: [[cost-model]].
+**Fixed infra ≈ $17/mo (MVP) → ~$40–50/mo (moderate).** Dominated by Fly always-on compute; storage + egress ≈ $0 via R2 zero-egress. **~5–15 Plus subs ($39/yr) cover all fixed infra** (product is now **B2C only** — no B2B contract path) — closes the fixed-infra unknown [[unit-economics]] flagged. Platform per-LP marginal ≈ $0, so it does **not** threaten the **$0.002/LP ceiling** (that's weather-API COGS, tracked in [[unit-economics]]). Math: [[cost-model]].
 
 ## Event-bus verdict
 
@@ -54,7 +54,7 @@ Run the system on **two platforms — Cloudflare (frontend + object storage + Ic
 
 ## Roadmap-blocker flags
 
-1. **R2 Data Catalog is public beta** — the ~$0 managed-catalog win depends on it. **Fallback ready:** self-host Nessie as one container against Neon Postgres (data already in R2 regardless). Confirm GA/SLA before paid launch. `#task/platform 🔼`
+1. **R2 Data Catalog is public beta** — the ~$0 managed-catalog win depends on it. **DECISION (2026-08-11): Nessie is dropped and data-versioning abandoned** ([[orchestration-storage]]); we commit to R2 Data Catalog. If its beta disappoints before GA, the fallback is **another managed Iceberg REST catalog (Glue / Polaris), metadata-only swap — NOT re-introducing self-hosted Nessie**. Confirm GA/SLA before paid launch. `#task/platform 🔼`
 2. **HTTP Range support unverified** on Cloudflare Pages/R2 — DuckDB-WASM byte-range reads depend on it. **Blocking pre-commit `curl -r` test.** `#task/platform 🔺`
 3. **A paid live-status feed** ([[ingestion-backfill]] open Q, [[unit-economics]] risk 3) would add COGS not in this model and could justify revisiting the event-bus verdict — gated on [[sales]] budget.
 4. **`vault/security/` does not exist yet** — network-isolation/secrets/presigned-URL requirements are **assumed**, not validated. **Sync required** before provisioning. `#task/platform 🔺 ⛓ [[security-engineer]]`

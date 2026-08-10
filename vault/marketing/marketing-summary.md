@@ -1,66 +1,73 @@
 ---
 type: marketing
-title: Marketing Summary & Brand System — TravelPal → Glasswing
+title: Marketing Summary & Brand System — FlightPal (B2C)
 tags: [marketing, brand, summary, moc, handoff]
 status: draft
-updated: 2026-08-08
+updated: 2026-08-10
 ---
 
 # Marketing Summary & Handoff
 
-> One-page synthesis of [[naming]], [[positioning]], [[messaging]], [[lead-gen-plan]] + the brand-system sketch. Grounded in [[research-summary]], [[competitors]], [[personas]], [[differentiation-thesis]] and [[sales]] ([[tier-matrix]], [[pricing-summary]]). Handoffs to [[staff-product-engineer]] and [[staff-ml-engineer]].
+> **Rev. per PR #13.** One-page synthesis of [[naming]], [[positioning]], [[messaging]], [[lead-gen-plan]] + brand-system sketch. **B2C-only** (B2B feed dropped). Grounded in [[research-summary]], [[personas]] (P1/P2), [[demand-evidence]], [[differentiation-thesis]] and [[sales]] ([[tier-matrix]]). Handoffs to [[staff-product-engineer]] and [[staff-ml-engineer]].
 
 ## Recommendation in three sentences
 
-Rename **TravelPal → Glasswing** — a name whose glass-box metaphor *is* our wedge: **transparency + route-shopping + cost-to-serve, never accuracy** (we won't out-predict Google/FlightAware Foresight, [[differentiation-thesis]]). Lead every surface with *"Know which flight to trust — and see exactly why,"* give away the transparent route-reliability analytics free (the ~$0 edge tier is the acquisition engine), and funnel into the [[sales]] ladder (Free → Plus → Pro → Team/API), where the **B2B auditable feed is the margin**. Grow through a public **Delay Almanac** stats page (SEO + PR) plus high-signal community and B2B thought-leadership — near-zero paid spend.
+Rename to **FlightPal** (endorsing the human's lean — memorable, owns the "flight" category, fits the friendly B2C tone), **conditional on clearing an existing `tryflightpal.com` collision**; fallback **Glasswing**. Lead every surface with the **outcome** — *"Pick the flight that won't wreck your trip"* — ranking a route's options by reliability, **connection safety**, and **which aircraft/cabin** you'll fly, with transparency demoted to a supporting trust cue. Grow B2C through a **Chrome extension** that grades flights inline at the booking moment, plus long-tail SEO and community — near-zero paid spend — funneling into the consumer ladder (Free limited-mode → Plus → Pro).
 
 ## Key decisions
 
-- **Name:** primary **Glasswing**; fallback **Truebound** / **Almanac**-compound. Avoid **Foresight / Wingman / Skylark / FlightCaster / FlyWise** (collisions/baggage — [[naming]]). *All availability = checks to run, none verified.*
-- **Wedge:** transparent, auditable, route-level, cheap. Position in the open **transparent × route/portfolio** quadrant ([[positioning]] grid).
-- **Honesty (binding):** probabilistic/calibrated language only; uncertainty bands shown as a feature; no guarantees; never repeat the fabricated "89.3%/MIT/7.2B" Google stats. Coordinate public accuracy claims with [[staff-ml-engineer]].
-- **Geo:** lean **EU** for the action/insurance angle (EU261 > withdrawn US DOT rule).
+- **Name:** primary **FlightPal** (blocking check: the live fear-of-flying app on the same name); fallback **Glasswing**. All availability = checks to run, none verified ([[naming]]).
+- **Positioning pivot:** outcome/decision-led ("best flight for your route"), **not** transparency-led, **not** accuracy. Stop naming competitors in user-facing copy.
+- **New product angles:** **connection-miss risk** (leg 1 late vs leg 2 on time) and **aircraft/cabin quality via tail assignment** — both fed by daily forward ingestion.
+- **B2B removed:** no feed, no TMC/insurer personas, no B2B channel. Consumer-only.
+- **MVP:** limited mode, **5 free searches/day**.
 
-## Lead-gen headline (for landing + B2B)
+## ⚠️ FLAGGED (surfaced, not silently rewritten)
 
-- **B2C hero:** **"Know which flight to trust."** — *sub:* "Glasswing reads a decade of on-time data and live conditions to tell you how reliable a route really is — method shown, odds honest, analytics free."
-- **B2B one-liner:** *"An auditable flight-delay risk feed — calibrated, backtested, and priced for mid-market, not just enterprises."*
+The review asked to **"guarantee"** the **"best flight for your buck"** and claim we're **"the only service"** that ensures it. I actioned the *direction* (confident, outcome-first) but did **not** write those literal words, because:
+1. **"guarantee/ensures"** on a probabilistic product implies an undefined remedy + ad-substantiation/legal risk, and reopens the accuracy trap → use *"the flight least likely to let you down,"* or scope a **defined, bounded** service guarantee with legal.
+2. **"for your buck"** = a price/value claim, but **we ingest no fare data** (spine is on-time + weather/NOTAM) → unsubstantiable → use *"best flight for your trip."*
+3. **"the only service"** = a uniqueness/superiority claim requiring proof → use *"the simplest way to pick the flight that won't wreck your trip."*
+Detail + honest alternatives in [[positioning]] "Claims guardrail." If a hard guarantee is still wanted, scope a real SLA-style promise, not an open-ended one.
+
+## Lead-gen headline
+
+- **Hero:** **"Pick the flight that won't wreck your trip."** — *sub:* "FlightPal reads a decade of on-time data, live conditions, connection risk, and which aircraft you'll actually fly — then tells you the best option for your route."
 
 ## Brand system sketch (direction only — not final design)
 
-Respecting `rules/web/design-quality.md` (intentional, non-template; no default card-grid/gradient-blob hero):
+Respecting `rules/web/design-quality.md` (intentional, non-template):
 
-- **3 adjectives:** **Transparent · Precise · Calm.**
-- **Tone of voice:** plain over clever, specific over hype; confident about transparency & cost, humble about certainty. Every number ships with its band and its reason.
-- **Visual direction:** *glass-box editorial* — layered translucent surfaces (frosted/glass panels over data), the **Glasswing** transparent-wing motif as a recurring device, and **data-visualization treated as the hero** (reliability distributions, calibration/reliability curves shown openly — the "we show our work" proof, rendered by the existing DuckDB-WASM dashboards). Depth via overlap & translucency, not drop-shadow uniformity.
-- **Type:** a characterful humanist or editorial serif for headlines paired with a precise grotesk/mono for data — a deliberate pairing, not a default stack. Mono for numbers/odds signals rigor.
-- **Color:** light-luxury base (do **not** auto-default to dark mode); one disciplined accent for the "reliable/at-risk" semantic scale used consistently across viz — color as meaning, not decoration.
-- **Motion:** compositor-friendly only (`transform`/`opacity`); motion clarifies the forecast (band widening under uncertainty), never decorates.
-- **Hand off** to whoever builds the landing page ([[lead-gen-plan]] stats page + hero); do not finalize here.
+- **3 adjectives:** **Confident · Clear · Friendly.**
+- **Tone of voice:** plain over clever; lead with the pick, keep the "why" one tap away; confident about the recommendation, honest about certainty (things change; we show the current best).
+- **Visual direction:** a **decision/grading** system — flight options shown as a ranked, scannable comparison with a clear "best pick" call-out; an at-a-glance **reliability + aircraft + connection** grade (badge/meter) as the hero device; data-viz as a first-class design element, not an afterthought. Depth via layering, not uniform cards.
+- **Type:** a characterful humanist sans/serif for headlines paired with a precise grotesk/mono for grades & numbers — a deliberate pairing.
+- **Color:** light base (do **not** auto-default to dark); one disciplined semantic scale for good→risky grades, used consistently across the extension + app.
+- **Motion:** compositor-friendly only; motion clarifies the ranking/decision, never decorates.
+- **Hand off** to whoever builds the extension + landing page.
 
-## Files written (this deliverable)
+## Files written / revised (this deliverable)
 
-- [[naming]] — 7 candidates + AVOID list + recommendation (Glasswing) + checks-to-run
-- [[positioning]] — wedge, positioning statement, competitor grid, honesty guardrails
-- [[messaging]] — persona/tier value props, hero + subhead + 3 benefit lines, B2B one-liner
-- [[lead-gen-plan]] — funnel w/ per-stage goals, Delay Almanac SEO engine, channels, attribution
+- [[naming]] — FlightPal evaluation + recommendation (conditional) + blocking collision check; Glasswing fallback
+- [[positioning]] — outcome-led wedge, statement, claims guardrail (flag), competitor de-emphasis
+- [[messaging]] — B2C persona props, connection-miss + aircraft/cabin angles, hero + benefit lines
+- [[lead-gen-plan]] — Chrome-extension surface, SEO/community, B2C funnel (B2B dropped)
 - [[marketing-summary]] — this note + brand-system sketch
 
 ## Handoffs
 
-- → [[staff-product-engineer]]: public **Delay Almanac** = programmatic SEO route/airport/carrier pages on the DuckDB-WASM edge; first-party privacy-respecting analytics + funnel/activation instrumentation (respect `rules/web/security.md` CSP); free-alert signup flow.
-- → [[staff-ml-engineer]]: validate that public **calibration/backtest** claims are defensible before they ship (the transparency promise must be real); confirm uncertainty-band presentation.
-- → [[sales]]: B2B thought-leadership + design-partner pipeline feed the Team/API price/calibration validation ([[pricing-summary]] open Qs). Marketing sets **no prices**.
+- → [[staff-product-engineer]]: **Chrome-extension** inline grading surface (on Google Flights/OTAs); **tail-assignment** data for cabin grade; **connection-miss** scoring inputs; public route pages (server-render first, DuckDB-WASM edge is nice-to-have); first-party analytics + activation instrumentation; free limited-mode (5/day) flow.
+- → [[staff-ml-engineer]]: confirm **"best-pick" ranking**, **connection-miss** scoring, and **tail-assignment** tracking are feasible/defensible from the forward-ingestion spine; keep honesty guardrails.
+- → [[sales]]: consumer tiers only; marketing sets **no prices**.
 
 ## Open tasks
 
-- [ ] Run trademark/domain/app-store/social checks on **Glasswing** (+ fallbacks) #task/marketing 🔺 📅 2026-08-22 ⛓ [[naming]]
-- [ ] A/B the 3 alt hero headlines once the stats page is live #task/marketing 🔼 📅 2026-09-15 ⛓ [[lead-gen-plan]]
-- [ ] Ship the "most/least reliable routes" PR data story for backlinks #task/marketing 🔼 📅 2026-09-30
-- [ ] Confirm EU-vs-US launch market w/ [[sales]] (EU261 economics) #task/marketing 📅 2026-09-15
-- [ ] Get [[staff-ml-engineer]] sign-off on public calibration claims before landing page ships #task/marketing 🔺 ⛓ [[staff-ml-engineer]] 📅 2026-09-15
+- [ ] Run collision + trademark/domain/app-store/social checks on **FlightPal** (fallback Glasswing) #task/marketing 🔺 📅 2026-08-22 ⛓ [[naming]]
+- [ ] Validate feasibility of tail-assignment + connection-miss data w/ [[staff-ml-engineer]] before promising them in copy #task/marketing 🔺 📅 2026-09-15 ⛓ [[staff-ml-engineer]]
+- [ ] Decide with legal whether any bounded service-guarantee is offerable #task/marketing 🔼 📅 2026-09-15
+- [ ] A/B the 3 alt hero headlines once the funnel is live #task/marketing 🔼 📅 2026-09-30
 
 ## Sources
 
-- All external claims cited in the linked notes (competitor/trademark, SEO volumes, disruption stats, B2B positioning) with access date 2026-08-08.
-- Cross-refs: [[naming]], [[positioning]], [[messaging]], [[lead-gen-plan]], [[research-summary]], [[tier-matrix]], [[pricing-summary]], [[differentiation-thesis]], [[personas]]
+- All external claims cited in the linked notes (name collision, SEO volumes, disruption stats) with access dates 2026-08-08 / 2026-08-10.
+- Cross-refs: [[naming]], [[positioning]], [[messaging]], [[lead-gen-plan]], [[research-summary]], [[personas]], [[tier-matrix]], [[differentiation-thesis]]

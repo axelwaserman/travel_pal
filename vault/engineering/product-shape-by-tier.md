@@ -1,44 +1,56 @@
 ---
 type: engineering
 title: Product Shape by Tier
-tags: [engineering, product, tiers, metering, gating]
+tags: [engineering, product, tiers, metering, gating, b2c]
 status: draft
-updated: 2026-08-08
+updated: 2026-08-10
 ---
 
 # Product Shape by Tier
 
-> What each tier gets and how gating is enforced technically. Consumes [[frontend-backend-split]], [[serving-service]]. ⛓ **[[sales]] / [[tier-matrix]] not yet written** — tier names/quotas below are **assumed** and must be reconciled with [[sales]]. See [[architecture-summary]].
+> What each surface gives and how gating is enforced. **B2C only — B2B is dead.** **MVP = limited mode (5 free route searches/day); full pricing is NOT in phase 1.** Consumes [[frontend-backend-split]], [[serving-service]]. See [[architecture-summary]].
 
-> [!warning] Assumed input
-> No `vault/sales/` note exists at time of writing. The tier taxonomy (Free/Plus/Pro/API) is inferred from [[research-summary]] handoff (freemium anchored below Flighty $59.99/yr; B2B feed as margin story) and [[personas]] P1–P4. **Confirm with [[sales]] before build.**
+> [!note] Locked in PR #13
+> B2C only. Working name **FlightPal**. Positioning = **"guarantee the best-fitting flight for your buck."** MVP ships **limited mode** (5 free searches/day) — later paid tiers are sketched below but **deferred past phase 1**.
 
-## Tier → surface → enforcement
+## Phase 1 (MVP) — limited mode only
 
-| Tier | Persona | Surfaces | Data source | Enforcement |
-|---|---|---|---|---|
-| **Free** | P2 anxious flyer, top-of-funnel | Route/carrier reliability, cancellation rates, hour×DOW heatmap, **base-rate "typically X% on-time"** | **Edge**: public Parquet + DuckDB-WASM | None needed — anonymous public bucket ([[frontend-backend-split]]); ~$0 marginal cost |
-| **Plus** (B2C sub, < $59.99/yr) | P1 optimizing nomad | Everything in Free **+ live per-flight prediction**, day-of alerts (≥3–6h lead), calibrated bands + reason codes | **API** `/v1/predict`, `/v1/alerts` | API key → tier; Redis token bucket (soft monthly quota) |
-| **Pro** (B2C power) | P1 heavy | Higher quota, multi-flight watchlist, CSV/export, historical drill-down | API + edge | Higher quota bucket; export gated by tier |
-| **API / B2B** | P3 TMC, P4 insurer | Metered calibrated **feed**, `/v1/predict/batch`, SLA, `/v1/methodology` backtest + calibration docs, snapshot-pinned responses | API (contractual) | Per-key quota + SLA tier; usage billing on metering unit |
+| Surface | Data source | Gating |
+|---|---|---|
+| Route/carrier reliability, cancellation rates, hour×DOW heatmap ("best-fitting flight for your buck") | **Edge** public Parquet + DuckDB-WASM (*nice-to-have* — server-rendered fallback fine) | none (public, ~$0) |
+| **Live per-flight prediction** (`P(delay≥Xh)` + bands + reason codes) | **API** `/v1/predict` ([[serving-service]]) | **5 free route searches/day** via Redis token-bucket keyed on device/session id → then a friendly upsell wall |
 
-## The gating mechanics (single rule)
+- No login required in MVP; the daily cap is device/session-scoped.
+- No paid plan, no billing integration in phase 1 — the wall exists to prove demand + protect cost, not to charge yet.
 
-- **Free = edge-only.** Free users are never issued an API key; they get the static public Parquet surfaces. No server compute, so nothing to meter — and nothing sensitive is exposed (aggregate, public-domain BTS).
-- **Paid = API key + metered.** Every prediction/alert/feed call passes the [[serving-service]] rate-limiter keyed to the tier. The metering unit (assumed = one prediction) and quotas come from [[sales]]/[[unit-economics]].
-- Boundary is enforced by *where the data physically lives*, not by client-side checks: fresh signals + predictions never touch `frontend-exports`, so they cannot leak to the free edge ([[frontend-backend-split]]).
+## Later phases (sketch — NOT phase 1)
 
-## Strategic alignment ([[differentiation-thesis]])
+All B2C. Names/prices provisional, pending validation:
 
-- Free edge tier = the **acquisition wedge** (transparent route-shopping at ~$0 to serve) — the thing incumbents give away as a black box or price for enterprises.
-- **API/B2B is the margin story** ([[personas]] P3/P4) — calibrated + auditable feed. Treated as a first-class product surface, not an afterthought.
-- Consumer prediction (Plus/Pro) is a *modest* sub, not the core bet — raw forecast is commoditized ([[research-summary]]).
+| Tier | Gets | Enforcement |
+|---|---|---|
+| **Free** | Route-shopping + capped daily predictions (the MVP surface) | device-id daily cap |
+| **Plus** (B2C sub) | Uncapped predictions, day-of alerts (≥3–6h lead), multi-flight watchlist | account + API key, higher quota |
+
+Anchor Plus **below Flighty's $59.99/yr** ([[research-summary]]). No API/feed tier — **B2B is out of scope entirely.**
+
+## The gating mechanic (single rule)
+
+- **Edge = public, ungated.** Aggregate, public-domain-derived route stats live in a public bucket (DuckDB-WASM reads them, or a server fallback). Nothing sensitive, nothing metered — so ~$0 to serve.
+- **Predictions = metered API.** Every `/v1/predict` passes the [[serving-service]] rate-limiter (device-id token bucket, 5/day in MVP). Fresh signals + inference never touch the public bucket, so they can't leak to the free edge ([[frontend-backend-split]]).
+- Boundary enforced by **where data physically lives**, not client-side checks.
+
+## Strategic alignment
+
+- The edge route-shopping surface = the **acquisition wedge**: cheap-to-serve, answers "best-fitting flight for your buck."
+- Live prediction is the **hook behind the 5/day wall** — proves willingness to engage before we build billing.
+- **DuckDB-WASM is a nice-to-have**, not the core feature; the core is the best-fit answer, however rendered.
 
 ## Open questions
-- [ ] **[[sales]] must publish [[tier-matrix]] + [[unit-economics]]**: confirm tier names, price points, metering unit, quotas. `#task/eng 🔺 ⛓ [[sales]]`
-- [ ] Does Free expose *any* forward-looking base-rate, or only backward-looking history? (Affects how much value is free.) `#task/product ⛓ [[marketing]]`
-- [ ] EU vs US launch (DOT compensation-rule withdrawal favors EU261) shapes which tier leads GTM. `#task/marketing`
+- [ ] Confirm the exact free cap (5/day) + upsell copy with [[marketing]]. `#task/product ⛓ [[marketing]]`
+- [ ] Does Free expose forward-looking base rates, or only backward-looking history? `#task/product`
+- [ ] When (which phase) does Plus + billing land? `#task/product 🔽`
 
 ## Sources
-- [[research-summary]], [[personas]], [[differentiation-thesis]] (repo vault) — accessed 2026-08-08
-- [Flighty pricing](https://flighty.com/pricing) (anchor) — accessed 2026-08-08
+- [[research-summary]], [[personas]] (repo vault) — accessed 2026-08-10
+- [Flighty pricing](https://flighty.com/pricing) (anchor for a later Plus tier) — accessed 2026-08-10

@@ -1,14 +1,14 @@
 ---
 type: sales
 title: Unit Economics — Cost per Prediction & Gross Margin
-tags: [sales, pricing, unit-economics, cost-model]
+tags: [sales, pricing, unit-economics, cost-model, deferred]
 status: draft
-updated: 2026-08-08
+updated: 2026-08-10
 ---
 
 # Unit Economics
 
-> Bottom-up cost of one Live Prediction (LP, defined in [[metering-unit]]) and gross margin per tier ([[tier-matrix]]). **Every cost is tagged measured / estimated / assumed. No cost is invented — unknowns are flagged for verification, per [[AGENTS]] rule 2.**
+> **⛔ DEFERRED — NOT phase 1 (per PR #13 review).** Full margin model for the future paid tiers ([[tier-matrix]]). For the phase-1 free-limited MVP, the only cost that matters is **≤ $0.0015 per route search** (weather fetch, net of caching) → **< $0.25/free-user/mo** — see [[pricing-summary]]. **B2B dropped (B2C only).** Everything below assumes the deferred paid model. Costs tagged measured / estimated / assumed; none invented, per [[AGENTS]] rule 2.
 
 ## Cost of one Live Prediction (LP)
 

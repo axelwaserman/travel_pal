@@ -1,9 +1,9 @@
 ---
 type: platform
 title: Orchestration & Storage — Dagster, Object Store, Catalog, Metadata DB, Cache
-tags: [platform, dagster, iceberg, nessie, seaweedfs, r2, postgres, redis, storage]
+tags: [platform, dagster, iceberg, r2-data-catalog, seaweedfs, r2, postgres, redis, storage]
 status: draft
-updated: 2026-08-08
+updated: 2026-08-10
 ---
 
 # Orchestration & Storage
@@ -16,10 +16,13 @@ updated: 2026-08-08
 
 ## The consolidation move (headline)
 
-**Cloudflare R2 + R2 Data Catalog collapses `seaweedfs-*` (4 containers) + `nessie` (1 container) into ONE managed, zero-egress, near-free service.** R2 is S3-compatible (drop-in for the existing `httpfs` / boto3 path-style config in `frontend_exports._configure_s3`); R2 Data Catalog is a managed **Iceberg REST catalog** that PyIceberg/DuckDB talk to exactly like Nessie's REST endpoint. At 2–4 GB slow-growing data ([[ingestion-backfill]] §1.2) both sit inside free tiers → effectively **$0**.
+**Cloudflare R2 + R2 Data Catalog collapses `seaweedfs-*` (4 containers) + `nessie` (1 container) into ONE managed, zero-egress, near-free service.** R2 is S3-compatible (drop-in for the existing `httpfs` / boto3 path-style config in `frontend_exports._configure_s3`); R2 Data Catalog is a managed **Iceberg REST catalog** that PyIceberg/DuckDB talk to over the standard REST API. At 2–4 GB slow-growing data ([[ingestion-backfill]] §1.2) both sit inside free tiers → effectively **$0**.
 
-> [!warning] Beta risk
-> **R2 Data Catalog is public beta** (billing enabled 2026-08-03). Confirm GA/SLA before a paid launch. Fallback: keep **Nessie self-hosted as one small container against managed Postgres** (Nessie is JDBC-backed, so it rides whatever Postgres we pick) — far lower ops than SeaweedFS, and Iceberg-on-S3 means the *data* already lives in R2 regardless of catalog choice. **Nessie branch-per-backfill workflow ([[ingestion-backfill]] §1.4) is preserved on R2 Data Catalog** (Iceberg-native branching); verify branch semantics parity during migration. `#task/platform 🔼`
+> [!important] DECISION (owned by [[staff-platform-engineer]], 2026-08-10): drop Nessie, adopt R2 Data Catalog, **abandon data-versioning entirely.**
+> **Nessie is removed from the stack — no self-hosted-Nessie fallback.** We commit to **R2 Data Catalog** as the single managed Iceberg REST catalog. **We do NOT need git-like data versioning** (Nessie branches/tags): the product is B2C, forward-looking, and has no reproducible-snapshot contract to honour (the B2B feed that motivated snapshot-pinning is dropped — B2C only). Consequences engineering must align to ([[ingestion-backfill]], [[iceberg-duckdb]] — flag to [[staff-product-engineer]]):
+> - **Safe re-runnable backfills use overwrite-by-`year_month`** ([[ingestion-backfill]] §1.3 idempotency), **not** a `backfill/*` branch-then-merge ([[ingestion-backfill]] §1.4 is retired). One partition = one atomic table overwrite; readers never see a half-loaded month because each partition write is transactional in Iceberg.
+> - **Iceberg still keeps per-table snapshot history** (native to the format, catalog-agnostic) → time-travel + rollback for recovery remain available; what we give up is *named branches*, which we don't use.
+> - **Beta risk accepted:** R2 Data Catalog is public beta (billing enabled 2026-08-03). If it proves inadequate before GA, the fallback is **another managed Iceberg REST catalog** (AWS Glue / Apache Polaris-based), **not** re-introducing self-hosted Nessie. The *data* lives in R2 regardless, so a catalog swap is metadata-only. `#task/platform 🔼`
 
 ## Component-by-component decision
 
@@ -34,14 +37,19 @@ updated: 2026-08-08
 
 **Why R2:** the frontend serves **public Parquet with unbounded, unpredictable download volume** ([[frontend-backend-split]]). Zero egress means a dataset going viral costs $0 in transfer; S3 would bill $0.09/GB. Same store backs both the anon public `frontend-exports` and the private warehouse — split by bucket + credentials, not by provider. At 2–4 GB storage ≈ **$0.03–0.06/mo**, inside the free tier → **~$0**.
 
-### 2. Iceberg catalog — Nessie → **R2 Data Catalog** (primary) / self-host Nessie (fallback) ✅
+### 2. Iceberg catalog — Nessie → **R2 Data Catalog** (chosen; no fallback catalog) ✅
 
-| Catalog | Model | Cost at our scale | Ops |
-|---|---|---|---|
-| **R2 Data Catalog** | managed Iceberg REST, co-located w/ R2 | free tier: 1M catalog ops + 10 GB compaction/mo → **~$0** | **zero** (managed); beta |
-| Self-host Nessie | 1 container, JDBC→Postgres | container + DB cost only | low (1 container vs 5) |
-| AWS Glue Catalog | managed | 1M objects + 1M req free, then $1/100k obj | higher-ops, not co-located w/ R2 |
-| Dremio Arctic (managed Nessie) | **discontinued** → "Open Catalog / Polaris" | n/a | reject (moved target) |
+| Catalog | Model | Cost at our scale | Ops | Verdict |
+|---|---|---|---|---|
+| **R2 Data Catalog** | managed Iceberg REST, co-located w/ R2 | free tier: 1M catalog ops + 10 GB compaction/mo → **~$0** | **zero** (managed); beta | **chosen** |
+| Self-host Nessie | 1 container, JDBC→Postgres | container + DB cost only | low (1 vs 5 containers) | **dropped** — see decision box |
+| AWS Glue Catalog | managed | 1M objects + 1M req free, then $1/100k obj | higher-ops, not co-located w/ R2 | emergency-only alt |
+| Apache Polaris (self/managed) | Iceberg REST, Snowflake-donated (Apache) | infra/managed cost | medium (young project) | not needed |
+| Dremio Arctic (managed Nessie) | **discontinued** → "Open Catalog / Polaris" | n/a | moved target | reject |
+
+#### Why was Nessie the alternative and not Polaris? (answering the PR question)
+
+Nessie appeared as the natural alternative purely because **it is what the repo already runs** (`docker-compose.yml` `nessie:0.104.4`) and what the `travelpal-iceberg-nessie` skill + legacy `tech_product_Architecture.txt` §3.2 built around — the comparison was "keep the incumbent vs replace it," not a greenfield catalog bake-off. The deciding factor Nessie offered was **git-like branching** ([[ingestion-backfill]] §1.4), which we have now **explicitly decided we don't need** (decision box above). **Apache Polaris** (Snowflake-donated, Apache-incubating) is a perfectly valid Iceberg REST catalog, but it wasn't the incumbent, is a younger project, and — critically — it is still **a catalog we'd have to host or buy** (Dremio's managed "Open Catalog" is Polaris-based). It solves the same problem as R2 Data Catalog with **more ops and no co-location** with our R2 storage. So the real choice was never Nessie-vs-Polaris; it was **"any Iceberg REST catalog" vs "the managed one co-located with the object store we already picked."** R2 Data Catalog wins on ops + $0 co-location. **This whole comparison is now largely moot: we commit to R2 Data Catalog; Glue/Polaris survive only as a metadata-only emergency swap if R2's beta disappoints.**
 
 ### 3. Dagster metadata DB — self-host Postgres → **Neon (free, scale-to-zero)** ✅
 
@@ -70,6 +78,39 @@ For a solo team with a **scheduled monthly-batch + a few polls** workload ([[ing
 | `dagster-webserver` + `dagster-daemon` | **1 self-hosted container** on the backend host (see [[hosting-options]]) |
 
 Only Dagster (and the FastAPI service) remain as things we run. Everything stateful is managed and near-free at MVP scale.
+
+## Local testing & dev/prod isolation (answering the PR question)
+
+**Problem:** R2 + R2 Data Catalog are managed Cloudflare services — you **cannot run them on `localhost`**. A product engineer must be able to run the pipeline + tests offline and against a non-prod target without touching prod data. Two separate concerns, two mechanisms:
+
+### A. Local / offline testing (no Cloudflare account needed)
+
+The stack is **S3-API + Iceberg-REST-API on both ends**, so we test against local stand-ins that speak the same protocols — the app code (`_configure_s3`, `httpfs`, PyIceberg REST config) only changes **endpoint + credentials**, never logic:
+
+| Prod service | Local stand-in for tests | Layer ([[travelpal-testing-layers]]) |
+|---|---|---|
+| R2 (S3 API) | **MinIO** container, or **moto** mock (already used for SeaweedFS per `travelpal-seaweedfs` skill) | unit / integration |
+| R2 Data Catalog (Iceberg REST) | **`apache/iceberg-rest-fixture`** (or a **local Polaris**) container in a dev-only compose profile; or **PyIceberg `SqlCatalog`** (SQLite-backed) for pure unit tests | integration |
+| Neon Postgres | local `postgres` container (the compose service already exists) | integration |
+| Upstash Redis | local `redis` container / `fakeredis` | unit / integration |
+
+- Keep a **`docker-compose.dev.yml` (or a `dev` profile)** with MinIO + an Iceberg-REST-fixture + postgres + redis. This is the **local dev/test rig only** — it is *not* the production topology (we deleted SeaweedFS/Nessie from prod; the local rig is disposable and unversioned-data is fine).
+- E2E ([[travelpal-testing-layers]]) runs against this local rig, exactly as the current Playwright + DuckDB-WASM UAT does (`CLAUDE.md`), so the mandated end-to-end test path is preserved without cloud access.
+
+### B. Environment isolation (dev vs prod, both on Cloudflare)
+
+**R2 Data Catalog is enabled per-bucket**, which gives natural isolation — use **two R2 buckets** (ideally in **two Cloudflare accounts**, or at minimum two buckets + two scoped API tokens):
+
+| Env | R2 bucket(s) | Catalog | Compute | Secrets |
+|---|---|---|---|---|
+| **dev/staging** | `travelpal-dev-warehouse`, `travelpal-dev-exports` | R2 Data Catalog on the dev bucket | Fly `travelpal-dev` app + Neon **dev branch** | separate scoped R2 token, dev Fly secrets |
+| **prod** | `travelpal-warehouse`, `travelpal-exports` | R2 Data Catalog on the prod bucket | Fly `travelpal` app + Neon prod | prod-only scoped token |
+
+- **Neon branching** gives a zero-cost throwaway `dev` DB copy for Dagster metadata (Neon's one genuinely useful "versioning" feature — for the *metadata DB*, not the lakehouse).
+- **Blast-radius rule:** the dev R2 API token is scoped to dev buckets only, so a dev run **physically cannot** write prod data — isolation by credentials + bucket, same principle as the anon-public vs private split. Coordinate token scoping with [[security-engineer]].
+- **Promotion:** code promotes dev→prod via CI/branch merge; **data does not need promotion** (forward daily ingestion re-derives prod tables from source — [[ingestion-backfill]]), which is exactly why dropping data-versioning is safe here.
+
+`#task/platform 🔼 ⛓ [[staff-product-engineer]]` (owns the dev compose rig + test wiring) · `#task/platform 🔺 ⛓ [[security-engineer]]` (token scoping)
 
 ## Handoffs
 

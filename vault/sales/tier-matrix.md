@@ -1,14 +1,14 @@
 ---
 type: sales
 title: Tier Matrix — Free / Plus / Pro / Team-API
-tags: [sales, pricing, tiers]
+tags: [sales, pricing, tiers, deferred]
 status: draft
-updated: 2026-08-08
+updated: 2026-08-10
 ---
 
 # Tier Matrix
 
-> Four tiers built on the [[metering-unit]] (Live Prediction = LP). Anchored to competitor pricing captured in [[competitors]] and [[research-summary]]; personas from [[personas]]. Unit-cost justification in [[unit-economics]].
+> **⛔ DEFERRED — NOT phase 1 (per PR #13 review).** Phase 1 ships free-limited mode only (5 route searches/day); see [[pricing-summary]]. This ladder is revisited **once MVP proves demand**. **B2B is DROPPED (B2C only)** — the Team/API column below is retained as history, not a roadmap item. Prices anchored to [[competitors]] / [[research-summary]]; personas [[personas]]; costs [[unit-economics]].
 
 ## Strategy in one line
 

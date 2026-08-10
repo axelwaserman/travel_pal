@@ -43,6 +43,27 @@ Even the **CC-BY OpenSky Zenodo** data (the only deep-ish commercial-clean optio
 
 → The **"non-US = forward-only OR coarse OR non-commercial"** conclusion from [[data-sources-apac-me]] **stands, verified.** Roadmap implication: US-BTS remains the only free deep delay-labeled spine; EU/APAC historical is either a non-commercial backtest (OpenSky) or a funded enterprise buy. `model_us` trains on real depth; non-US models stay coarse/base-rate until a paid schedule+OTP feed is budgeted → [[regional-data-feasibility]].
 
+## Start-now forward-ingestion plan (URGENT — action, per PR #13)
+
+**Why now:** deep non-US delay-labelled history is not buyable cheap or commercial-clean (this note). The only way to *own* it is to **capture it daily starting today** — every day not captured is permanently lost. This runs **in parallel with** the US-BTS delay-column backfill; it is not blocked by it.
+
+**What to ingest (commercial-clean first):**
+| Source | Cadence | Gives | Zone |
+|---|---|---|---|
+| **AeroDataBox** airport flight lists (arrivals+departures) for a chosen set of EU + APAC hub airports | **daily** (post local day-end) | actual times + delay → **label** | commercial-clean (~$5/mo, [[data-acquisition-scan]]) |
+| Gov aggregates (**BITRE / DGCA / MAVCOM / CAAV**) | on publish cadence (monthly) | aggregate OTP base rates | free, commercial-clean-ish |
+| **OpenSky** daily | daily | trajectories (derive) | **non-commercial — free-product/backtest only** |
+
+**Where it lands:** Iceberg on **Cloudflare R2 via R2 Data Catalog** ([[iceberg-duckdb]]), partitioned by `(date, airport_region)`:
+- `flights.nonus_daily` — commercial-clean sources (AeroDataBox, gov). Safe for paid outputs.
+- `flights.nonus_backtest` — OpenSky, **flagged non-commercial**, physically isolated so it can never leak into a paid model/output.
+
+**Cadence & wiring:** Dagster `daily_nonus_ingest` schedule ([[ingestion-backfill]] §4), one partition per `(date, airport)`. AeroDataBox's shallow-history limit is irrelevant when we snapshot **daily** — we build depth going forward. Storage is trivial (daily airport lists are small).
+
+**Priority order:** (1) widen US-BTS delay columns (label), (2) **stand up `daily_nonus_ingest` immediately**, (3) deep US backfill.
+
+- [ ] **Stand up `daily_nonus_ingest` now** — pick hub-airport list, wire AeroDataBox + OpenSky adapters → R2. `#task/eng 🔺`
+
 ## Open questions
 - [ ] Would FR24 Explorer ($9/mo) historical tracks yield a usable derived delay label at that tier, or is depth/label gated to enterprise data-services? Verify with a trial. `#task/eng 🔼`
 - [ ] Is OpenSky Zenodo (CC-BY, 2019–22) worth ingesting purely for a commercial-clean EU **backtest** base-rate spine? `#task/eng ⛓ [[staff-ml-engineer]]`

@@ -8,66 +8,68 @@ updated: 2026-08-10
 
 # Flight Data Sources — APAC & Middle East
 
-> Is there a free public BTS-equivalent for APAC/ME, or is it commercial-only? Scan for a region-partitioned spine (`model_apac`, `model_me`). Consumes [[data-acquisition-scan]], [[ingestion-backfill]]. Feeds [[regional-data-feasibility]]. Budget: **≤€50/mo total data**.
+> Exhaustive per-country scan for a region-partitioned spine (`model_apac`, `model_me`). **Two product zones matter** (per PR #13): the **FREE product** can lean on non-commercial sources (OpenSky, some gov data); the **PAID product** must use commercial-clean feeds only. Consumes [[data-acquisition-scan]], [[historical-nonus-sources]]. Feeds [[regional-data-feasibility]], [[ingestion-backfill]]. Budget: **≤€50/mo total**.
 
 > [!important] Blunt answer
-> **No true BTS-equivalent exists for APAC/ME.** Only **Australia (BITRE)** and **India (DGCA)** publish free, structured, downloadable OTP — and **both are aggregate (airline/route × month), not flight-level with actual times + cause codes** like BTS/ASQP. Everything else — **China, South Korea, Singapore, Japan (flight-level), the entire Gulf/ME** — is **commercial-only or not published**. For a *flight-level* APAC/ME model, you are effectively **paywalled**; the only budget-fit commercial source is **AeroDataBox (~$5/mo)**.
+> **No true BTS-equivalent (free, flight-level, delay-labelled, cause codes) exists anywhere in APAC/ME.** The best free gov data is **aggregate OTP** (airline/route × month %). Free & structured: **Australia (BITRE)**, **India (DGCA)**, **Malaysia (MAVCOM)**. Aggregate-but-messy: **Japan, Vietnam**. Effectively nothing: **China, Korea, Singapore, Thailand, Indonesia, Philippines, entire Gulf/ME**. Flight-level anywhere in APAC/ME = **commercial** (AeroDataBox ~$5/mo the only budget-fit; Cirium/OAG/VariFlight enterprise).
 
-## 1. Government / open-data OTP (the free-BTS-equivalent question)
+## The two distinctions that decide fit
 
-| Country | Source | Granularity | History | License / commercial | Cost | Verdict |
-|---|---|---|---|---|---|---|
-| **Australia** 🇦🇺 | **BITRE** Domestic OTP (`bitre.gov.au`, `data.gov.au`) | **Aggregate**: airline × route × month, on-time %, cancellations (not per-flight, no cause codes) | monthly, long time series (2003–) | data.gov.au **CC BY** — commercial OK ✅ (measured) | **free** | **Best free APAC source.** Domestic only. Base-rates, not flight-level. |
-| **India** 🇮🇳 | **DGCA** via `data.gov.in` (OGD) + Dataful.in (CSV/XLSX/Parquet) | **Aggregate**: airline-wise monthly OTP, **only 4 metros** (DEL, BOM, BLR, HYD); ≤15-min arrival def | monthly, 2009– | OGD India Gov / ODbL — commercial OK ✅ (measured/*assumed* per-set) | **free** | **Second-best free.** Coarse (4 airports, airline-level). |
-| **Japan** 🇯🇵 | **JCAB/MLIT** "information disclosure" OTP | **Aggregate** airline-level %, Japanese-language reports; no clean flight-level open set | annual/monthly | gov, terms unclear *(assumed)* | free | Weak — aggregate + language barrier. Base-rate only. |
-| **South Korea** 🇰🇷 | MOLIT / `airportal.go.kr` | No dedicated open OTP dataset found (measured: search returned none) | — | — | — | **Effectively unavailable** as open data. |
-| **China** 🇨🇳 | CAAC | No open flight-level; aggregate annual bulletins only | — | — | — | **Commercial-only** (VariFlight/Cirium dominate). |
-| **Singapore** 🇸🇬 | CAAS / Changi | Live flight status on site; **no open OTP dataset** *(assumed)* | — | — | — | Commercial-only. |
-| **Gulf / ME** 🇦🇪🇶🇦 | UAE GCAA; Emirates/Qatar/Etihad | Carriers/regulators **do not publish** OTP | — | — | — | **No free data. Commercial-only.** |
+- **Granularity:** *flight-level* (per-flight actual times + cause codes, like BTS) vs *aggregate* (monthly airline/route on-time %). Aggregate → base rates only, no supervised delay label, no day-of features.
+- **License zone:** *FREE product* tolerates non-commercial sources (OpenSky) — **caveat:** a free app from a for-profit may still count as "commercial use" under OpenSky terms; verify (*assumed* permissive here). *PAID product* needs commercial-clean.
 
-**Takeaway:** free gov OTP in APAC/ME = **Australia + India only**, and both are **base-rate aggregates** — good enough for booking-time route/carrier reliability and a *coarse* regional model, **not** for a flight-level day-of model (no actual times, no `LateAircraftDelay`-style labels — see [[data-acquisition-scan]] §0).
+## Per-country matrix
 
-## 2. Commercial global providers — APAC/ME coverage vs budget
+| Country | Gov open OTP? (granularity) | License / commercial | FREE-product path | PAID-product path |
+|---|---|---|---|---|
+| 🇦🇺 **Australia** | ✅ **BITRE** — airline × route × month OTP + cancellations (aggregate) | data.gov.au **CC BY**, commercial-OK (measured) | BITRE direct | **BITRE** (already commercial-clean) + AeroDataBox for flight-level |
+| 🇮🇳 **India** | ✅ **DGCA** via data.gov.in / Dataful (CSV/Parquet) — airline monthly, **4 metros only** (DEL/BOM/BLR/HYD), aggregate | OGD India / ODbL, commercial-OK (measured/*assumed* per-set) | DGCA direct | DGCA + AeroDataBox flight-level |
+| 🇲🇾 **Malaysia** | ✅ **MAVCOM** Airline & Airport Performance Dashboard — OTP + cancellations + delay types, dom + intl (aggregate); 85% STD target | gov dashboard; reuse terms **unclear** (*assumed*, verify) | MAVCOM dashboard | verify MAVCOM licence, else AeroDataBox/Cirium |
+| 🇻🇳 **Vietnam** | ⚠️ **CAAV** publishes punctuality % via reports/press (airline-level, aggregate, no clean dataset) | gov press; not a dataset (*assumed*) | scrape CAAV releases (coarse) | AeroDataBox / Cirium |
+| 🇯🇵 **Japan** | ⚠️ **JCAB/MLIT** "information disclosure" — airline-level %, Japanese-language reports | gov, terms unclear (*assumed*) | MLIT (coarse, JP) | Cirium / OAG |
+| 🇹🇭 **Thailand** | ❌ **CAAT** publishes air-transport stats but **no OTP open data** found (measured: none) | — | none viable | AeroDataBox / Cirium |
+| 🇰🇷 **South Korea** | ❌ MOLIT / `airportal.go.kr` — no dedicated open OTP dataset found (measured: none) | — | none viable | Cirium / OAG |
+| 🇨🇳 **China** | ❌ **CAAC** — aggregate annual bulletins only; no open flight-level | — | OpenSky backtest only (non-commercial, thins over China) | **VariFlight** (China specialist) / Cirium — enterprise |
+| 🇸🇬 **Singapore** | ❌ CAAS / Changi — live status only, no open OTP (*assumed*) | — | none viable | AeroDataBox / Cirium |
+| 🇮🇩 **Indonesia** | ❌ no gov open OTP; via Cirium/OAG | — | none viable | AeroDataBox / Cirium / OAG |
+| 🇵🇭 **Philippines** | ❌ CAAP — no open OTP (*assumed*) | — | none viable | AeroDataBox / Cirium |
+| 🇦🇪🇶🇦🇸🇦 **Gulf / ME** (UAE GCAA, Qatar, Saudi GACA; Emirates/Qatar/Etihad) | ❌ **regulators + carriers do not publish** OTP (measured: none found) | — | OpenSky backtest only (non-commercial) | Cirium / OAG / AeroDataBox — **fully paywalled** |
 
-| Provider | APAC/ME coverage | Flight-level? actual times / cause? | History | License | Cost vs €50/mo |
-|---|---|---|---|---|---|
-| **AeroDataBox** | Global incl APAC/ME | Yes — status, actual times, delay stats | historical + live | commercial OK ✅ | **~$5/mo** ✅ **only budget-fit flight-level source** |
-| **aviationstack** | Global, 250+ countries | Yes — status + historical | historical | commercial OK | **$49.99/mo** = entire budget ⚠️ |
-| **AviationEdge** | Global | Yes — schedules/status/historical | historical | commercial | subscription, tens of $/mo *(assumed)* — likely tight |
-| **FlightAware AeroAPI** | Global ADS-B (strong where ADS-B dense) | Yes — actual times, Foresight | live + recent | commercial OK ✅ | Personal ~$5/mo free, $0.002/q — fits at low volume ✅ |
-| **ADS-B Exchange** | Global ADS-B | Raw positions (derive OTP yourself) | 10yr backfill **subscribers-only**, enterprise annual | commercial = enterprise ⚠️ | RapidAPI $10/mo/10k (commercial ambiguous) |
-| **OAG** | Strong APAC OTP + schedules | Aggregate OTP + schedules | deep | enterprise | **enterprise** ❌ over budget |
-| **Cirium** | Global incl APAC/ME/China ("gold standard", 600+ sources) | Flight-level OTP + predictive | deep | enterprise | **enterprise** ❌ over budget |
-| **VariFlight** | **China/APAC specialist** | Flight-level OTP, delay analytics | deep | enterprise | **enterprise** ❌ (but the China answer if funded) |
-| **OpenSky** | Global ADS-B, **thins over parts of Asia/ME** | Positions → derive | historical | **non-commercial** ❌ (confirmed) | free — **backtest/dev only** |
+## How the datasource path evolves: FREE vs PAID
 
-## 3. Region-by-region verdict (for the region-partitioned spine)
+- **FREE product** (route-shopping base rates, no metering revenue): use **gov aggregates** (AU/IN/MY, plus JP/VN where scrapeable) + **OpenSky** (non-commercial, EU/US-strong, APAC-thin) for a coarse global base-rate map. Legal caveat on OpenSky-in-a-free-commercial-app stands — verify.
+- **PAID product** (metered predictions): every region must switch to a **commercial-clean** feed. Cheapest global = **AeroDataBox (~$5/mo)** — but shallow history ([[historical-nonus-sources]]); deep/labelled = **Cirium/OAG/VariFlight (enterprise, ≫€50/mo)**.
+- **The gap:** AU/IN/MY give commercial-clean *aggregates* for free — good enough for a paid *base-rate* surface, but not for a flight-level day-of model. Flight-level paid APAC/ME within budget = AeroDataBox only, and it's forward/shallow, so **start accruing daily now** ([[historical-nonus-sources]] §Start-now plan).
 
-| Region | Free viable under budget? | Path |
+## Region verdict (for the region-partitioned spine)
+
+| Region | Free viable? | Path |
 |---|---|---|
-| **Australia** | ✅ **Yes** (BITRE, free, base-rate) | Ship a coarse `model_apac_au` on BITRE base-rates now |
-| **India** | ✅ **Yes** (DGCA, free, base-rate, 4 metros) | Base-rate route analytics for metros |
-| **Japan / Korea** | ⚠️ aggregate-only / none | Base-rate at best; not worth MVP effort |
-| **China** | ❌ commercial-only (VariFlight/Cirium) | Defer to funded phase |
-| **Singapore / SE-Asia** | ❌ commercial-only | AeroDataBox if we must; else defer |
-| **Middle East / Gulf** | ❌ **no free data at all** | Fully commercial; defer to funded phase |
-| **Flight-level, any APAC/ME** | ⚠️ only **AeroDataBox (~$5/mo)** fits budget | Live/recent only; no cheap deep history |
+| Australia | ✅ (commercial-clean aggregate) | `model_apac_au` base rates now |
+| India | ✅ (aggregate, 4 metros) | metro base rates |
+| Malaysia | ✅ (aggregate; verify licence) | base rates |
+| Japan / Vietnam | ⚠️ aggregate/messy | coarse base rates only |
+| China / Korea / Singapore / Thailand / Indonesia / Philippines | ❌ commercial-only | AeroDataBox (shallow) or defer |
+| Middle East / Gulf | ❌ **no free data at all** | commercial or defer entirely |
+| Flight-level, any APAC/ME | ⚠️ only **AeroDataBox ~$5/mo** in budget | forward-accrue daily |
 
-## 4. Recommendation for MVP
+## Recommendation for MVP
 
-1. **APAC foothold = Australia (BITRE) + India (DGCA)**, free, **base-rate granularity only** — booking-time route/carrier reliability, not flight-level day-of.
-2. **Flight-level APAC/ME** within budget = **AeroDataBox ~$5/mo** (global) + **FlightAware AeroAPI Personal** (~free spot); OpenSky for **non-commercial backtest** only.
-3. **Skip for MVP** (commercial/enterprise-paywalled): China, Gulf/ME, Singapore, Korea, Japan-flight-level, and all of Cirium/OAG/VariFlight until a funded phase.
-4. **Consistency with region-partition design:** free APAC data is lower-fidelity than US-BTS, so `model_apac` will be **weaker/coarser** than `model_us`. Set expectations: APAC/ME are **base-rate transparency plays**, not calibrated day-of forecasts, until a paid feed is budgeted. Feed granularity gap → [[regional-data-feasibility]].
+1. **Free APAC foothold = Australia + India + Malaysia** (commercial-clean-ish aggregates) → booking-time route reliability, not day-of.
+2. **Flight-level APAC/ME** within budget = **AeroDataBox ~$5/mo**; **start daily capture now** to build the deep history no one sells cheap.
+3. **Defer** China (VariFlight/Cirium enterprise) and **Gulf/ME** (zero free data) to a funded phase.
+4. `model_apac`/`model_me` on free data are **base-rate transparency plays**, weaker than `model_us`, until a paid feed is budgeted → granularity gap tracked in [[regional-data-feasibility]].
 
 ## Open questions
-- [ ] Confirm BITRE/DGCA redistribution terms for the public edge tier (both look CC BY / OGD-open). `#task/eng 🔼`
-- [ ] Is base-rate-only granularity enough for an APAC product surface, or does it need AeroDataBox flight-level? ⛓ [[staff-ml-engineer]] + [[sales]]. `#task/eng`
-- [ ] Gulf/ME has zero free data — is ME worth any MVP effort, or defer entirely? `#task/product ⛓ [[marketing]]`
+- [ ] Verify BITRE/DGCA/MAVCOM redistribution terms for the free tier. `#task/eng 🔼`
+- [ ] Is base-rate granularity enough for an APAC surface, or is AeroDataBox flight-level required? ⛓ [[staff-ml-engineer]]. `#task/eng`
+- [ ] Gulf/ME has zero free data — worth any MVP effort, or defer entirely? `#task/product ⛓ [[marketing]]`
 
 ## Sources
 - [BITRE Domestic OTP](https://www.bitre.gov.au/statistics/aviation/otphome) · [data.gov.au OTP dataset](https://data.gov.au/data/dataset/domestic-airline-on-time-performance) — accessed 2026-08-10
-- [DGCA OTP on data.gov.in](https://www.data.gov.in/resource/airline-wise-details-monthly-time-performance-data-respect-scheduled-domestic-airlines) · [Dataful DGCA collection](https://dataful.in/collections/420/) · [india-aviation-traffic (ODbL)](https://github.com/Vonter/india-aviation-traffic) — accessed 2026-08-10
-- [JCAB/MLIT OTP context (Skymark)](https://smart.skymark.co.jp/en/news/detail/1193617_1793.html) · [SIA/APAC punctuality — MalayMail](https://www.malaymail.com/news/singapore/2025/01/03/sia-climbs-to-asia-pacifics-top-three-for-airline-punctuality-in-2024-after-jal-and-ana/161879) — accessed 2026-08-10
-- [Cirium OTP FAQ](https://www.cirium.com/resources/on-time-performance/on-time-performance-faq/) · [VariFlight OTP analytics](https://dataworks.variflight.com/products/data-analysis/) · [OAG OTP data](https://www.oag.com/on-time-performance-data) — accessed 2026-08-10
-- [AeroDataBox pricing](https://aerodatabox.com/pricing) · [aviationstack pricing](https://aviationstack.com/pricing) · [FlightAware AeroAPI pricing](https://www.flightaware.com/commercial/aeroapi/v3/pricing.rvt) · [ADS-B Exchange RapidAPI](https://rapidapi.com/adsbx/api/adsbexchange-com1/pricing) · [OpenSky FAQ (non-commercial)](https://opensky-network.org/about/faq) — accessed 2026-08-10
+- [DGCA OTP on data.gov.in](https://www.data.gov.in/resource/airline-wise-details-monthly-time-performance-data-respect-scheduled-domestic-airlines) · [Dataful DGCA collection](https://dataful.in/collections/420/) — accessed 2026-08-10
+- [MAVCOM performance dashboard (CAAM release)](https://www.caam.gov.my/newsroom/mavcom-announces-enhanced-airline-and-airport-performance-dashboard/) · [MAVCOM](https://www.mavcom.my/) — accessed 2026-08-10
+- [CAAV punctuality (VietnamNews)](https://vietnamnews.vn/economy/417611/punctuality-rate-of-airlines-make-up-89-caav.html) · [CAAT air-transport statistics](https://www.caat.or.th/en/publications/air-transportation-and-aircraft/air-transportation-statistics/) — accessed 2026-08-10
+- [JCAB/MLIT OTP context (Skymark)](https://smart.skymark.co.jp/en/news/detail/1193617_1793.html) — accessed 2026-08-10
+- [Cirium SE-Asia OTP report](https://www.cirium.com/thoughtcloud/cirium-southeast-asia-monthly-on-time-performance-reports/) · [VariFlight OTP analytics](https://dataworks.variflight.com/products/data-analysis/) · [OAG OTP](https://www.oag.com/on-time-performance-data) — accessed 2026-08-10
+- [AeroDataBox pricing](https://aerodatabox.com/pricing) · [aviationstack pricing](https://aviationstack.com/pricing) · [OpenSky FAQ (non-commercial)](https://opensky-network.org/about/faq) — accessed 2026-08-10

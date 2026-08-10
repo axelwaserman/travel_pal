@@ -3,7 +3,7 @@ type: platform
 title: Hosting Options — Component-by-Component Comparison
 tags: [platform, hosting, comparison, frontend, fastapi, serverless, cold-start]
 status: draft
-updated: 2026-08-08
+updated: 2026-08-10
 ---
 
 # Hosting Options
@@ -29,7 +29,10 @@ The SPA is tiny static JS/CSS; the **cost axis is Parquet egress** (public datas
 
 ## 2. Backend — FastAPI prediction service (the cold-start decision)
 
-Workload: ~500 MB–1 GB container (Python 3.13 + GBT artifact in-proc + embedded DuckDB), 1–2 GB RAM, **p95 < 300 ms warm** ([[serving-service]]).
+Workload: ~500 MB–1 GB container (Python 3.14 + GBT artifact in-proc + embedded DuckDB), 1–2 GB RAM, **p95 < 300 ms warm** ([[serving-service]]).
+
+> [!warning] FLAG — Python-version conflict with `CLAUDE.md` (human to resolve)
+> The human directed **Python 3.14** for this product. **`CLAUDE.md` currently pins Python 3.13** with an explicit rationale ("Free-threaded 3.13t was tried and dropped — Docker Hub has no 3.13t-slim and the test stack benefited none"). This note now says **3.14** per the direction, but **I have not edited `CLAUDE.md`** — a code/config file with a locked decision is the human's to change. **Action required:** update `CLAUDE.md`'s Tech-Stack line to 3.14 (and confirm a `python:3.14-slim` base image exists on Docker Hub before we build the Fly container). Until `CLAUDE.md` is updated, treat 3.13-vs-3.14 as **unresolved**. Note: user memory already records the 3.14 preference, reinforcing that `CLAUDE.md` is the stale one. `#task/platform 🔺 ⛓ human`
 
 ### The core finding: scale-to-zero is NOT worth it here
 
@@ -53,7 +56,7 @@ A cold start of **1–10 s** on the first request after idle **blows the p95 < 3
 | Component | Choice | MVP cost | Why |
 |---|---|---|---|
 | Object storage | **Cloudflare R2** | ~$0 (10 GB free) | zero egress; S3-compatible drop-in |
-| Iceberg catalog | **R2 Data Catalog** (fallback: self-host Nessie) | ~$0 (free tier) | managed REST catalog, co-located; **beta** |
+| Iceberg catalog | **R2 Data Catalog** (Nessie dropped; no data-versioning — [[orchestration-storage]]) | ~$0 (free tier) | managed REST catalog, co-located; **beta**; emergency alt = Glue/Polaris, not Nessie |
 | Dagster metadata DB | **Neon Free** (scale-to-zero) | $0 | 0.5 GB, no expiry |
 | Redis hot cache | **Upstash Free** | $0 | 256 MB, 500K cmd/mo, serverless |
 | Orchestration runtime | **self-host Dagster on Fly** (runner-up: Dagster+ Solo $10/mo) | folds into Fly compute | cheapest, no per-materialization credits |

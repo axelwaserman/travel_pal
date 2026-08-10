@@ -3,7 +3,7 @@ type: platform
 title: Cost Model — Near-Zero + Moderate Usage
 tags: [platform, cost, tco, unit-economics, budget]
 status: draft
-updated: 2026-08-08
+updated: 2026-08-10
 ---
 
 # Cost Model
@@ -28,13 +28,17 @@ Assumptions: 2–4 GB Iceberg/Parquet ([[ingestion-backfill]] §1.2); <10 GB/mo 
 | Object storage | R2, 2–4 GB | **~$0** | measured (10 GB free tier) |
 | Iceberg catalog | R2 Data Catalog | **~$0** | measured (1M ops free; **beta**) |
 | Postgres | Neon Free (scale-to-zero) | **$0** | measured |
-| Redis | Upstash Free | **$0** | measured |
-| Frontend static | Cloudflare Pages Free | **$0** | measured |
+| Redis † | Upstash Free | **$0** | measured |
+| Frontend static ‡ | Cloudflare Pages Free (**React + TypeScript** SPA) | **$0** | measured |
 | Edge egress | R2 zero-egress | **$0** | measured |
 | Event bus | none | **$0** | [[event-bus-decision]] |
 | **Total** | | **≈ $17–19/mo** | **estimated** (sum) |
 
 **Near-zero headline: ~$17–19/mo, fully dominated by Fly always-on compute.** Everything stateful is $0 on free tiers. Could shave to **~$11/mo** by co-locating the Dagster daemon on the same Fly machine as FastAPI (share one 2 GB instance) — acceptable at MVP; split them before load matters.
+
+> **† Redis — reevaluate for MVP (PR comment).** The Upstash cache exists to serve **fresh-signal-adjusted live predictions** ([[serving-service]]). The MVP is **limited mode: 5 free searches/day, B2C only**, and may ship **without the live day-of prediction path** at first (forward daily ingestion is the near-term priority — team context item 7). **If MVP has no fresh-signal serving, Redis is deferred entirely → drop this $0 line until the live-prediction path ships.** Kept here as a $0 free-tier placeholder; it adds no cost either way, so this is a scope note, not a cost change. `#task/platform 🔽 ⛓ [[staff-product-engineer]]`
+>
+> **‡ Frontend — React + TypeScript confirmed (PR comment).** Frontend stack = **React + TypeScript** SPA on Cloudflare Pages. Note **DuckDB-WASM is now a nice-to-have** (team context item 8), not load-bearing for MVP — but this does **not** change the hosting/cost decision: React/TS build artifacts are static either way, and Parquet still lives on R2. If DuckDB-WASM is cut from MVP, the free edge-analytics surface shrinks but the platform bill is unchanged.
 
 ## (b) Moderate usage — post-launch traction
 
@@ -66,7 +70,7 @@ Per-LP marginal cost is **weather-API + inference**, not platform: **~$0.0015/LP
 ## Break-even (closing the [[unit-economics]] fixed-infra unknown)
 
 - **Fixed infra ≈ $17/mo (MVP) → ~$50/mo (moderate) ≈ $200–600/yr.**
-- Plus sub = **$39/yr** ([[pricing-summary]]) → **~5–15 paying Plus subscribers cover ALL fixed infra.** One B2B/API contract ($99–$1,000/mo min) covers it many times over.
+- Plus sub = **$39/yr** ([[pricing-summary]]) → **~5–15 paying Plus subscribers cover ALL fixed infra.** (Product is now **B2C only** — the earlier "one B2B contract covers it" path is dropped; break-even rests entirely on consumer subs, which is still trivial at tens-of-dollars/mo fixed infra.)
 - This confirms [[unit-economics]]: the free tier is safe at scale (edge = $0 backend, zero egress), and the real gate was fixed infra — now sized at **tens of dollars/month**, a trivial break-even.
 
 ## Cost-control levers (binding, per [[unit-economics]])

@@ -3,12 +3,24 @@ type: sales
 title: Metering Unit — What We Charge For
 tags: [sales, pricing, metering]
 status: draft
-updated: 2026-08-08
+updated: 2026-08-10
 ---
 
 # Metering Unit
 
-> Defines the billable unit before any tier can be priced. Grounded in [[differentiation-thesis]] (edge DuckDB-WASM ≈ $0 to serve) and [[research-summary]] (data access is the binding cost constraint). Feeds [[tier-matrix]], [[unit-economics]], and the gating list in [[pricing-summary]].
+> Defines the billable unit. Grounded in [[differentiation-thesis]] and [[research-summary]] (data access is the binding cost constraint). Feeds [[pricing-summary]].
+
+## PHASE 1 (per PR #13): meter the **route search** only
+
+> **1 route search = one user-initiated query for a route's delay/reliability outlook** (`origin → destination`, optionally `+ date` / `+ carrier`). The **search-submit** event is the metered increment; re-rendering a cached result = 0. Free cap = **5 route searches / day / user**. Enforcement + overage in [[pricing-summary]].
+
+Everything below (the **Live Prediction** unit) is **DEFERRED to a later, paid phase** — retained for when interest is proven. Not in the MVP.
+
+---
+
+## DEFERRED — Live Prediction (LP) unit (paid phase)
+
+> Defines the billable unit **for the future paid tiers**. Not phase 1.
 
 ## The core decision: meter the *fresh fetch + inference*, not the pageview
 

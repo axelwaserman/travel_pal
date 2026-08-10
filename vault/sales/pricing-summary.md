@@ -1,78 +1,74 @@
 ---
 type: sales
-title: Pricing Summary & Handoff — TravelPal Monetization
+title: Pricing Summary & Handoff — FlightPal Monetization
 tags: [sales, pricing, summary, moc, handoff]
 status: draft
-updated: 2026-08-08
+updated: 2026-08-10
 ---
 
 # Pricing Summary & Handoff
 
-> One-page recommendation synthesizing [[metering-unit]], [[tier-matrix]], [[unit-economics]]. Grounded in [[research-summary]], [[competitors]], [[personas]], [[differentiation-thesis]]. Handoffs to [[marketing]] and [[staff-product-engineer]].
+> **PHASE 1 SCOPE (per PR #13 review): free-limited mode ONLY — no paid tiers, no B2B.** This note now defines just the MVP metering (a **route search** + a **5/day free cap**). The full tier ladder and unit economics are preserved but **descoped to a later phase** — see the appendix and [[tier-matrix]] / [[unit-economics]] (both marked DEFERRED). Grounded in [[research-summary]], [[competitors]], [[personas]], [[differentiation-thesis]].
 
-## Recommendation in three sentences
+## Phase-1 recommendation in three sentences
 
-Meter the **Live Prediction (LP)** — a fresh-signal-fetch + inference forecast — and give away everything the edge serves for ~$0 (route/carrier descriptive analytics via DuckDB-WASM). Sell a thin consumer ladder (Free / Plus $39/yr / Pro $59/yr) priced to convert and cover cost, **not** as the business. **The margin is the B2B usage-based feed (Team/API)** to TMCs and parametric insurers, priced off the AeroAPI benchmark and differentiated on auditable calibration — with a rebook/insurance **action affiliate** layered on every tier as near-free-delivery upside.
+Ship a working MVP that is **free with a hard daily limit** — a user gets **5 route searches per day**, then is capped. Meter only that one unit; don't build billing, paid tiers, or an API yet. Prove interest first; **defer all monetization** ([[tier-matrix]], [[unit-economics]]) until usage justifies it.
 
-## Metering unit (the one decision everything hangs on)
+## MVP metering unit: **1 route search**
 
-**1 LP = one forecast that triggers a fresh weather/NOTAM fetch and/or model inference for a specific flight instance.** Cached repeats within 60 min = 0 LP. Edge descriptive views = **not metered**. Full definition: [[metering-unit]].
+> **1 route search = one user-initiated query for the delay/reliability outlook of a route** — `origin → destination`, optionally `+ date` and/or `+ carrier` — returning the risk read (base-rate reliability, and where available a fresh-signal-adjusted outlook).
 
-## Tier matrix at a glance
+Rules so the cap is unambiguous for [[staff-product-engineer]]:
 
-| Tier | Price | LP quota | Key gate | Persona |
-|---|---|---|---|---|
-| **Free** | $0 | 5/day → degrade to cached | no alerts, no API | P2 / P1 trial |
-| **Plus** | $39/yr | 50/day | alerts (5 flights), full route analytics | P1 |
-| **Pro** | $59/yr | unlimited (fair-use 500/day) | unlimited watchlist, full history | P1 heavy |
-| **Team/API** | usage + $99–$1,000/mo min | metered $0.003–0.006/LP | SLA, calibration report, feed | P3 TMC / P4 insurer |
+- **The metered action is the search submit**, not scrolling/re-rendering an already-returned result.
+- **Re-opening the same result within a session (no re-query) = 0** — cache the last result client-side.
+- **Changing origin/dest/date/carrier and re-submitting = 1** new route search.
+- Counts reset on a **rolling 24h** (or calendar-day UTC — [[staff-product-engineer]]'s call; state the choice in UI).
 
-Detail + anchoring in [[tier-matrix]].
+## Free-limited cap: **5 route searches / day / user**
 
-## Unit-economics headline
+- **Justification:** demonstrates the core value (transparent route-shopping, the [[differentiation-thesis]] wedge) while capping cost and blocking scraping. 5/day covers a real trip-planning session; heavy/repeat use hits the wall and signals latent demand we can later monetize.
+- **Overage behavior:** **block with an upgrade-intent prompt** ("You've used your 5 free searches today — [notify me when paid plans launch]"). This doubles as a **demand-capture signal** for the deferred paid phase. No silent failure.
+- **Cost note:** if a route search triggers a fresh weather fetch, cost is **~$0.0015 (measured OpenWeather)** worst case, near-$0 with airport×hour caching; 5/day bounds a free user to **< $0.25/mo** ([[unit-economics]]). Safe at scale.
 
-- **Blended cost/LP ≈ $0.0015** (measured weather @ $0.0015, net of `(airport,hour)` caching; inference/NOTAM assumed ~$0 — *flag to verify*).
-- **Free tier loses only ~$0.05–0.23/user/mo**; edge analytics are $0 → safe at scale, recovered by a **2–5% conversion** + affiliate.
-- **Plus GM ~58–86%; API GM ~50–75%.** **Pro margin is fair-use-dependent** — enforce caps or it can invert.
-- **Fixed infra $ is unknown** (owned by [[staff-platform-engineer]]) and sets true break-even; a **paid data feed** (if BTS/OpenSky limits force it) would raise the LP cost floor — a live gating decision. Full model: [[unit-economics]].
+## Handoff → [[staff-product-engineer]]: phase-1 metering (only this)
 
-## Handoff → [[staff-product-engineer]]: what MUST be metered / rate-limited / gated
+**Meter:** per-user route-search count, keyed to `(user_or_device, rolling-24h)`; the search-submit event is the increment.
 
-**Meter (count + bill):**
-1. **LP boundary** — every fresh-signal-fetch/inference call, keyed to `(user, flight_instance)`; cached repeats within TTL = free.
-2. **B2B API calls** — per-key, per-LP, with batch support for portfolio scoring (P4).
+**Rate-limit / enforce the cap:**
+1. **Authenticated users:** 5 route searches / 24h, server-enforced.
+2. **Anonymous users:** per-IP + per-device throttle (coordinate with [[security-engineer]]) so the cap can't be reset by clearing state.
+3. On cap hit → **block + upgrade-interest prompt** (capture the click as a demand signal).
 
-**Rate-limit (abuse & cost defense):**
-3. Per-user LP/day quota per tier (5 / 50 / 500-soft / metered).
-4. Per-IP + per-device throttle on **anonymous free** (scraping/cost-attack defense — coordinate with [[security-engineer]]).
-5. Per-API-key RPS ceilings (Team 5/s, Standard 10/s, Premium 100/s — AeroAPI-style).
-6. Burst caps on **cold-route fresh fetches** (the expensive tail).
+**Cost control:**
+4. Cache fresh-signal fetches at `(airport, hour)` if searches trigger them; **hard ceiling ~$0.002 per fetched search**, else serve base-rate only.
 
-**Gate (feature entitlement by tier):**
-7. Proactive alerts + watchlist size; historical depth window (3mo / 12mo / full); multi-trip/itinerary risk; API + batch export; calibration/backtest metadata (B2B only). Uncertainty bands are **free** (trust-building, cheap).
-
-**Cost ceilings / enforcement (binding):**
-8. **Hard ceiling $0.002/LP.** Above it → **degrade to cached base-rate, never serve at a loss, never hard-block a paying user.**
-9. **Mandatory `(airport,hour)` weather cache, 60-min TTL** — cost control, not just perf.
-10. Overage = **degrade-to-cached** (Free/Plus) or **pay-per-use** (API), not silent failure.
-11. Multi-vendor weather abstraction (OpenWeather ↔ Tomorrow.io) so a list-price hike doesn't blow the LP floor.
+**Do NOT build in phase 1:** billing, paid tiers, API keys/quotas, seat management, B2B feed. Gating logic beyond the single 5/day cap is out of scope.
 
 ## Handoff → [[marketing]]
 
-- Names/prices: **Free / Plus $39/yr / Pro $59/yr / Team+API (usage)**. Monthly offered at a premium; annual default.
-- Value props: Free = transparent route-shopping; Plus = alerts + analytics under Flighty's price; Pro = unlimited proactive foresight; B2B = auditable, cheap calibrated feed.
-- **Do NOT market on out-predicting Google/FlightAware** ([[differentiation-thesis]]) — sell transparency, route-shopping, cost-to-serve. Lean EU for the action/insurance angle.
+- Working name leaning **FlightPal**; positioning **"guarantee the best flight for your buck"** (per team pivot).
+- Phase-1 message: **free flight-reliability route search, 5/day.** No price points to communicate yet.
+- Still **do NOT market on out-predicting Google/FlightAware** ([[differentiation-thesis]]) — sell transparency + route-shopping.
 
-## Open questions (owned by sales)
+---
 
-- [ ] Sign a **B2B design partner** (TMC or insurer) to validate API price + calibration bar before building the feed surface #task/sales 🔺 📅 2026-09-15 ⛓ [[staff-product-engineer]]
-- [ ] Negotiate **rebook/insurance affiliate** rev-share rate (currently unknown — do not invent) #task/sales 🔼 📅 2026-09-30
-- [ ] Confirm **inference + NOTAM per-LP cost** via load test #task/sales ⛓ [[staff-ml-engineer]] 📅 2026-09-15
-- [ ] Re-price if a **paid data feed** becomes mandatory (BTS lag / OpenSky commercial bar) #task/sales ⛓ [[staff-platform-engineer]] 📅 2026-09-15
+## Appendix — DEFERRED to a later phase (kept for when interest is proven)
+
+> Not in phase 1. Revisit once the free-limited MVP shows demand (cap-hit rate, upgrade-prompt clicks). **B2B is dropped per team decision — the ladder below is B2C-only.**
+
+- **Paid consumer ladder** ([[tier-matrix]]): Plus (~$39/yr) and Pro (~$59/yr), anchored under/at Flighty's measured $59.99/yr ceiling — alerts, full route analytics, historical depth, unlimited (fair-use) searches. Live per-flight predictions become the metered paid unit ([[metering-unit]] LP definition).
+- **Action affiliate** (rebook/insurance rev-share, EU-skewed) — near-$0 delivery cost, layerable once there's an audience.
+- **Unit economics & margins** for the above: [[unit-economics]].
+- **B2B feed / API (TMCs, insurers): DROPPED.** Thinking retained in [[tier-matrix]]/[[unit-economics]] history only; not a roadmap item.
+
+## Deferred open questions
+
+- [ ] After MVP: measure cap-hit rate + upgrade-prompt clicks to size paid-tier demand #task/sales 🔼 📅 2026-10-15
+- [ ] Confirm route-search fresh-fetch cost via load test before any paid launch #task/sales ⛓ [[staff-ml-engineer]] 📅 2026-10-15
 
 ## Sources
 
 - [OpenWeather One Call 3.0 pricing](https://openweathermap.org/api/one-call-3) — accessed 2026-08-08 *(measured)*
-- [FlightAware AeroAPI pricing](https://www.flightaware.com/commercial/aeroapi/) — accessed 2026-08-08 *(measured)*
-- [Flighty pricing](https://flighty.com/pricing) · [AirHelp+ pricing](https://travel-dealz.com/deal/airhelp-plus/) — accessed 2026-08-08 *(measured)*
-- Cross-refs: [[metering-unit]], [[tier-matrix]], [[unit-economics]], [[research-summary]], [[competitors]], [[personas]], [[differentiation-thesis]]
+- [Flighty pricing $59.99/yr](https://flighty.com/pricing) — accessed 2026-08-08 *(measured, deferred-tier anchor)*
+- Cross-refs: [[metering-unit]], [[tier-matrix]], [[unit-economics]], [[research-summary]], [[differentiation-thesis]], [[personas]]
