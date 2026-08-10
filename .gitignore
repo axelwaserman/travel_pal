@@ -17,6 +17,9 @@ pipeline/transforms/.user.yml
 .idea/
 .vscode/
 
+# Obsidian local vault state (UI layout, per-user config) — vault content is tracked, this is not
+vault/.obsidian/
+
 # Python build / coverage artifacts
 .coverage
 coverage.xml
