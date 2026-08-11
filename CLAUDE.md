@@ -12,7 +12,7 @@ This applies even when requirements seem obvious from the architecture doc.
 
 ## Tech Stack
 
-- **Python**: 3.13 (`requires-python = ">=3.13"`); GIL-enabled. Free-threaded 3.13t was tried and dropped — Docker Hub has no 3.13t-slim and the test stack benefited none from it.
+- **Python**: 3.14 (`requires-python = ">=3.14"`); GIL-enabled.
 - **Data validation**: Pydantic v2 (all models; `BaseSettings` for config)
 - **HTTP client**: pyreqwests (async-first; `ClientBuilder` + `basic_auth` for OpenSky)
 - **Orchestrator**: Dagster (use `dagster:dagster-expert` + `dagster:dignified-python` skills)

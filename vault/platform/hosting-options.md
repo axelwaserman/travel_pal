@@ -31,8 +31,8 @@ The SPA is tiny static JS/CSS; the **cost axis is Parquet egress** (public datas
 
 Workload: ~500 MB–1 GB container (Python 3.14 + GBT artifact in-proc + embedded DuckDB), 1–2 GB RAM, **p95 < 300 ms warm** ([[serving-service]]).
 
-> [!warning] FLAG — Python-version conflict with `CLAUDE.md` (human to resolve)
-> The human directed **Python 3.14** for this product. **`CLAUDE.md` currently pins Python 3.13** with an explicit rationale ("Free-threaded 3.13t was tried and dropped — Docker Hub has no 3.13t-slim and the test stack benefited none"). This note now says **3.14** per the direction, but **I have not edited `CLAUDE.md`** — a code/config file with a locked decision is the human's to change. **Action required:** update `CLAUDE.md`'s Tech-Stack line to 3.14 (and confirm a `python:3.14-slim` base image exists on Docker Hub before we build the Fly container). Until `CLAUDE.md` is updated, treat 3.13-vs-3.14 as **unresolved**. Note: user memory already records the 3.14 preference, reinforcing that `CLAUDE.md` is the stale one. `#task/platform 🔺 ⛓ human`
+> [!note] RESOLVED (2026-08-11) — Python 3.14 confirmed
+> The human confirmed **Python 3.14** and updated `CLAUDE.md`'s Tech-Stack line to `3.14` (`requires-python = ">=3.14"`; the old 3.13/3.13t rationale was scrubbed). This note and `CLAUDE.md` now agree on 3.14. **Remaining pre-build check:** confirm a `python:3.14-slim` base image exists on Docker Hub before building the Fly container, and bump `pipeline/pyproject.toml` (`requires-python = ">=3.13"` → `">=3.14"`) when the code work starts. `#task/platform 🔽`
 
 ### The core finding: scale-to-zero is NOT worth it here
 
