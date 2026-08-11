@@ -3,84 +3,119 @@ type: marketing
 title: Naming & Rename — Candidates + Recommendation
 tags: [marketing, brand, naming]
 status: draft
-updated: 2026-08-10
+updated: 2026-08-11
 ---
 
 # Naming & Rename
 
-> "TravelPal" is a working name (see [[AGENTS]]). It reads generic and app-store-crowded. The human review (PR #13) leans **FlightPal**; this note now evaluates FlightPal as the primary candidate against the prior recommendation (Glasswing). **Scope is B2C-only** (the B2B feed was dropped). All availability/trademark/app-store claims below are **checks to run — NOT verified**.
+> **DECISION (2026-08-11): keep `FlightPal` as the working name for now — rename deferred, revisit later.** The exploration below stands as the record for that revisit. FlightPal carries a known collision (tryflightpal.com, a fear-of-flying app) — resolve before any public/commercial launch. The independently-verified alternates if/when we rename: **FlySteady** (safest — clean, no phonetic proximity), **FlyWorthy** (preferred meaning, but sits near flyflightworthy.com), **FlyCanny** (clean, softer fit).
 
-## Naming brief (updated)
+> **Rev. 7 per PR #13 (round-6 correction).** Two rev.6 finalists I marked "clean" were **wrong** — an independent check found real clashes: **FlySavvy** (flysavvy.com.au — "FlySavvy · Smart Flight Search") and **FlyKeen** (Flykeen Airways + flykeen.com travel guide). Both **moved to rejected**. Verified survivors: **FlyWorthy, FlySteady, FlyCanny** — re-searched with the specific query + result cited per name below.
+> **Process fix:** collision-checks missed real clashes 3× this session (FlightPal, FlySavvy, FlyKeen). Going forward every "clean" claim shows the exact search run and what it returned — a bare "no product found" is not sufficient for a naming decision.
+> Context: (1) **Flightworthy REJECTED** — flyflightworthy.com (GA maintenance/compliance software). (2) Direction = **verb+adjective ("Fly"+adjective), spirit of "FlyWise"** — but **FlyWise itself is heavily taken** (see rejected). Domain + formal TM remain **"to verify" — never asserted**. (Flight/Plane-root candidates from rev.4/5 retained lower down as alternates.)
 
-The name must fit a **consumer flight-decision tool** — friendly, memorable, trustworthy. Positioning has pivoted to an **outcome/decision** lead ("pick the flight that won't wreck your trip"), with transparency demoted to a supporting trust cue ([[positioning]]). So the name no longer needs to *carry* transparency — it needs to be memorable, own the "flight" category, and clear trademark/collision checks. Still avoid names implying a **guaranteed/accuracy** claim (honesty guardrail, [[messaging]]).
+## Naming brief
 
-## FlightPal — evaluation (human's preferred name)
+Fit the **current positioning** ([[positioning]]): **outcome-led, B2C** — *"the flight least likely to let you down / the best flight for your trip"* (reliability route-shopping). **NOT** accuracy, **NOT** price. Must contain **Flight/Plane**, be **short, brandable, memorable**, and — critically in this crowded space — **avoid bare `Flight+generic-word`** constructions (those are exactly what collide). Prefer distinctive compounds/portmanteaus. No name implying a guaranteed outcome ([[messaging]] honesty guardrail).
 
-| Dimension | Assessment |
-|-----------|------------|
-| **Memorability / clarity** | Strong. "Flight" owns the category instantly; "Pal" = friendly, low-anxiety — fits P2 anxious flyers well. Easy to say/spell/recall. |
-| **Fit to new positioning** | Good. A helpful "pal" that picks the best flight for you matches the outcome-led, decision-assistant frame better than a poetic/abstract name. |
-| **Collision risk** | ⚠️ **Elevated.** An **active app named "FlightPal" already exists** (fear-of-flying app, tryflightpal.com) in the adjacent flight-app category. No registered TM surfaced, but a live product on the exact name creates confusion + possible common-law rights. **This is a blocking check, not a blocker yet.** |
-| **Differentiation** | Weak on its own (generic compound, like TravelPal) — but the *positioning*, not the name, now carries differentiation, so this matters less than before. |
+## Shortlist (all searched — no flight/travel/aviation product or TM collision found)
 
-## Recommendation (revised)
+| Rank | Name | Why it fits the positioning | Vibe | Collision search — searched & found |
+|------|------|-----------------------------|------|-------------------------------------|
+| ~~1~~ **REJECTED** | ~~**Flightworthy**~~ | Meaning was ideal (airworthy + trustworthy). **But rev.6 found a collision** — `flyflightworthy.com` = "Flightworthy," a real GA maintenance/compliance product. **Dropped.** Meaning rescued as **FlyWorthy** (see Rev.6 shortlist). | — | **COLLISION** — flyflightworthy.com (measured, rev.6). |
+| **2** | **Trueplane** (portmanteau) | *True* (dependable/honest) + *plane* → *"the dependable plane/flight for you."* Short, clean, brandable. | Dependable, plain-spoken, modern | Searched `Trueplane app/travel/flight product` + `Trueplane trademark/company`. **No product or TM found.** (`Trueflight` is taken — TrueFlight scheduling software — so `Trueplane` is the clean form.) |
+| **3** | **Flightlark** | *Flight* + *lark* (a bird; also "light/breezy"). Distinctive, warm, easy to say — good for the anxious-flyer P2. | Warm, birdlike, approachable | Searched `Flightlark app/travel/flight` + `Flightlark trademark/company`. **No product or TM found.** ⚠️ Minor: "a lark" can connote frivolity — slight tension with "reliability"; manage in copy. |
+| **4** | **Flightful** (coined) | *Flight* + *-ful* (as in *delightful/mindful*) → a full-service, considered flight pick. Coined → strong clean-availability odds. | Friendly, modern, light | Searched `Flightful app/travel/flight product/trademark`. **No product or TM found.** Meaning is connotative not literal → needs a tagline. |
+| **5** | **Flightproof** | *Flight* + *-proof* (as in *foolproof/weatherproof*) → *"flight-proof your trip."* Encodes protection/reliability against disruption. | Reassuring, protective, sturdy | Searched `Flightproof app/travel/flight product`. **No product or TM found.** Slightly clunky to say; test in headlines. |
 
-- **Primary: `FlightPal`** — endorse the human's lean. It fits the B2C, outcome-led, approachable direction and is highly memorable. **Conditional on clearing the tryflightpal.com collision** (see checks). If clearance fails, fall back immediately.
-- **Fallback: `Glasswing`** — distinctive, coined-feel, no live-product collision found; keep as the clearance safety net.
-- Do **not** ship a name implying a guaranteed outcome or accuracy.
+## Rev.5 additions (same spirit as Flightworthy — meaning encodes reliability + the decision)
 
-## Prior candidates (retained as fallbacks)
+| Name | Why it fits the positioning | Vibe | Collision search — searched & found |
+|------|-----------------------------|------|-------------------------------------|
+| **Flightsage** ⭐(new) | *Sage* = a trusted, wise advisor → *"the wise pick for your route."* Encodes expert judgment making the choice for you — closest in spirit to Flightworthy, from the *advisor* angle rather than the *worthiness* angle. | Wise, trustworthy, calm | Searched `Flightsage app/travel/flight product`. **No product or TM found.** |
+| **Flightsavvy** | *Savvy* = shrewd, in-the-know → *"the savvy flight choice."* Encodes smart decision-making; approachable and self-explanatory. | Smart, confident, friendly | Searched `Flightsavvy app/travel/flight product`. **No product or TM found.** Slightly more casual/marketing-y tone. |
+| **Flightmerit** | *Merit* = which flight has genuine merit → reliability/worthiness, adjacent to Flightworthy. | Considered, evaluative | Searched `Flightmerit app/travel/flight product`. **No product or TM found.** "Merit" reads a touch abstract/formal — weakest of the three. |
 
-Full rationale for Glasswing / Truebound / Almanac / Baserate / Telltale / Cleared / Waypoint retained below for reference; **Glasswing** is the lead fallback.
+## Rev.7 shortlist — verb+adjective ("Fly" + adjective) — ACTIVE RECOMMENDATION SET
 
-## Names to AVOID (collision found in research)
+Three survivors, each re-searched with the exact query + result cited. Formal USPTO/EUIPO TM + domain still to verify.
 
-| Name | Why avoid | Source |
-|------|-----------|--------|
-| **Foresight** | FlightAware's ML product name **and** a FLYR, Inc. trademark for travel predictive-analytics API | measured (see Sources) |
-| **Wingman** | Multiple live apps (paragliding tracker, airline social, dispatch system) | measured |
-| **Skylark** | Skylark Travel Group holds a travel-software trademark | measured |
-| **FlightCaster** | Dead YC 2009 startup, exact-JTBD baggage; may be free but confusing | measured |
-| **FlyWise** | Existing app marketing "95% accuracy" — on-nose with the accuracy claim we explicitly reject | measured |
+| Rank | Name | Why it fits the positioning | Vibe | Collision search — exact query & result |
+|------|------|-----------------------------|------|-----------------------------------------|
+| **1 ⭐** | **FlyWorthy** | Carries the exact meaning the human liked in *Flightworthy* — "worthy of your trip / your trust" (reliability + the decision) — now in Fly+adjective form. Self-evident, memorable. | Trustworthy, sturdy, confident | Searched `"FlyWorthy" flight OR travel OR airline app OR company OR airways` (2026-08-11). **No FlyWorthy entity in results** — only Flighty + flynas (unrelated). ⚠️ Phonetically near `flyflightworthy.com` (GA maintenance product) — flag for TM clearance. |
+| **2** | **FlySteady** | *Steady* = dependable, on-time, no-drama → *"the steady choice for your route."* Reliability-led; reassuring for anxious flyers (P2). | Calm, dependable, grounded | Searched `"FlySteady" flight OR travel OR airline OR airways app OR company` (2026-08-11). **No FlySteady entity in results** — only Flighty (unrelated). |
+| **3** | **FlyCanny** | *Canny* = shrewd/prudent → the canny traveler's pick. Distinctive. | Shrewd, characterful | Searched `"FlyCanny" flight OR travel OR airline app OR company OR airways` (2026-08-11). **No FlyCanny entity in results.** "Canny" reads British-leaning; US-audience testing advised. |
 
-## Candidates
+## Recommendation
 
-| # | Name | Rationale (ties to wedge) | Vibe | Risk |
-|---|------|---------------------------|------|------|
-| 1 | **Glasswing** (lead fallback) | *Glass* = clear/honest ("we show our work"); *wing* = aviation. A real transparent-winged butterfly → ready-made visual identity. Distinctive, coined-feel, no live-product collision found. | Transparent, precise, quietly poetic-nerdy | Common English compound; must verify TM in software/travel classes |
-| 2 | **Almanac** (or **Flight Almanac**) | Trusted-forecast heritage (Farmer's Almanac); route/carrier **base rates** = the historical spine + route-shopping cut. Signals honest, probabilistic, methodical. | Authoritative, nerdy, trustworthy | Generic word; likely needs a qualifier/compound for TM + domain |
-| 3 | **Baserate** | Literal statistics term = calibrated, probabilistic, honest. Signals rigor to data-literate P1 flyers. | Quant, honest, engineer-credible | May read dry/cold to P2 anxious flyers; coined-word TM likely cleaner |
-| 4 | **Truebound** | *True* (calibrated/honest, not "accurate-hype") + *bound* (heading somewhere → travel). Coined → likely cleaner availability. | Trustworthy, directional, modern | Meaning less immediate; needs tagline support |
-| 5 | **Telltale** | "Tells you before the airline does" — the exact JTBD in [[demand-evidence]]; an honest *tell*/signal. | Friendly, a little clever | "Telltale sign" can read mildly negative; Telltale Games TM in a different class (verify) |
-| 6 | **Cleared** | "Cleared for takeoff" + *clarity/transparency*. Aviation-native, confident, short. | Confident, clean, aviation-insider | Very common word → hard exact-match domain/TM; verify |
-| 7 | **Waypoint** | Aviation navigation term = a **decision point** on a route → route-shopping framing. | Navigational, practical | Heavily used SaaS/game name; TM crowding likely |
+- **#1: `FlyWorthy`.** Rescues the meaning the human already endorsed (Flightworthy's "worthy of your trip") into the **verb+adjective** pattern, with a **clean** namespace (search cited above). Best fit + most defensible. *Caveat: phonetically adjacent to `flyflightworthy.com`; confirm in the TM/domain check.*
+- **Strong runner-up: `FlySteady`** — cleanest, most unambiguous reliability read, zero collision, calming tone that also serves anxious flyers. Pick this if the FlyWorthy↔flyflightworthy proximity worries legal.
+- **Third: `FlyCanny`** — distinctive but British-leaning; test with US audiences.
+- **⚠️ Rejected this round:** `FlySavvy` (flysavvy.com.au flight search), `FlyKeen` (Flykeen Airways + flykeen.com), `FlyWise` (multiple live products). Do not use.
+- *Flight/Plane-root alternates from rev.4/5 (Trueplane, Flightsage, Flightlark, Flightful, Flightproof) remain valid if the direction reverts.*
 
-> **Fallback detail — Glasswing:** distinctive, coined-feel, hands a design team a concrete visual system (transparent wing, layered UI) that satisfies the non-template rule in `rules/web/design-quality.md`. No live-product collision found — the reason it is the clearance safety net if FlightPal fails.
+## Checks to run BEFORE adopting (formal availability NOT verified here)
 
-## Checks to run BEFORE adopting any name (NONE verified here)
+Run in order for the chosen name; treat as blocking:
 
-For the chosen name (run in this order; treat as blocking):
+- [ ] **Trademark** — USPTO TESS + EUIPO in classes **9** (software), **42** (SaaS), **39** (travel info); screen live + pending. #task/marketing 🔺 📅 2026-08-25
+- [ ] **Domain** — `.com` first; fallbacks `.app` / `.ai` / `get<name>.com`; check squatter pricing. #task/marketing 🔺 📅 2026-08-25
+- [ ] **App Store + Google Play + Chrome Web Store** — exact + near-duplicate; note ranking crowding (esp. the [[lead-gen-plan]] extension). #task/marketing 🔼 📅 2026-08-25
+- [ ] **Social handles** — X, Instagram, Reddit, LinkedIn. #task/marketing 🔽 📅 2026-08-25
+- [ ] **Negative-connotation / linguistic** screen (EN + any EU launch markets). #task/marketing 📅 2026-08-25
+- [ ] Route the finalist past legal before any public use. #task/marketing
 
-- [ ] **FlightPal collision (BLOCKING)** — assess the existing `tryflightpal.com` fear-of-flying app: is the name live/registered, common-law rights, brand-confusion risk in the flight-app category? Decides whether FlightPal is viable at all. #task/marketing 🔺 📅 2026-08-22
-- [ ] **Trademark** — USPTO TESS + EUIPO search in classes **9** (software), **42** (SaaS), **39** (travel info). Screen for live marks & pending apps. #task/marketing 🔺 📅 2026-08-22
-- [ ] **Domain** — `.com` first; acceptable fallbacks `.app` / `.ai` / `getX.com`. Check exact-match availability & squatter pricing. #task/marketing 🔺 📅 2026-08-22
-- [ ] **App Store + Google Play** — search exact + near-duplicate names; check ranking crowding. #task/marketing 🔼 📅 2026-08-22
-- [ ] **Social handles** — X, LinkedIn company page, Instagram, Reddit (for community, see [[lead-gen-plan]]). #task/marketing 🔽 📅 2026-08-22
-- [ ] **Linguistic/negative-connotation** screen across EN + target EU launch markets ([[positioning]] leans EU). #task/marketing 📅 2026-08-22
-- [ ] Route the finalist past legal/counsel before any public use. #task/marketing ⛓ [[positioning]]
+## Screened but rejected
+
+### Rejected — human wants a Flight/Plane root (no collision; kept briefly for the record)
+
+| Name | Note |
+|------|------|
+| **Lodestar** | Prior #1; clean of flight/travel collision, but lacks a Flight/Plane root. |
+| **Truebound** | Coined, clean; no Flight/Plane root. |
+| **Bellwether** | Clean of flight/travel collision; no Flight/Plane root. |
+| **Aplomb** | Clean of flight/travel collision; no Flight/Plane root. |
+
+### Rejected — collision or human declined
+
+| Name | Why rejected |
+|------|--------------|
+| **FlightPal** | Live app — `tryflightpal.com` (fear-of-flying), same category. |
+| **Glasswing** | Human declined (PR #13). |
+| **Flightgrade** | Existing flight seat-map/review site (Squillion Tech). |
+| **Flightward** | "Flightward Connect" app (corporate comms) on Google Play. |
+| **Flightsmith** | Existing RC-aviation content site (flightsmith.com). |
+| **Flightscout** | "FlightScout" GPT travel-deal planner (theflightscout.com). |
+| **Planewise** | Existing general-aviation ops/maintenance app (planewise.app). |
+| **Flightnest** | Flightnest UK travel agency + a flight-tracker project. |
+| **Flightpoint(s) / Planepoint(s)** | Award-flight search + live-seat-map apps on the App Store. |
+| **Planely** | Parked landing page (planely.app) — held. |
+| **Trueflight** | TrueFlight aviation scheduling software (trueflight.app). |
+| **Planeworthy** | Aircraft-maintenance tracking app (planeworthy.com). |
+| **Flightsense** | FlightSense.ai (flight-training app) + Collins Aerospace **FlightSense®** (registered TM). |
+| **Flightsound** | Borderline — "Flight Sounds Ltd" (aviation-sim audio) + "sound"=audio confusion; skipped to stay safe. |
+| **Flightworthy** | Rev.6 collision — **flyflightworthy.com** GA maintenance/compliance software ("Flightworthy," AI co-pilot "FLYSAFE"). Meaning rescued as **FlyWorthy**. |
+| **FlyWise** | Heavily taken — Flywise Travel B.V. (NL OTA); "Flywise — Don't Miss Your Flight" iOS app; FlyWise Travel (India); FlyWise aviation-navigation. |
+| **FlySmart** | Taken — CAAM Malaysia traveler-rights app + airport-nav app + Airbus Flysmart+ tools. |
+| **FlyReady** | Taken — Delta/Virgin Atlantic **FlyReady** + a FlyReady Chrome extension + FlightReady. |
+| **FlySharp** | UK flight-booking agency (flysharp.com, Southall Travel Group). |
+| **FlyCalm** | Fear-of-flying / flight-anxiety app (flycalm.app, iOS+Android). |
+| **FlySure** | Travel-insurance brand (Arthur J. Gallagher; FLYSURE LIMITED, UK) + insurance connotation. |
+| **FlySavvy** | Rev.7 collision — **flysavvy.com.au** "FlySavvy · Smart Flight Search," active flight-search product (also SavvyFlyer, SkySavvy, Flight Savvy nearby). |
+| **FlyKeen** | Rev.7 collision — **Flykeen Airways** (historical UK airline, Wikipedia) + **flykeen.com** active travel-guide site. |
+| **Tern / Contrail / Sextant / Godwit / Glidepath / Presage / Onwing** | Prior round — flight/travel product or software-TM collisions. |
 
 ## Handoff
 
-- → [[brand-system]] / landing page: if `FlightPal` clears, the visual system carries the differentiation (transparency demoted). If it falls back to `Glasswing`, the transparent-wing metaphor drives the direction.
-- → [[positioning]], [[messaging]]: name choice must not undercut the honesty guardrail (no guaranteed-outcome/accuracy claims).
+- → [[brand-system]] / landing + [[lead-gen-plan]] Chrome extension: `FlyWorthy` gives a clean visual system (a "worthy/verified" badge/seal motif — fits the flight-grading surface).
+- → [[positioning]], [[messaging]]: name must not undercut the honesty guardrail (no guaranteed-outcome/accuracy claims).
 
 ## Sources
 
-- [FlightPal (fear-of-flying app) — tryflightpal.com](https://tryflightpal.com/blog/overcome-fear-of-flying-with-flightpal-app) — accessed 2026-08-10 *(measured — active name collision)*
-- [FLIGHTY & flight-tracker trademarks — Justia/Trademarkia](https://trademarks.justia.com/985/16/live-flight-98516109.html) — accessed 2026-08-10 *(measured, TM landscape)*
-- [Foresight — FlightAware](https://www.flightaware.com/commercial/foresight/) · [FORESIGHT trademark (FLYR, Inc.) — Trademarkia](https://www.trademarkia.com/foresight-88029164) — accessed 2026-08-08 *(measured)*
-- [Wingman paragliding app](https://www.wingmanfly.app/) · [Wingman social app — TIME](https://time.com/6157/wingman-app-airline-hookups/) — accessed 2026-08-08 *(measured)*
-- [SKYLARK trademark — Skylark Travel Group, Justia](https://trademark.justia.com/owners/skylark-travel-group-inc-3141824) — accessed 2026-08-08 *(measured)*
-- [FlightCaster — Y Combinator](https://www.ycombinator.com/companies/flightcaster) — accessed 2026-08-08 *(measured)*
-- [FlyWise "95% accuracy" claim — Growth Market Reports](https://growthmarketreports.com/report/flight-delay-prediction-apps-market) — accessed 2026-08-08 *(report mill, low confidence)*
-- Cross-refs: [[differentiation-thesis]], [[positioning]], [[personas]], [[tier-matrix]]
+- [Flighty](https://apps.apple.com/us/app/flighty-live-flight-tracker/id1358823008) · [Flightwise](https://flightwise.com/) · [Flightfox](https://en.wikipedia.org/wiki/Flightfox) — accessed 2026-08-11 *(measured — crowded-space baseline)*
+- [FLIGHT / TAKE FLIGHT / LIVE FLIGHT TRACKER trademarks — Trademarkia/Justia](https://www.trademarkia.com/flight-78261504) — accessed 2026-08-11 *(measured — no Flightworthy/Trueplane/Flightlark/Flightful/Flightproof mark found)*
+- Rejected-collision evidence: [Flightgrade](https://www.squillion.tech/portfolio/flightgrade/) · [Flightward Connect](https://play.google.com/store/apps/details?id=io.sparrowapp.flightward) · [FlightScout](https://theflightscout.com/) · [Planewise](https://www.planewise.app/) · [TrueFlight](https://trueflight.app/login) · [Planepoints](https://apps.apple.com/us/app/planepoints-live-seat-maps/id6745801344) — accessed 2026-08-11 *(measured)*
+- Rev.5 rejected: [Planeworthy (aircraft maintenance)](https://planeworthy.com/) · [FlightSense (flight training)](https://flightsense.ai/about) · [FlightSense® — Collins Aerospace](https://www.rtx.com/collinsaerospace/what-we-do/industries/commercial-aviation/service-solutions/flightsense) — accessed 2026-08-11 *(measured)*
+- Rev.6 — Flightworthy collision + Fly-root rejects: [Flightworthy — flyflightworthy.com](https://www.flyflightworthy.com/) · [Flywise "Don't Miss Your Flight" app](https://apps.apple.com/us/app/flywise-dont-miss-your-flight/id6760709505) · [Flywise Travel B.V.](https://www.linkedin.com/company/flywise) · [FlySmart](https://apps.apple.com/us/app/flysmart/id1443441675) · [Delta FlyReady](https://pro.delta.com/content/agency/us/en/products-and-services/other-programs-services/delta-flyready-app.html) · [FlySharp](https://www.flysharp.com/) · [FlyCalm](https://www.flycalm.app/) · [FlySure travel insurance](https://smmcnj.org/travel-insurance/flysure/) — accessed 2026-08-11 *(measured)*
+- Rev.7 rejected (independent-check collisions): [FlySavvy — Smart Flight Search](https://www.flysavvy.com.au/) · [Flykeen Airways — Wikipedia](https://en.wikipedia.org/wiki/Flykeen_Airways) · [flykeen.com travel guide](https://flykeen.com/about) — accessed 2026-08-11 *(measured)*
+- Cross-refs: [[positioning]], [[messaging]], [[personas]], [[lead-gen-plan]]
