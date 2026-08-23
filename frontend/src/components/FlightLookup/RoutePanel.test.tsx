@@ -83,17 +83,23 @@ describe('RoutePanel', () => {
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
-  it('clicking outside the panel calls onClose', async () => {
+  it('clicking the backdrop calls onClose', async () => {
     await act(async () => {
-      render(
-        <div>
-          <RoutePanel airportIcao="KJFK" origin="KJFK" destination="KLAX" onClose={onClose} />
-          <button data-testid="outside">outside</button>
-        </div>
-      )
+      render(<RoutePanel airportIcao="KJFK" origin="KJFK" destination="KLAX" onClose={onClose} />)
     })
-    fireEvent.mouseDown(screen.getByTestId('outside'))
+    // The backdrop div has aria-hidden and onClick={onClose}
+    const backdrop = document.querySelector('.route-panel-backdrop') as HTMLElement
+    fireEvent.click(backdrop)
     expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('clicking inside the panel does not call onClose', async () => {
+    await act(async () => {
+      render(<RoutePanel airportIcao="KJFK" origin="KJFK" destination="KLAX" onClose={onClose} />)
+    })
+    const dialog = screen.getByRole('dialog')
+    fireEvent.click(dialog)
+    expect(onClose).not.toHaveBeenCalled()
   })
 
   it('clicking the X button calls onClose', async () => {

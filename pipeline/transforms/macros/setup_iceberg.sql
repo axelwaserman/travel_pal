@@ -17,11 +17,6 @@
         endpoint in the dev/test stack.  Production deployments that put auth in
         front of Nessie would change this and add an ICEBERG SECRET with a token.
     #}
-    INSTALL iceberg;
-    LOAD iceberg;
-    INSTALL httpfs;
-    LOAD httpfs;
-
     CREATE OR REPLACE SECRET travel_pal_s3 (
         TYPE s3,
         PROVIDER config,

@@ -1,6 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { useEscape } from '../../hooks/useEscape'
-import { useClickOutside } from '../../hooks/useClickOutside'
 import {
   queryRouteDaily,
   queryRouteCarriers,
@@ -48,7 +47,6 @@ export function RoutePanel({ airportIcao, origin, destination, onClose }: Props)
   })
 
   useEscape(onClose)
-  useClickOutside(panelRef, onClose)
 
   // Focus management: steal focus on mount, restore on unmount.
   // Capture trigger inside the effect so concurrent renders don't snapshot
@@ -113,13 +111,17 @@ export function RoutePanel({ airportIcao, origin, destination, onClose }: Props)
   }, [airportIcao, origin, destination])
 
   return (
-    <div className="route-panel-backdrop">
+    <div
+      className="route-panel-backdrop"
+      onClick={onClose}
+    >
       <aside
         ref={panelRef}
         className="route-panel"
         role="dialog"
         aria-modal="true"
         aria-labelledby="route-panel-heading"
+        onClick={e => e.stopPropagation()}
       >
         <header className="route-panel-header">
           <h3 id="route-panel-heading">{origin} → {destination}</h3>

@@ -31,6 +31,67 @@
   flex: 1;
 }
 
+/* ── Controls row ───────────────────────────────────────────────────── */
+
+.lookup-controls-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin-block-end: var(--space-lg);
+}
+
+/* ── Controls toggle (mobile only) ─────────────────────────────────── */
+
+.lookup-controls-toggle {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .lookup-controls-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-md);
+    font-family: var(--font-body);
+    font-size: var(--text-meta);
+    font-weight: 500;
+    background: var(--color-bg-raised);
+    color: var(--color-ink-muted);
+    border: var(--rule);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    margin-block-end: var(--space-sm);
+    transition: background var(--duration-fast) var(--ease-out-expo),
+                color var(--duration-fast) var(--ease-out-expo);
+  }
+
+  .lookup-controls-toggle:hover {
+    background: var(--color-accent-soft);
+    color: var(--color-ink);
+  }
+
+  .lookup-controls-toggle:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  /* Hidden by default on mobile; shown when --open modifier is present */
+  .lookup-controls-row {
+    display: none;
+  }
+
+  .lookup-controls-row--open {
+    display: flex;
+  }
+}
+
+.lookup-empty {
+  color: var(--color-ink-subtle);
+  font-size: var(--text-meta);
+  margin-block: var(--space-md);
+}
+
 .lookup-error {
   color: var(--color-bad);
   font-size: var(--text-meta);

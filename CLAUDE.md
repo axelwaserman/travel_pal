@@ -43,6 +43,23 @@ Always invoke these skills for relevant tasks:
 - dbt models: written directly in DuckDB dialect (single engine, Phase 0)
 - No `cancellation_rate` — OpenSky only records completed flights (deferred to Phase 1)
 
+## Responsive Design (MANDATORY)
+
+Every UI change must be verified at both desktop (1280px+) and mobile (375px) before marking complete.
+
+**Process:**
+1. Design for mobile first — ensure key controls collapse or are accessible at 375px
+2. Use `@media (max-width: 768px)` as the mobile breakpoint
+3. Modal/panel overlays must have a visible dim backdrop at all viewports
+4. Controls rows that overflow on mobile must be collapsible (toggle button pattern):
+   - Button hidden on desktop (`display: none`), shown on mobile
+   - Controlled panel hidden by default on mobile, toggled with `aria-expanded`
+5. Test with Playwright at both viewports before closing the task
+
+**Patterns in use:**
+- `RoutePanel`: backdrop `<div>` with `onClick={onClose}` + dim overlay `rgba(0,0,0,0.4)` + `animation: backdrop-fade-in`
+- `FlightLookup` controls: `lookup-controls-toggle` button (mobile) + `lookup-controls-row--open` modifier class
+
 ## End-to-End UAT (MANDATORY: do it yourself, do not hand off to user)
 
 When the user asks "did you test it" or "does it work" — actually run the full

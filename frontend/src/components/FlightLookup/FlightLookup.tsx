@@ -88,6 +88,7 @@ function sortCarrierResults(
 export default function FlightLookup({ airportIcao }: Props) {
   const [params, setParams] = useFlightLookupParams()
   const [inputValue, setInputValue] = useState(params.q)
+  const [controlsOpen, setControlsOpen] = useState(false)
 
   // Raw results from the last query — typed union depending on active tab
   const [airportResults, setAirportResults] = useState<AirportResult[]>([])
@@ -283,7 +284,19 @@ export default function FlightLookup({ airportIcao }: Props) {
         </button>
       </div>
 
-      <div className="lookup-controls-row">
+      <button
+        className="lookup-controls-toggle"
+        aria-expanded={controlsOpen}
+        aria-controls="lookup-controls"
+        onClick={() => setControlsOpen(o => !o)}
+      >
+        {controlsOpen ? 'Hide filters ▲' : 'Filters & sort ▼'}
+      </button>
+
+      <div
+        id="lookup-controls"
+        className={`lookup-controls-row${controlsOpen ? ' lookup-controls-row--open' : ''}`}
+      >
         <SortBar
           value={params.sort}
           onChange={sort => setParams({ sort })}
