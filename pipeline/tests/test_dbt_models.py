@@ -329,3 +329,171 @@ def test_cancellation_rate_uses_nullif_count_pattern(mart: str) -> None:
     assert "NULLIF(COUNT(*), 0)" in sql, (
         f"{mart}.sql must use NULLIF(COUNT(*), 0) for the cancellation_rate denom"
     )
+
+
+# ---------------------------------------------------------------------------
+# P2.3 new marts: agg_carrier_route_cancellations + agg_route_cancellation_reasons
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_agg_carrier_route_cancellations_exists_with_correct_location() -> None:
+    """agg_carrier_route_cancellations.sql must exist with s3:// location and this.name."""
+    sql = (MARTS_DIR / "agg_carrier_route_cancellations.sql").read_text()
+    assert "config(" in sql and "location=" in sql
+    assert "s3://" in sql and "warehouse/marts/" in sql
+    assert "this.name" in sql, (
+        "agg_carrier_route_cancellations.sql must reference its own name via {{ this.name }}"
+    )
+
+
+@pytest.mark.unit
+def test_agg_carrier_route_cancellations_has_required_columns() -> None:
+    """agg_carrier_route_cancellations must expose all P2.3 required columns."""
+    sql = (MARTS_DIR / "agg_carrier_route_cancellations.sql").read_text()
+    for col in (
+        "origin_icao",
+        "destination_icao",
+        "carrier_icao",
+        "carrier_name",
+        "total_scheduled",
+        "cancelled",
+        "cancellation_rate",
+        "period_start",
+        "period_end",
+    ):
+        assert col in sql, f"agg_carrier_route_cancellations.sql missing required column {col}"
+
+
+@pytest.mark.unit
+def test_agg_carrier_route_cancellations_groups_by_three_keys() -> None:
+    """Must GROUP BY origin_icao, destination_icao, carrier_icao."""
+    sql = (MARTS_DIR / "agg_carrier_route_cancellations.sql").read_text()
+    assert "GROUP BY origin_icao, destination_icao, carrier_icao" in sql
+
+
+@pytest.mark.unit
+def test_agg_carrier_route_cancellations_rate_uses_nullif_count_pattern() -> None:
+    """NULLIF(COUNT(*), 0) guards against empty-group division."""
+    sql = (MARTS_DIR / "agg_carrier_route_cancellations.sql").read_text()
+    assert "NULLIF(COUNT(*), 0)" in sql, (
+        "agg_carrier_route_cancellations.sql must use NULLIF(COUNT(*), 0)"
+    )
+
+
+@pytest.mark.unit
+def test_agg_route_cancellation_reasons_exists_with_correct_location() -> None:
+    """agg_route_cancellation_reasons.sql must exist with s3:// location and this.name."""
+    sql = (MARTS_DIR / "agg_route_cancellation_reasons.sql").read_text()
+    assert "config(" in sql and "location=" in sql
+    assert "s3://" in sql and "warehouse/marts/" in sql
+    assert "this.name" in sql, (
+        "agg_route_cancellation_reasons.sql must reference its own name via {{ this.name }}"
+    )
+
+
+@pytest.mark.unit
+def test_agg_route_cancellation_reasons_has_required_columns() -> None:
+    """agg_route_cancellation_reasons must expose all P2.3 required columns."""
+    sql = (MARTS_DIR / "agg_route_cancellation_reasons.sql").read_text()
+    for col in (
+        "origin_icao",
+        "destination_icao",
+        "reason",
+        "cancelled_count",
+        "reason_share",
+    ):
+        assert col in sql, f"agg_route_cancellation_reasons.sql missing required column {col}"
+
+
+@pytest.mark.unit
+def test_agg_route_cancellation_reasons_maps_cancellation_codes() -> None:
+    """All five BTS cancellation_code labels must appear in the CASE expression."""
+    sql = (MARTS_DIR / "agg_route_cancellation_reasons.sql").read_text()
+    for label in ("Air Carrier", "Weather", "National Air System", "Security", "Other / Unknown"):
+        assert label in sql, (
+            f"agg_route_cancellation_reasons.sql missing cancellation reason label '{label}'"
+        )
+
+
+@pytest.mark.unit
+def test_agg_route_cancellation_reasons_filters_uncancelled_rows() -> None:
+    """Reason mart must filter to cancelled = TRUE rows only."""
+    sql = (MARTS_DIR / "agg_route_cancellation_reasons.sql").read_text()
+    assert "cancelled = TRUE" in sql, (
+        "agg_route_cancellation_reasons.sql must filter WHERE cancelled = TRUE"
+    )
+
+
+@pytest.mark.unit
+def test_agg_route_cancellation_reasons_reason_share_uses_window_sum() -> None:
+    """reason_share must be computed as COUNT(*) / window SUM(COUNT(*)) OVER partition."""
+    sql = (MARTS_DIR / "agg_route_cancellation_reasons.sql").read_text()
+    assert "SUM(COUNT(*)) OVER" in sql, (
+        "agg_route_cancellation_reasons.sql must use a window SUM for reason_share"
+    )
+
+
+@pytest.mark.unit
+def test_marts_schema_yml_covers_new_marts() -> None:
+    """pipeline/transforms/models/marts/schema.yml must declare both P2.3 new marts."""
+    schema_path = MARTS_DIR / "schema.yml"
+    assert schema_path.exists(), "pipeline/transforms/models/marts/schema.yml must exist"
+    schema = yaml.safe_load(schema_path.read_text())
+    model_names = {m["name"] for m in schema.get("models", [])}
+    assert "agg_carrier_route_cancellations" in model_names, (
+        "schema.yml must declare agg_carrier_route_cancellations"
+    )
+    assert "agg_route_cancellation_reasons" in model_names, (
+        "schema.yml must declare agg_route_cancellation_reasons"
+    )
+
+
+@pytest.mark.unit
+def test_schema_yml_carrier_route_has_not_null_on_grain_columns() -> None:
+    """agg_carrier_route_cancellations grain columns must have not_null tests."""
+    schema_path = MARTS_DIR / "schema.yml"
+    assert schema_path.exists(), "pipeline/transforms/models/marts/schema.yml must exist"
+    schema = yaml.safe_load(schema_path.read_text())
+    models = {m["name"]: m for m in schema.get("models", [])}
+    assert "agg_carrier_route_cancellations" in models
+    cols = {c["name"]: c for c in models["agg_carrier_route_cancellations"].get("columns", [])}
+    for grain_col in (
+        "origin_icao",
+        "destination_icao",
+        "carrier_icao",
+        "total_scheduled",
+        "cancelled",
+    ):
+        assert grain_col in cols, (
+            f"schema.yml agg_carrier_route_cancellations must declare column '{grain_col}'"
+        )
+        tests = cols[grain_col].get("tests", [])
+        assert "not_null" in tests, (
+            f"schema.yml must have a not_null test on agg_carrier_route_cancellations.{grain_col}"
+        )
+
+
+@pytest.mark.unit
+def test_schema_yml_route_reasons_has_not_null_and_accepted_values() -> None:
+    """agg_route_cancellation_reasons reason column must have not_null + accepted_values."""
+    schema_path = MARTS_DIR / "schema.yml"
+    assert schema_path.exists(), "pipeline/transforms/models/marts/schema.yml must exist"
+    schema = yaml.safe_load(schema_path.read_text())
+    models = {m["name"]: m for m in schema.get("models", [])}
+    assert "agg_route_cancellation_reasons" in models
+    cols = {c["name"]: c for c in models["agg_route_cancellation_reasons"].get("columns", [])}
+    for grain_col in ("origin_icao", "destination_icao", "reason", "cancelled_count"):
+        assert grain_col in cols, (
+            f"schema.yml agg_route_cancellation_reasons must declare column '{grain_col}'"
+        )
+        tests = cols[grain_col].get("tests", [])
+        assert "not_null" in tests, (
+            f"schema.yml must have a not_null test on agg_route_cancellation_reasons.{grain_col}"
+        )
+    # reason must also have accepted_values
+    reason_tests = cols["reason"].get("tests", [])
+    has_accepted_values = any(isinstance(t, dict) and "accepted_values" in t for t in reason_tests)
+    assert has_accepted_values, (
+        "schema.yml agg_route_cancellation_reasons.reason must have an accepted_values test"
+    )

@@ -50,6 +50,41 @@ test('full-page UAT snapshot', async ({ page }) => {
   const svgCount = await page.locator('.cancellation-section svg').count()
   console.log('CANCELLATION_SVG_COUNT:', svgCount)
 
+  // ------------------------------------------------------------------
+  // Flight Lookup search + RoutePanel drill-down snapshot
+  // ------------------------------------------------------------------
+  await page.getByRole('textbox', { name: /flight route or airport/i }).fill('JFK')
+  await page.getByRole('button', { name: 'Search' }).click()
+
+  // Wait for result cards to appear (DuckDB-WASM fetch)
+  await page.waitForFunction(
+    () => document.querySelectorAll('.result-card--clickable').length > 0,
+    { timeout: 20_000 }
+  )
+
+  const firstCard = page.locator('.result-card--clickable').first()
+  await firstCard.click()
+
+  // Wait for the panel slide-in and at least one sub-section to render
+  await expect(page.locator('.route-panel')).toBeVisible({ timeout: 10_000 })
+  // Allow sub-charts to settle (loading spinner → chart or empty state)
+  await page.waitForTimeout(3000)
+
+  await page.screenshot({
+    path: 'test-results/uat-route-panel.png',
+    fullPage: true,
+  })
+
+  const panelText = (await page.locator('.route-panel').innerText())
+    .split('\n')
+    .slice(0, 30)
+    .join(' | ')
+  console.log('ROUTE_PANEL_TEXT:', panelText)
+
+  // Close the panel before final console-error assertion
+  await page.keyboard.press('Escape')
+  await expect(page.locator('.route-panel')).toHaveCount(0, { timeout: 5000 })
+
   console.log('CONSOLE_ERRORS:', JSON.stringify(consoleErrors))
   expect(consoleErrors).toEqual([])
 })

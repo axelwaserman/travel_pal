@@ -11,6 +11,7 @@ MASTER="localhost:9333"
 
 echo "s3.bucket.create -name raw-flights"       | weed shell -master="${MASTER}"
 echo "s3.bucket.create -name frontend-exports"  | weed shell -master="${MASTER}"
+echo "s3.bucket.create -name bts-raw"           | weed shell -master="${MASTER}"
 echo "s3.configure -user=admin -access_key=admin -secret_key=admin -actions=Read,Write,List,Tagging,Admin -apply" \
     | weed shell -master="${MASTER}"
 echo "s3.configure -user=anonymous -buckets=frontend-exports -actions=Read,List -apply" \

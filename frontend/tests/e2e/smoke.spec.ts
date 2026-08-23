@@ -33,3 +33,66 @@ test('no console errors on first load', async ({ page }) => {
   await page.waitForTimeout(3000)
   expect(errors, errors.join('\n')).toEqual([])
 })
+
+test('flight lookup search + carrier tab + airport drill-down + panel close', async ({ page }) => {
+  await page.goto('/')
+
+  // ------------------------------------------------------------------
+  // 1. Airport search: type "JFK", click Search, expect ≥1 result card
+  // ------------------------------------------------------------------
+  await page.getByRole('textbox', { name: /flight route or airport/i }).fill('JFK')
+  await page.getByRole('button', { name: 'Search' }).click()
+
+  // Wait for DuckDB-WASM to respond — parquet fetch can take several seconds
+  await page.waitForFunction(
+    () => document.querySelectorAll('.result-card').length > 0,
+    { timeout: 20_000 }
+  )
+  expect(await page.locator('.result-card').count()).toBeGreaterThan(0)
+
+  // ------------------------------------------------------------------
+  // 2. Switch to Carriers tab — URL should reflect the tab change
+  // ------------------------------------------------------------------
+  await page.getByRole('tab', { name: 'Carriers' }).click()
+  await expect(page).toHaveURL(/tab=carriers/, { timeout: 5000 })
+
+  // Search for a carrier on the Carriers tab
+  await page.getByRole('textbox', { name: /flight route or airport/i }).fill('DAL')
+  await page.getByRole('button', { name: 'Search' }).click()
+
+  await page.waitForFunction(
+    () => document.querySelectorAll('.result-card').length > 0,
+    { timeout: 20_000 }
+  )
+  expect(await page.locator('.result-card').count()).toBeGreaterThan(0)
+
+  // Note: carrier cards do NOT open the route panel (no result-card--clickable).
+  // The drill-down flow is airport-only — switch back to test it.
+
+  // ------------------------------------------------------------------
+  // 3. Switch back to Airports tab and search again to populate clickable cards
+  // ------------------------------------------------------------------
+  await page.getByRole('tab', { name: 'Airports' }).click()
+
+  await page.getByRole('textbox', { name: /flight route or airport/i }).fill('JFK')
+  await page.getByRole('button', { name: 'Search' }).click()
+
+  await page.waitForFunction(
+    () => document.querySelectorAll('.result-card--clickable').length > 0,
+    { timeout: 20_000 }
+  )
+
+  // Click the first clickable airport result card to open the drill-down panel
+  await page.locator('.result-card--clickable').first().click()
+
+  // Panel should appear and URL should contain ?route=XXXX-YYYY
+  await expect(page.locator('.route-panel')).toBeVisible({ timeout: 10_000 })
+  await expect(page).toHaveURL(/route=[A-Z]{3,4}-[A-Z]{3,4}/, { timeout: 5000 })
+
+  // ------------------------------------------------------------------
+  // 4. Close panel via Escape — panel unmounts and ?route= is cleared
+  // ------------------------------------------------------------------
+  await page.keyboard.press('Escape')
+  await expect(page.locator('.route-panel')).toHaveCount(0, { timeout: 5000 })
+  await expect(page).not.toHaveURL(/route=/, { timeout: 5000 })
+})

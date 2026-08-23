@@ -1,0 +1,57 @@
+version: 2
+
+models:
+  - name: agg_carrier_route_cancellations
+    description: >
+      Per (origin, destination, carrier) cancellation rate from BTS On-Time data.
+      Feeds the P2.3 flight-lookup drill-down carrier breakdown panel.
+    columns:
+      - name: origin_icao
+        tests: [not_null]
+      - name: destination_icao
+        tests: [not_null]
+      - name: carrier_icao
+        tests: [not_null]
+      - name: total_scheduled
+        tests: [not_null]
+      - name: cancelled
+        tests: [not_null]
+
+  - name: agg_route_cancellation_reasons
+    description: >
+      Per (origin, destination, reason) share of cancellations by BTS
+      cancellation_code (A=Air Carrier, B=Weather, C=National Air System,
+      D=Security, else Other / Unknown). Feeds the P2.3 reason-mix panel.
+    columns:
+      - name: origin_icao
+        tests: [not_null]
+      - name: destination_icao
+        tests: [not_null]
+      - name: reason
+        tests:
+          - not_null
+          - accepted_values:
+              values:
+                - 'Air Carrier'
+                - 'Weather'
+                - 'National Air System'
+                - 'Security'
+                - 'Other / Unknown'
+      - name: cancelled_count
+        tests: [not_null]
+
+  - name: agg_daily_route_cancellations
+    description: >
+      Per (date, origin, destination) total flights + cancellations from BTS.
+      Drives the P2.3 drill-down daily sparkline (cancellation_rate over time).
+    columns:
+      - name: flight_date
+        tests: [not_null]
+      - name: origin_icao
+        tests: [not_null]
+      - name: destination_icao
+        tests: [not_null]
+      - name: total_scheduled
+        tests: [not_null]
+      - name: cancelled
+        tests: [not_null]
