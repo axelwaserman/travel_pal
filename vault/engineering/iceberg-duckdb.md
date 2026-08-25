@@ -26,7 +26,7 @@ Rule: **only context A touches raw Iceberg.** B and C read narrow, pre-shaped Pa
 
 ## A. How dbt+DuckDB reads Iceberg
 
-- Transforms run in **DuckDB dialect** against Iceberg via the **R2 Data Catalog (Iceberg REST)** endpoint (replaces the current Nessie REST wiring in `pipeline/transforms/`, `macros/setup_iceberg.sql`). Keep single-engine (per `CLAUDE.md` — no Trino/Spark; the legacy sqlglot/Trino transpilation layer is **not** adopted).
+- Transforms run in **DuckDB dialect** against Iceberg via the **R2 Data Catalog (Iceberg REST)** endpoint (replaces the current Nessie REST wiring in `pipeline/transforms/`, `macros/setup_iceberg.sql`). Keep single-engine (per `AGENTS.md` — no Trino/Spark; the legacy sqlglot/Trino transpilation layer is **not** adopted).
 - Read path: DuckDB `iceberg` extension `iceberg_scan(<table>)` (or PyIceberg → Arrow → DuckDB register) reading Iceberg metadata from **R2 Data Catalog**, data from **R2** (`httpfs`, path-style S3 API).
 - Marts are materialized as **Parquet on R2** via dbt `config(location=...)` (existing `agg_*` pattern, repointed from SeaweedFS to R2). Reuse the shape verbatim.
 
@@ -63,4 +63,4 @@ Serving (context B) reads #1 directly as Parquet; batch scoring joins #1 × mode
 ## Sources
 - [Cloudflare R2 Data Catalog](https://developers.cloudflare.com/r2/data-catalog/) · [R2 pricing (zero egress)](https://developers.cloudflare.com/r2/pricing/) — accessed 2026-08-10
 - Repo: `pipeline/transforms/` (dbt models, `macros/setup_iceberg.sql`), `pipeline/pipeline/assets/frontend_exports.py`, `frontend/src/db/client.ts` — accessed 2026-08-10
-- `CLAUDE.md` (single-engine DuckDB, dbt) — accessed 2026-08-10
+- `AGENTS.md` (single-engine DuckDB, dbt) — accessed 2026-08-10

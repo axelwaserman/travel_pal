@@ -95,7 +95,7 @@ The stack is **S3-API + Iceberg-REST-API on both ends**, so we test against loca
 | Upstash Redis | local `redis` container / `fakeredis` | unit / integration |
 
 - Keep a **`docker-compose.dev.yml` (or a `dev` profile)** with MinIO + an Iceberg-REST-fixture + postgres + redis. This is the **local dev/test rig only** — it is *not* the production topology (we deleted SeaweedFS/Nessie from prod; the local rig is disposable and unversioned-data is fine).
-- E2E ([[travelpal-testing-layers]]) runs against this local rig, exactly as the current Playwright + DuckDB-WASM UAT does (`CLAUDE.md`), so the mandated end-to-end test path is preserved without cloud access.
+- E2E ([[travelpal-testing-layers]]) runs against this local rig, exactly as the current Playwright + DuckDB-WASM UAT does (`AGENTS.md`), so the mandated end-to-end test path is preserved without cloud access.
 
 ### B. Environment isolation (dev vs prod, both on Cloudflare)
 

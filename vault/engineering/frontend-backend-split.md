@@ -48,7 +48,7 @@ The edge bucket is **publicly readable** (R2 public bucket). Anything in it is e
 - All metering/cap enforcement happens at the API (Redis token bucket keyed on **device/session id**, 5/day in MVP — see [[serving-service]] §rate-limiting).
 
 ## Legacy note (not adopted)
-`tech_product_Architecture.txt` §1.3/§3.3 proposes a **low-bandwidth fallback** where a Go gateway proxies DuckDB compute + presigned-URL vending. We keep the *concept* (backend can serve compact JSON when the browser can't run WASM) but implement it in the **FastAPI** serving service, not a separate Go gateway (stack is Python — `CLAUDE.md`). Presigned-URL vending only becomes relevant if/when per-user private data (Phase 2 personal history) lands; the free descriptive tier stays fully public-Parquet.
+`tech_product_Architecture.txt` §1.3/§3.3 proposes a **low-bandwidth fallback** where a Go gateway proxies DuckDB compute + presigned-URL vending. We keep the *concept* (backend can serve compact JSON when the browser can't run WASM) but implement it in the **FastAPI** serving service, not a separate Go gateway (stack is Python — `AGENTS.md`). Presigned-URL vending only becomes relevant if/when per-user private data (Phase 2 personal history) lands; the free descriptive tier stays fully public-Parquet.
 
 ## Handoffs
 - → [[product-shape-by-tier]]: maps each surface to Free / Plus (B2C).
