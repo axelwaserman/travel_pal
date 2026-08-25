@@ -32,7 +32,7 @@ The SPA is tiny static JS/CSS; the **cost axis is Parquet egress** (public datas
 Workload: ~500 MB–1 GB container (Python 3.14 + GBT artifact in-proc + embedded DuckDB), 1–2 GB RAM, **p95 < 300 ms warm** ([[serving-service]]).
 
 > [!note] RESOLVED (2026-08-11) — Python 3.14 confirmed
-> The human confirmed **Python 3.14** and updated `CLAUDE.md`'s Tech-Stack line to `3.14` (`requires-python = ">=3.14"`; the old 3.13/3.13t rationale was scrubbed). This note and `CLAUDE.md` now agree on 3.14. **Remaining pre-build check:** confirm a `python:3.14-slim` base image exists on Docker Hub before building the Fly container, and bump `pipeline/pyproject.toml` (`requires-python = ">=3.13"` → `">=3.14"`) when the code work starts. `#task/platform 🔽`
+> The human confirmed **Python 3.14** and updated `AGENTS.md`'s Tech-Stack line to `3.14` (`requires-python = ">=3.14"`; the old 3.13/3.13t rationale was scrubbed). This note and `AGENTS.md` now agree on 3.14. **Remaining pre-build check:** confirm a `python:3.14-slim` base image exists on Docker Hub before building the Fly container, and bump `pipeline/pyproject.toml` (`requires-python = ">=3.13"` → `">=3.14"`) when the code work starts. `#task/platform 🔽`
 
 ### The core finding: scale-to-zero is NOT worth it here
 
@@ -77,4 +77,4 @@ A cold start of **1–10 s** on the first request after idle **blows the p95 < 3
 - Frontend: [Cloudflare Pages pricing/limits](https://developers.cloudflare.com/pages/functions/pricing/) + [limits](https://developers.cloudflare.com/pages/platform/limits/index.md) · [Vercel pricing](https://vercel.com/pricing) · [Netlify pricing](https://www.netlify.com/pricing/) — accessed 2026-08-08 *(measured; some Netlify credit conversions derived)*
 - Backend: [Scaleway Serverless pricing](https://www.scaleway.com/en/pricing/serverless/) + [container limits](https://github.com/scaleway/docs-content/blob/main/pages/serverless-containers/reference-content/containers-limitations.mdx) · [AWS Lambda pricing](https://aws.amazon.com/lambda/pricing/) · [AWS Fargate pricing](https://aws.amazon.com/fargate/pricing/) · [AWS App Runner pricing](https://aws.amazon.com/apprunner/pricing/) · [Fly.io pricing](https://fly.io/docs/about/pricing/) + [autostop](https://fly.io/docs/launch/autostop-autostart/) · [Render pricing](https://render.com/pricing) — accessed 2026-08-08 *(rates measured; cold-start seconds assumed/community)*
 - Managed services: see [[orchestration-storage]] Sources.
-- Repo: `docker-compose.yml`, `CLAUDE.md`, `tech_product_Architecture.txt` — accessed 2026-08-08
+- Repo: `docker-compose.yml`, `AGENTS.md`, `tech_product_Architecture.txt` — accessed 2026-08-08

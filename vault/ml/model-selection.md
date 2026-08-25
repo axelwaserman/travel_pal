@@ -45,7 +45,7 @@ Route, carrier, aircraft/tail, scheduled hour, day-of-week, season/holiday, orig
 | **MAPIE** *(or hand-rolled split-conformal)* | CQR/conformal calibration | pure-Python, thin |
 | scikit-learn | isotonic/Venn-Abers, metrics, splitting | already ubiquitous |
 
-PyTorch/TFT/ONNX **not** proposed for v1. All are Pre-Code-Gate additions ([[AGENTS]] rule 3, `CLAUDE.md`).
+PyTorch/TFT/ONNX **not** proposed for v1. All are Pre-Code-Gate additions ([[AGENTS]] rule 3).
 
 ## External benchmarks (cited; NOT our targets)
 
