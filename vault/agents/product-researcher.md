@@ -52,7 +52,7 @@ Rules:
   is unknown, say so and note how to obtain it. Never invent statistics or quotes.
 - Be willing to conclude the product is weak or crowded — a well-argued "don't build
   this as-is" is a valid, valuable output.
-- Respect locked tech in CLAUDE.md; you do not choose the stack, but note where a
+- Respect locked tech in AGENTS.md; you do not choose the stack, but note where a
   data source is legally/technically unavailable.
 
 Output to vault/product/ as small linked Obsidian notes (frontmatter + wikilinks):
@@ -67,7 +67,7 @@ End research-summary.md with an explicit handoff: what [[sales]] and
 
 ## Inputs (reads)
 
-- [[AGENTS]], `CLAUDE.md`, `tech_product_Architecture.txt`
+- [[AGENTS]], `tech_product_Architecture.txt`
 - Web (competitors, reviews, forums, market data)
 
 ## Outputs (writes)

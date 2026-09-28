@@ -3,7 +3,7 @@ type: charter
 title: AGENTS — TravelPal Product Team
 tags: [agents, charter, moc]
 status: draft
-updated: 2026-08-08
+updated: 2026-08-23
 ---
 
 # AGENTS — TravelPal Product Team
@@ -15,11 +15,86 @@ This file is the **map of content (MOC)** and operating contract for the multi-a
 
 ---
 
+## Code rules (governs all code)
+
+> Migrated from the former `CLAUDE.md` (2026-08-23). The Pre-Code Gate and tech stack below are binding.
+
+### Pre-Code Gate (MANDATORY)
+
+Before writing ANY code, you MUST ask the user about:
+1. **Patterns** — architectural and design patterns to use
+2. **Toolstack** — exact libraries, versions, and frameworks
+3. **Implementation details** — specific decisions that affect code shape
+
+Only proceed to writing-plans after explicit user approval of these choices.
+This applies even when requirements seem obvious from the architecture doc.
+
+### Tech Stack
+
+- **Python**: 3.14 (`requires-python = ">=3.14"`); GIL-enabled.
+- **Data validation**: Pydantic v2 (all models; `BaseSettings` for config)
+- **HTTP client**: pyreqwests (async-first; `ClientBuilder` + `basic_auth` for OpenSky)
+- **Orchestrator**: Dagster (use `dagster-expert` + `dignified-python` skills)
+- **Testing**: unit + integration + E2E required; pytest + pytest-asyncio; minimum 80% coverage
+- **Type annotations**: full coverage, no `Any` without justification
+
+### Skills to Use
+
+Always invoke these skills for relevant tasks (via the `skill` tool, name-only):
+- `dagster-expert` — any Dagster asset, component, resource, sensor, schedule
+- `dignified-python` — any Python code quality, typing, patterns
+- `travelpal-pyreqwests` — HTTP client (OpenSkyAdapter, any external API call)
+- `travelpal-pydantic-models` — config, API response models, validators
+- `travelpal-dagster-resources` — ResourceParam, hardcoded_resource, Definitions wiring
+- `travelpal-testing-layers` — test layer placement (unit / integration / E2E)
+- `travelpal-opensky-adapter` — OpenSky endpoints, auth, chunking, limitations
+- `travelpal-dbt-duckdb` — dbt models, NULL guards, DuckDB dialect
+- `travelpal-seaweedfs` — S3/boto3 config, Parquet upload, moto mocking
+- `travelpal-iceberg-nessie` — catalog init, schema definition, branch management
+
+### Conventions
+
+- All Dagster resources use `ResourceParam[X]` type hints
+- Pydantic models for all config and external API response shapes
+- `_resources_or_empty()` pattern for unit-test-compatible `Definitions`
+- dbt models: written directly in DuckDB dialect (single engine, Phase 0)
+- No `cancellation_rate` — OpenSky only records completed flights (deferred to Phase 1)
+
+### End-to-End UAT (MANDATORY: do it yourself, do not hand off to user)
+
+When the user asks "did you test it" or "does it work" — actually run the full
+stack and verify, do not just describe steps. The repo has Playwright +
+DuckDB-WASM + Dagster wired up; you have everything needed.
+
+Steps:
+1. `just down -v` → `just up` → `just buckets-init` (clean SeaweedFS state)
+2. `just run-pipeline` (materializes bts_on_time partition + raw + transformed + frontend_exports)
+3. `just ls-exports` — confirm 5 parquets in `frontend-exports`
+4. `cd frontend && npm run dev &` (vite at :5173) — or `npm run preview` after `npm run build`
+5. Run Playwright headed against the running dev server:
+   `cd frontend && npx playwright test --reporter=list`
+   Screenshots + traces land in `frontend/test-results/` and `frontend/playwright-report/`
+6. For ad-hoc DOM inspection beyond the smoke spec, write a one-off Playwright
+   script (or extend `tests/e2e/smoke.spec.ts`) that calls `page.screenshot`,
+   `page.locator(...).innerHTML()`, and `page.evaluate(() => document.title)`.
+
+If a chrome-devtools or playwright MCP is attached, prefer that for interactive
+inspection. Otherwise the local `npx playwright` path works headlessly without
+any MCP. (Note: no playwright/chrome-devtools MCP is configured in opencode yet.)
+
+Only ask the user to test manually if:
+- Visual judgment is required (typography polish, design feel)
+- The bug only repros against external services the user controls (real OpenSky
+  account, real BTS download)
+- An explicit user gate (Pre-Code Gate, design approval) is in play
+
+---
+
 ## 1. How this relates to existing docs
 
-- **`CLAUDE.md`** still governs *code*: the Pre-Code Gate, tech stack, and the `travelpal-*` skills. Nothing here overrides it. Before any agent's recommendation turns into code, the Pre-Code Gate in `CLAUDE.md` applies.
-- **`docs/superpowers/`** (plans, specs, skills) is **legacy** and stays in place for now. We are migrating the *docs + workflow* to this Obsidian vault. Do not delete `docs/superpowers/` — treat it as read-only reference until an explicit migration pass.
-- **This vault** is the new home for product strategy, research, and cross-functional planning. Engineering/ML deep-dives link back to the code and the legacy specs where useful.
+- **Code rules** live in the "Code rules" section above: the Pre-Code Gate, tech stack, and the `travelpal-*` skills. Before any agent's recommendation turns into code, the Pre-Code Gate applies.
+- **`tech_product_Architecture.txt`** is the legacy architecture reference; the vault notes supersede it in places (see `vault/engineering/architecture-summary.md`).
+- **This vault** is the new home for product strategy, research, and cross-functional planning. Engineering/ML deep-dives link back to the code.
 
 ## 2. Product reframe (why the team exists)
 
@@ -111,12 +186,12 @@ SORT priority DESC
 
 ## 7. Shared operating rules for every agent
 
-1. **Read before you write.** Load `AGENTS.md`, `CLAUDE.md`, `tech_product_Architecture.txt`, and your upstream agents' notes first.
+1. **Read before you write.** Load `AGENTS.md` (code rules included), `tech_product_Architecture.txt`, and your upstream agents' notes first.
 2. **Evidence over assertion.** Cite sources; distinguish *measured*, *estimated*, and *assumed*. Never invent metrics, quotes, or competitor prices.
-3. **Respect locked tech decisions** in `CLAUDE.md` (Python 3.13, Pydantic v2, Dagster, dbt+DuckDB, Iceberg/Nessie, SeaweedFS, React/DuckDB-WASM). Propose changes explicitly with rationale; do not silently assume a different stack. FastAPI (backend) and the ML library are *open* additions to be justified.
+3. **Respect locked tech decisions** in the Code rules section (Python 3.14, Pydantic v2, Dagster, dbt+DuckDB, Iceberg/Nessie, SeaweedFS, React/DuckDB-WASM). Propose changes explicitly with rationale; do not silently assume a different stack. FastAPI (backend) and the ML library are *open* additions to be justified.
 4. **Stay in your lane, name your handoffs.** Produce your artifact, then list what the next agent needs from you and what you need from them (wikilinks).
 5. **Draft status by default.** New notes are `status: draft`. Only the human moves a note to `approved`.
-6. **No code without the gate.** Recommendations are fine; implementation waits for the `CLAUDE.md` Pre-Code Gate and explicit human approval.
+6. **No code without the gate.** Recommendations are fine; implementation waits for the Pre-Code Gate (Code rules section) and explicit human approval.
 7. **Terse, structured, skimmable.** Tables, bullets, short sections. This is a review artifact, not an essay.
 
 ---

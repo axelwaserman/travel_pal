@@ -65,5 +65,5 @@ Stale-BTS spine (≤3mo, US-only) drives weekly retrain + serve-time fusion; **O
 ## Sources
 
 - Repo vault: [[feature-contract]], [[serving-service]], [[frontend-backend-split]], [[architecture-summary]], [[research-summary]], [[personas]], [[differentiation-thesis]], [[tier-matrix]], [[metering-unit]], [[unit-economics]] — accessed 2026-08-08
-- Codebase: `pipeline/` assets + dbt models, `travelpal-dagster-resources` / `travelpal-iceberg-nessie` skills, `CLAUDE.md` — accessed 2026-08-08
+- Codebase: `pipeline/` assets + dbt models, `travelpal-dagster-resources` / `travelpal-iceberg-nessie` skills, `AGENTS.md` — accessed 2026-08-08
 - External: Grinsztajn 2022, Shwartz-Ziv & Armon 2022, Romano et al. 2019 (cited in [[model-selection]]) — public literature, accessed 2026-08-08

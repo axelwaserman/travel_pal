@@ -8,7 +8,7 @@ updated: 2026-08-17
 
 # Product Roadmap — v1 MVP and beyond
 
-> Draft for human review. Synthesizes the 7-agent package + follow-up data spikes into a phased plan. **No code** — this is planning only; the `CLAUDE.md` Pre-Code Gate still applies before any implementation.
+> Draft for human review. Synthesizes the 7-agent package + follow-up data spikes into a phased plan. **No code** — this is planning only; the `AGENTS.md` Pre-Code Gate still applies before any implementation.
 
 ## Strategy in one paragraph
 

@@ -175,7 +175,7 @@ def _to_arrow(records: list[OpenSkyFlight]) -> pa.Table:
 ## Known Limitations
 
 ### 1. Only completed flights
-OpenSky only records flights that have both a departure and an arrival. Cancelled flights never appear. **`cancellation_rate` cannot be computed from OpenSky data.** Phase 1 sources cancellations from BTS On-Time Performance via `pipeline/pipeline/resources/bts.py` + `pipeline/pipeline/assets/bts_on_time.py`; see `docs/superpowers/specs/2026-06-05-phase1-cancellation-rate-design.md`.
+OpenSky only records flights that have both a departure and an arrival. Cancelled flights never appear. **`cancellation_rate` cannot be computed from OpenSky data.** Phase 1 sources cancellations from BTS On-Time Performance via `pipeline/pipeline/resources/bts.py` + `pipeline/pipeline/assets/bts_on_time.py`.
 
 ### 2. Time range cap — 7 days per request
 Always use `_date_chunks` for any range. Never exceed 7 days per request.

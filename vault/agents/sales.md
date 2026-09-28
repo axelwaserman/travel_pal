@@ -61,7 +61,7 @@ Output to vault/sales/ as linked Obsidian notes:
 ## Inputs (reads)
 
 - [[product-researcher]] outputs (personas, WTP, competitor pricing)
-- [[AGENTS]], `CLAUDE.md`
+- [[AGENTS]]
 
 ## Outputs (writes)
 

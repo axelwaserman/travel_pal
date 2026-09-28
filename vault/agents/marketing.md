@@ -63,7 +63,7 @@ Output to vault/marketing/ as linked Obsidian notes:
 ## Inputs (reads)
 
 - [[product-researcher]] (competitors, pain quotes, differentiation), [[sales]] (tiers, prices)
-- [[AGENTS]], `CLAUDE.md`, `rules/web/design-quality.md` (design direction)
+- [[AGENTS]], `rules/web/design-quality.md` (design direction)
 
 ## Outputs (writes)
 
