@@ -1,6 +1,6 @@
 ---
 name: travelpal-opensky-adapter
-description: Use when writing, reviewing, or debugging any code that touches the OpenSky Network API within the TravelPal pipeline — including the OpenSkyAdapter class, flight ingestion jobs, date chunking, Pydantic response models, or any logic that calls the departure or arrival endpoints. Also use when diagnosing missing cancellation data, unexpected 403 errors, empty result sets, or callsign formatting issues traced to the OpenSky integration.
+description: OpenSky Network API in TravelPal — departure/arrival endpoints, auth, 7-day date chunking, 404/[] semantics, and callsign stripping.
 ---
 
 # TravelPal — OpenSky Network Adapter

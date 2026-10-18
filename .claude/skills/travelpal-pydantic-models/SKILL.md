@@ -1,6 +1,6 @@
 ---
 name: travelpal-pydantic-models
-description: Use when writing, reviewing, or modifying Pydantic models in the TravelPal pipeline — including environment-backed config classes, OpenSky API response models, Dagster op/asset config, PyArrow conversion helpers, or any model that touches dbt/Arrow type boundaries. Also use when adding validators, choosing field types, or deciding how to handle extra fields from external APIs.
+description: Pydantic v2 in TravelPal — BaseSettings config, external API response models, validators, and Arrow/dbt type boundaries.
 ---
 
 # TravelPal Pydantic v2 Patterns

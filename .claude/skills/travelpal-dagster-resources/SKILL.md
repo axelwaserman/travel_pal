@@ -1,6 +1,6 @@
 ---
 name: travelpal-dagster-resources
-description: Use when writing, modifying, or debugging Dagster assets in the TravelPal pipeline — specifically when wiring resources to assets, defining Definitions, writing unit tests for assets, or handling None-returning upstream dependencies.
+description: Dagster assets in TravelPal — ResourceParam annotations, hardcoded_resource in Definitions, _resources_or_empty(), and AssetIn(Nothing) for None-returning upstreams.
 ---
 
 # TravelPal Dagster Resource Patterns

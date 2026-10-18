@@ -1,6 +1,6 @@
 ---
 name: travelpal-dbt-duckdb
-description: Use when writing, editing, or reviewing dbt models in the TravelPal transform layer (`pipeline/transforms/`), including staging, intermediate, or mart SQL files. Use when debugging NULL propagation in `is_on_time` or `on_time_ratio`. Use when adding new aggregation models or metrics to the route/daily timeliness marts. Use when verifying DuckDB dialect compatibility. Use when running or interpreting `dbt test` results for the transforms layer.
+description: dbt models in pipeline/transforms/ — NULL-safe is_on_time/on_time_ratio, DuckDB dialect, and route/daily timeliness marts.
 ---
 
 # TravelPal dbt + DuckDB Conventions
