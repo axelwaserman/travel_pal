@@ -26,23 +26,23 @@ Before writing ANY code, you MUST ask the user about:
 2. **Toolstack** — exact libraries, versions, and frameworks
 3. **Implementation details** — specific decisions that affect code shape
 
-Only proceed to writing-plans after explicit user approval of these choices.
+Only proceed to implementation planning after explicit user approval of these choices.
 This applies even when requirements seem obvious from the architecture doc.
 
 ### Tech Stack
 
-- **Python**: 3.14 (`requires-python = ">=3.14"`); GIL-enabled.
+- **Python**: 3.13 (`requires-python = ">=3.13"`); GIL-enabled — not the free-threaded `3.13t` build. `pipeline/pyproject.toml` (`requires-python`, `[tool.ruff] target-version = "py313"`) and every CI workflow (`PYTHON_VERSION: "3.13"`) are the source of truth.
 - **Data validation**: Pydantic v2 (all models; `BaseSettings` for config)
 - **HTTP client**: pyreqwests (async-first; `ClientBuilder` + `basic_auth` for OpenSky)
-- **Orchestrator**: Dagster (use `dagster-expert` + `dignified-python` skills)
+- **Orchestrator**: Dagster (use the `travelpal-dagster-resources` skill)
 - **Testing**: unit + integration + E2E required; pytest + pytest-asyncio; minimum 80% coverage
 - **Type annotations**: full coverage, no `Any` without justification
 
 ### Skills to Use
 
-Always invoke these skills for relevant tasks (via the `skill` tool, name-only):
-- `dagster-expert` — any Dagster asset, component, resource, sensor, schedule
-- `dignified-python` — any Python code quality, typing, patterns
+Always invoke these skills for relevant tasks (via the `skill` tool, name-only).
+All eight live in `.claude/skills/`, which opencode discovers natively:
+
 - `travelpal-pyreqwests` — HTTP client (OpenSkyAdapter, any external API call)
 - `travelpal-pydantic-models` — config, API response models, validators
 - `travelpal-dagster-resources` — ResourceParam, hardcoded_resource, Definitions wiring
@@ -51,6 +51,15 @@ Always invoke these skills for relevant tasks (via the `skill` tool, name-only):
 - `travelpal-dbt-duckdb` — dbt models, NULL guards, DuckDB dialect
 - `travelpal-seaweedfs` — S3/boto3 config, Parquet upload, moto mocking
 - `travelpal-iceberg-nessie` — catalog init, schema definition, branch management
+
+> `dagster-expert` and `dignified-python` were Claude Code marketplace plugins
+> (`dagster-expert@dagster`, `superpowers@claude-plugins-official` in
+> `.claude/settings.json`), not repo skills, and have **no opencode equivalent**.
+> They were removed from the mandate on 2026-10-18 rather than left as an
+> instruction no agent can execute. Dagster work is covered by
+> `travelpal-dagster-resources`; Python quality and typing rules live in
+> **Conventions** below and are enforced by `ruff` + `ty` in CI. Do not re-add a
+> skill name here without a matching `SKILL.md` in `.claude/skills/`.
 
 ### Conventions
 
@@ -188,7 +197,7 @@ SORT priority DESC
 
 1. **Read before you write.** Load `AGENTS.md` (code rules included), `tech_product_Architecture.txt`, and your upstream agents' notes first.
 2. **Evidence over assertion.** Cite sources; distinguish *measured*, *estimated*, and *assumed*. Never invent metrics, quotes, or competitor prices.
-3. **Respect locked tech decisions** in the Code rules section (Python 3.14, Pydantic v2, Dagster, dbt+DuckDB, Iceberg/Nessie, SeaweedFS, React/DuckDB-WASM). Propose changes explicitly with rationale; do not silently assume a different stack. FastAPI (backend) and the ML library are *open* additions to be justified.
+3. **Respect locked tech decisions** in the Code rules section (Python 3.13, Pydantic v2, Dagster, dbt+DuckDB, Iceberg/Nessie, SeaweedFS, React/DuckDB-WASM). Propose changes explicitly with rationale; do not silently assume a different stack. FastAPI (backend) and the ML library are *open* additions to be justified.
 4. **Stay in your lane, name your handoffs.** Produce your artifact, then list what the next agent needs from you and what you need from them (wikilinks).
 5. **Draft status by default.** New notes are `status: draft`. Only the human moves a note to `approved`.
 6. **No code without the gate.** Recommendations are fine; implementation waits for the Pre-Code Gate (Code rules section) and explicit human approval.
