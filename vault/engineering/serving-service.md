@@ -14,7 +14,7 @@ Product framing (per PR #13): the app sells **"the best-fitting flight for your 
 
 ## Why FastAPI (open-stack justification)
 
-Stack is **Python 3.14** / Pydantic v2 (`CLAUDE.md`). FastAPI is the native fit: Pydantic v2 request/response models for free, async (matches `pyreqwest` fresh-signal pulls + async model calls), ASGI for low-latency online serving. Rejects the legacy Go gateway — a second language raises ops cost for no gain at our scale. **Marked: proposed addition, pending Pre-Code Gate.**
+Stack is **Python 3.14** / Pydantic v2 (`AGENTS.md`). FastAPI is the native fit: Pydantic v2 request/response models for free, async (matches `pyreqwest` fresh-signal pulls + async model calls), ASGI for low-latency online serving. Rejects the legacy Go gateway — a second language raises ops cost for no gain at our scale. **Marked: proposed addition, pending Pre-Code Gate.**
 
 ## Service structure — functional, small per-module files
 
@@ -132,5 +132,5 @@ Booking-time (no fresh signals) target p95 < 120 ms. Achieved by never touching 
 - [ ] Alert delivery channel (push/email) + scheduling — later phase. `#task/eng 🔽`
 
 ## Sources
-- Repo: `CLAUDE.md` (Python 3.14, Pydantic, no-Go), `pipeline/pipeline/assets/frontend_exports.py` (DuckDB S3 read pattern) — accessed 2026-08-10
+- Repo: `AGENTS.md` (Python 3.14, Pydantic, no-Go), `pipeline/pipeline/assets/frontend_exports.py` (DuckDB S3 read pattern) — accessed 2026-08-10
 - `~/.claude` common/patterns.md (API envelope), common/coding-style.md (many small files) — accessed 2026-08-10

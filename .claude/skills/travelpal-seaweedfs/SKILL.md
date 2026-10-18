@@ -1,6 +1,6 @@
 ---
 name: travelpal-seaweedfs
-description: Use when writing, modifying, or debugging any code that reads from or writes to SeaweedFS in the TravelPal pipeline — including boto3 client configuration, Parquet upload via SeaweedFSResource, public URL generation, bucket provisioning at startup, or moto mock setup for unit and integration tests. Also use when adding new ingest paths that must land Parquet in raw-flights or frontend-exports, when wiring DuckDB-WASM frontend access to SeaweedFS-hosted Parquet, or when diagnosing boto3 connection errors caused by missing endpoint_url.
+description: SeaweedFS S3 in TravelPal — boto3 endpoint_url config, Parquet upload, moto mocks, and raw-flights/frontend-exports buckets.
 ---
 
 # TravelPal SeaweedFS S3 Patterns

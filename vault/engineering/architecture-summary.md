@@ -86,5 +86,5 @@ Model consumes: **§A historical** base rates `(carrier,origin,dest,hour,dow,mon
 
 ## Sources
 - Repo vault [[research-summary]], [[personas]], [[competitors]], [[demand-evidence]] — accessed 2026-08-10
-- Codebase: `pipeline/`, `frontend/`, `docker-compose.yml`, `CLAUDE.md`, `LICENSING.md` — accessed 2026-08-10
+- Codebase: `pipeline/`, `frontend/`, `docker-compose.yml`, `AGENTS.md`, `LICENSING.md` — accessed 2026-08-10
 - [Cloudflare R2 Data Catalog](https://developers.cloudflare.com/r2/data-catalog/) — accessed 2026-08-10

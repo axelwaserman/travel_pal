@@ -22,7 +22,7 @@ updated: 2026-08-11
 predict(feature_vector: dict) -> DelayPrediction   # feature-contract §C
 ```
 - Model + calibration + feature_spec loaded **once at boot**; version resolved from `ml.model_registry` champion pointer or a pinned `MODEL_VERSION` env.
-- Model object validates the incoming vector against `feature_spec` (fail-fast on schema drift — `CLAUDE.md` input-validation).
+- Model object validates the incoming vector against `feature_spec` (fail-fast on schema drift — `AGENTS.md` input-validation).
 - Returns §C fields incl. `model_version`, `snapshot_id`, `calibration.brier` for the response `meta`.
 - **Sync, in-proc** answers the [[serving-service]] OQ "sync vs async model call": a CPU GBM needs no sidecar. (Async only if a future deep model forces a GPU sidecar.)
 

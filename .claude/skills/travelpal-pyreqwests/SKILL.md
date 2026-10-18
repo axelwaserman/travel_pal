@@ -1,6 +1,6 @@
 ---
 name: travelpal-pyreqwests
-description: Use when writing or reviewing HTTP client code in the TravelPal data pipeline, including OpenSky adapter implementation, retry middleware, or unit tests that mock HTTP responses.
+description: pyreqwests HTTP client in TravelPal — ClientBuilder setup, retry middleware, and unit tests that mock HTTP.
 ---
 
 # TravelPal pyreqwests Reference

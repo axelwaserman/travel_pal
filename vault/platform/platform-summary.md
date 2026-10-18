@@ -21,7 +21,7 @@ Run the system on **two platforms — Cloudflare (frontend + object storage + Ic
 | **Frontend SPA**           | **Cloudflare Pages**                                   | free, static; low lock-in                                                                                             |
 | **Public Parquet**         | **Cloudflare R2**                                      | **zero egress** — a viral free dataset costs $0 to serve; no 25 MiB static cap                                        |
 | **FastAPI prediction API** | **Fly.io** always-on shared-cpu-1x/2 GB                | ~$11/mo, meets p95, portable OCI, no lock-in                                                                          |
-| **DuckDB compute**         | embedded in FastAPI (serving) + Dagster worker (batch) | single-engine per `CLAUDE.md`; reads pre-materialized Parquet, never raw Iceberg on request path ([[iceberg-duckdb]]) |
+| **DuckDB compute**         | embedded in FastAPI (serving) + Dagster worker (batch) | single-engine per `AGENTS.md`; reads pre-materialized Parquet, never raw Iceberg on request path ([[iceberg-duckdb]]) |
 | **Dagster ETL**            | **self-host on Fly** + Neon Postgres                   | cheapest; no per-materialization credits; escape hatch = Dagster+ Solo $10/mo                                         |
 | **Object store + catalog** | **R2 + R2 Data Catalog**                               | one managed service replaces SeaweedFS (4 containers) + Nessie; ~$0 at scale (**beta — verify GA**)                   |
 | **Metadata DB**            | **Neon Free** (scale-to-zero)                          | $0; no expiry                                                                                                         |
@@ -71,4 +71,4 @@ Run the system on **two platforms — Cloudflare (frontend + object storage + Ic
 
 ## Sources
 
-All pricing cited in [[hosting-options]], [[orchestration-storage]], [[cost-model]] (accessed 2026-08-08; marked measured/estimated/assumed). Cross-refs: [[serving-service]], [[frontend-backend-split]], [[iceberg-duckdb]], [[ingestion-backfill]], [[unit-economics]], [[pricing-summary]]. Repo: `docker-compose.yml`, `CLAUDE.md`, `tech_product_Architecture.txt` — accessed 2026-08-08.
+All pricing cited in [[hosting-options]], [[orchestration-storage]], [[cost-model]] (accessed 2026-08-08; marked measured/estimated/assumed). Cross-refs: [[serving-service]], [[frontend-backend-split]], [[iceberg-duckdb]], [[ingestion-backfill]], [[unit-economics]], [[pricing-summary]]. Repo: `docker-compose.yml`, `AGENTS.md`, `tech_product_Architecture.txt` — accessed 2026-08-08.

@@ -34,6 +34,8 @@ test-results/
 # Per-session scratch
 SESSION_STATUS.md
 
-# Claude Code per-project state (settings, sessions); not source of truth
-.claude/
+# Claude Code per-project state (settings, sessions) — except skills, which are the shared source of truth
+.claude/*
+!.claude/skills/
+.claude/skills/synced/
 .claudeignore

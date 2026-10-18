@@ -1,6 +1,6 @@
 ---
 name: travelpal-testing-layers
-description: Use when writing, fixing, or reviewing tests for the TravelPal pipeline. Use when adding a new Dagster asset, dbt model, adapter, or export function and tests must be placed in the correct layer. Use when a test incorrectly performs real I/O in a unit test, or incorrectly mocks DuckDB in an integration test. Use when coverage is below 80% and the gap must be closed across all three layers.
+description: TravelPal test placement — unit (no I/O), integration (real DuckDB + moto), E2E (materialize); 80% coverage.
 ---
 
 # TravelPal Testing Layers

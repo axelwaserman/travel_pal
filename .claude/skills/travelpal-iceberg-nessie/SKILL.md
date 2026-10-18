@@ -1,6 +1,6 @@
 ---
 name: travelpal-iceberg-nessie
-description: Use when writing or modifying code that interacts with the PyIceberg + Project Nessie stack in TravelPal — including catalog initialization, namespace or table creation, schema definition, or schema evolution. Also use when debugging catalog connection failures, SeaweedFS S3 routing issues, or NestedField ID conflicts.
+description: PyIceberg + Nessie in TravelPal — REST catalog init, schema/NestedField IDs, and idempotent table creation.
 ---
 
 # TravelPal — PyIceberg + Project Nessie Patterns

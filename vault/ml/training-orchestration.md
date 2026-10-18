@@ -35,7 +35,7 @@ register_model ───────► write artifact + metadata to registry (b
 batch_score ──────────► precompute §A base-rate predictions for popular routes → Parquet/Redis (feeds Free/edge + online base)
 ```
 
-All resource params use `ResourceParam[X]`; `None`-returning upstreams wired via `AssetIn(dagster_type=Nothing)` (per `travelpal-dagster-resources`). New resource: `model_registry` (object-store-backed, below). Keep assets small/cohesive (`CLAUDE.md` file rules).
+All resource params use `ResourceParam[X]`; `None`-returning upstreams wired via `AssetIn(dagster_type=Nothing)` (per `travelpal-dagster-resources`). New resource: `model_registry` (object-store-backed, below). Keep assets small/cohesive (`AGENTS.md` file rules).
 
 ## Could an Arrow-backed store replace Redis for batch_score? (review 2026-08-10)
 
