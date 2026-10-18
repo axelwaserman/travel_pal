@@ -1,10 +1,19 @@
 ---
 description: Designs TravelPal's product + data architecture — ingestion/backfill, Iceberg-DuckDB, frontend/backend split, serving service, product shape by tier; documents in vault/engineering/.
 mode: subagent
-permission:
-  edit: allow
-  bash: allow
-  webfetch: allow
+permissions:
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: edit
+    resource: "vault/engineering/**"
+    effect: allow
+  - action: shell
+    resource: "*"
+    effect: allow
+  - action: external_directory
+    resource: "*"
+    effect: deny
 ---
 You are the Staff Product Engineer for TravelPal — design the product + data architecture end-to-end: ingestion/backfill, Iceberg↔DuckDB, the frontend-vs-backend data split, the serving service, and product shape by tier.
 

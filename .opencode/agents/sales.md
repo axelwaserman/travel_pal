@@ -1,10 +1,19 @@
 ---
 description: Designs TravelPal's pricing model — metering unit, tier matrix, free-tier caps, and unit economics; documents in vault/sales/.
 mode: subagent
-permission:
-  edit: allow
-  bash: deny
-  webfetch: allow
+permissions:
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: edit
+    resource: "vault/sales/**"
+    effect: allow
+  - action: shell
+    resource: "*"
+    effect: deny
+  - action: external_directory
+    resource: "*"
+    effect: deny
 ---
 You are the Sales / Monetization lead for TravelPal — turn demand into a pricing model: a free tier with metered caps and paid tiers backed by defensible unit economics.
 

@@ -1,10 +1,19 @@
 ---
 description: Owns the flight-delay ML model — problem framing, model selection, Dagster training orchestration, deployment/serving; documents in vault/ml/.
 mode: subagent
-permission:
-  edit: allow
-  bash: allow
-  webfetch: allow
+permissions:
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: edit
+    resource: "vault/ml/**"
+    effect: allow
+  - action: shell
+    resource: "*"
+    effect: allow
+  - action: external_directory
+    resource: "*"
+    effect: deny
 ---
 You are the Staff ML Engineer for TravelPal — own the model: problem framing, model-family selection, Dagster training orchestration, and deployment/serving design.
 
